@@ -3,48 +3,14 @@
  * UCI protocol layer, using a Node child-process transport in place of the
  * browser Worker (same engine file, same line protocol).
  */
-import { type ChildProcess, spawn } from 'node:child_process';
-import { copyFileSync, mkdtempSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import * as readline from 'node:readline';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { Engine, parseInfo, type UciTransport } from '../src/engine/engine';
+import { Engine, parseInfo } from '../src/engine/engine';
 import { EnginePool } from '../src/engine/pool';
+import { ChildProcessTransport, setupEngineFiles } from './helpers/transport';
 
-/** Node stand-in for the browser WorkerTransport. */
-class ChildProcessTransport implements UciTransport {
-  private proc: ChildProcess;
-  private cb: ((line: string) => void) | null = null;
-  constructor(enginePath: string) {
-    this.proc = spawn('node', [enginePath], { stdio: ['pipe', 'pipe', 'ignore'] });
-    const rl = readline.createInterface({ input: this.proc.stdout! });
-    rl.on('line', line => this.cb?.(line));
-  }
-  send(cmd: string): void {
-    this.proc.stdin!.write(cmd + '\n');
-  }
-  onLine(cb: (line: string) => void): void {
-    this.cb = cb;
-  }
-  terminate(): void {
-    this.proc.kill();
-  }
-}
-
-// The engine ships as ESM-incompatible CJS; copy it to a .cjs path so Node
-// runs it as CommonJS despite our package.json "type": "module".
 let enginePath: string;
 beforeAll(() => {
-  const here = dirname(fileURLToPath(import.meta.url));
-  const dir = mkdtempSync(join(tmpdir(), 'stockthink-sf-'));
-  enginePath = join(dir, 'stockfish.cjs');
-  copyFileSync(join(here, '../public/engine/stockfish-18-lite-single.js'), enginePath);
-  copyFileSync(
-    join(here, '../public/engine/stockfish-18-lite-single.wasm'),
-    join(dir, 'stockfish.wasm'),
-  );
+  enginePath = setupEngineFiles();
 });
 
 describe('parseInfo', () => {
