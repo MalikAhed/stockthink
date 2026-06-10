@@ -30,30 +30,53 @@ const esc = (s: string): string =>
 
 let busy = false;
 
+const AUTO_KEY = 'stockthink-ai-auto-reword';
+const autoEnabled = (): boolean => {
+  try {
+    return localStorage.getItem(AUTO_KEY) === '1';
+  } catch {
+    return false;
+  }
+};
+const setAuto = (on: boolean): void => {
+  try {
+    if (on) localStorage.setItem(AUTO_KEY, '1');
+    else localStorage.removeItem(AUTO_KEY);
+  } catch {
+    /* storage unavailable — auto just won't persist */
+  }
+};
+
 export function renderAiPanel(el: HTMLElement, ctx: AiPanelCtx): void {
   el.innerHTML = `
-    <details class="ai-panel">
-      <summary>AI commentary <span class="ai-tag">optional</span></summary>
-      <p class="ai-hint">The review above is engine-verified. These tools only re-word it —
-        they never re-analyze the game.</p>
-
-      <div class="ai-section">
-        <button id="ai-copy">Copy prompt for Claude / ChatGPT</button>
-        <p class="ai-hint">Paste it into a chat AI (free tier works), then paste the JSON
-          reply below.</p>
-        <textarea id="ai-import-text" rows="3" spellcheck="false"
-          placeholder='Paste the JSON reply here…'></textarea>
-        <button id="ai-import">Import commentary</button>
-      </div>
+    <details class="ai-panel" open>
+      <summary>Natural-language commentary <span class="ai-tag">free</span></summary>
+      <p class="ai-hint">The analysis above is engine-verified. These tools re-word it into
+        natural coaching prose — they never re-analyze the game, and every sentence is
+        fact-checked against the engine before it is shown.</p>
 
       <div class="ai-section">
         ${
           webGpuAvailable()
-            ? `<button id="ai-device">Generate on-device (~0.4 GB one-time download)</button>`
+            ? `<button id="ai-device">✨ Make the commentary natural (on-device AI)</button>
+               <label class="ai-hint"><input type="checkbox" id="ai-auto"${
+                 autoEnabled() ? ' checked' : ''
+               }> Do this automatically after every analysis</label>
+               <p class="ai-hint">Runs fully in your browser — one-time ~0.4 GB model download
+                 (re-downloads each time in incognito/private windows).</p>`
             : `<p class="ai-hint">On-device AI needs WebGPU, which this browser doesn't support.
-               The exchange above works everywhere.</p>`
+               The Claude exchange below works everywhere.</p>`
         }
         <div id="ai-progress" class="ai-hint"></div>
+      </div>
+
+      <div class="ai-section">
+        <button id="ai-copy">Copy prompt for Claude / ChatGPT</button>
+        <p class="ai-hint">Best prose quality: paste the prompt into claude.ai, then paste the
+          JSON reply below.</p>
+        <textarea id="ai-import-text" rows="3" spellcheck="false"
+          placeholder='Paste the JSON reply here…'></textarea>
+        <button id="ai-import">Import commentary</button>
       </div>
 
       <p id="ai-status" class="ai-hint"></p>
@@ -99,6 +122,11 @@ export function renderAiPanel(el: HTMLElement, ctx: AiPanelCtx): void {
 
   const deviceBtn = el.querySelector<HTMLButtonElement>('#ai-device');
   deviceBtn?.addEventListener('click', () => void runOnDevice());
+  const autoBox = el.querySelector<HTMLInputElement>('#ai-auto');
+  autoBox?.addEventListener('change', () => setAuto(autoBox.checked));
+  // Re-render after every analysis (initReview) — when auto is on, reword
+  // the fresh report without waiting for a click.
+  if (autoBox?.checked && deviceBtn) void runOnDevice();
 
   async function runOnDevice(): Promise<void> {
     const r = ctx.getReport();
@@ -119,7 +147,13 @@ export function renderAiPanel(el: HTMLElement, ctx: AiPanelCtx): void {
           if (p.done % 5 === 0) ctx.onCommentaryUpdated();
         });
         progress.textContent = '';
-        status(`On-device AI reworded ${rewritten} comments (fact-checked).`);
+        let note = '';
+        if (autoBox && !autoBox.checked) {
+          autoBox.checked = true;
+          setAuto(true);
+          note = ' Will run automatically next time — untick the box to disable.';
+        }
+        status(`On-device AI reworded ${rewritten} comments (fact-checked).${note}`);
         ctx.onCommentaryUpdated();
       } finally {
         await reworder.dispose();

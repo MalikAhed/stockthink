@@ -90,9 +90,11 @@ export function commentFor(move: MoveReport, facts: MoveFacts): Commentary {
     if (move.classification === 'miss' && move.bestSan)
       parts.push(renderMissedWin(move.bestSan, ex?.betterWas ?? null));
     else {
+      // Lead with the verified fact; when none fired, at least name the
+      // classification instead of opening with a bare "Xx was best."
       if (ex?.primary) parts.push(renderPrimary(ex.primary));
+      else parts.push(`${opener}.`);
       if (move.bestSan) parts.push(renderBetterWas(move.bestSan, ex?.betterWas ?? null));
-      if (parts.length === 0) parts.push(`${opener}.`);
     }
   } else if (ex?.primary) {
     parts.push(renderPrimary(ex.primary));
@@ -108,13 +110,15 @@ export function commentFor(move: MoveReport, facts: MoveFacts): Commentary {
     if (move.volatile)
       long.push('This is a sharp position — small errors are punished quickly.');
     if (isBad)
-      long.push(
-        `This move cost ${move.winDrop.toFixed(1)} win-percentage points` +
-          ` (${moverName(move.color)}'s winning chances fell).`,
-      );
+      long.push(`This cost ${moverName(move.color)} ${move.winDrop.toFixed(1)}% in winning chances.`);
     const bestLine = move.lines[0];
     if (move.bestSan && bestLine && bestLine.sanPv.length > 1 && !move.wasBest)
-      long.push(`The engine preferred ${move.bestSan}, e.g. ${bestLine.sanPv.join(' ')}.`);
+      // For bad moves the short text already names the best move — don't repeat it.
+      long.push(
+        isBad
+          ? `For example: ${bestLine.sanPv.join(' ')}.`
+          : `The engine preferred ${move.bestSan}, e.g. ${bestLine.sanPv.join(' ')}.`,
+      );
     else if (move.wasBest && bestLine && bestLine.sanPv.length > 1)
       long.push(`The main line continues ${bestLine.sanPv.slice(1).join(' ')}.`);
     const moverWin = move.color === 'white' ? move.winPercentAfter : 100 - move.winPercentAfter;
