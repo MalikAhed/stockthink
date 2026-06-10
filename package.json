@@ -1,0 +1,23 @@
+{
+  "name": "stockthink",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Free, fully client-side chess game analysis — chess.com-style Game Review powered by Stockfish in your browser.",
+  "type": "module",
+  "license": "GPL-3.0-or-later",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "chessground": "^9.1.1",
+    "chessops": "^0.14.2"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.4",
+    "vite": "^5.4.11",
+    "vitest": "^1.6.0"
+  }
+}
