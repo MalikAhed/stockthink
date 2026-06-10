@@ -1,0 +1,577 @@
+
+====================================================================================================
+=== CHESSCOM ===
+--- SUMMARY ---
+Chess.com's Game Review classifies moves via an "Expected Points Model": win probability (0.00–1.00) derived from engine eval AND player rating (rating-adjusted since the Feb-2025 CAPS2 update). The official support article publishes the expected-points-LOST ladder: Best=0.00, Excellent 0–0.02, Good 0.02–0.05, Inaccuracy 0.05–0.10, Mistake 0.10–0.20, Blunder 0.20–1.00. So it is win-probability-loss based, not raw centipawn-loss. Special classifications sit outside the table: Brilliant = a good piece sacrifice where you are not bad afterwards and were not already completely winning; Great = best/near-best move that is "critical to the outcome" (only good move / turning point); Miss = failing to punish an opponent's mistake (Ø glyph). Accuracy is CAPS2 (trade secret): each move scored by category, "mostly averaged" with adjustments for mate-distance and reduced penalty for repeated blunders; book moves count as best; scores deliberately redistributed to a 50–95 "academic grading" feel; engine depth varies with player strength.
+
+Open-source reverse-engineerings, all fetched verbatim from raw source: (1) WintrCat/freechess (the classic "Game Report", CC BY-NC-SA 4.0 — NOT code-license-friendly): pure-centipawn quadratic thresholds via getEvaluationLossThreshold(), mate-transition decision tables, Brilliant via hand-rolled isPieceHanging/getAttackers/getDefenders sacrifice detection (non-pawn non-king piece left hanging, capture not refuted by pins/mate-in-1, not winning anyway i.e. 2nd line < +700, eval ≥ 0, no promotion, not in check), Great = previous move was Blunder + top-vs-2nd-line gap ≥ 150cp + moved piece not hanging, accuracy = mean of per-classification values (blunder 0 … best 1) ×100. No Miss. (2) WintrCat/wintrchess (successor, GPL-3.0): expected points = 1/(1+e^(−0.0035·cp)); point-loss ladder Best<0.01, Excellent<0.045, Okay<0.08, Inaccuracy<0.12, Mistake<0.22, else Blunder; "Critical" (=Great) requires top move played + 2nd-best move would lose ≥0.10 expected points + not free-material capture + not having mate; Brilliant via unsafe/trapped-piece analysis; per-move accuracy 103.16·e^(−4·pointLoss)−3.17, game accuracy = plain mean per side. (3) Guilla
+--- RECOMMENDATION ---
+Build StockThink's classifier on the win-probability stack, not raw centipawns: (1) convert Stockfish cp to Win% with the verified Lichess formula (clamp cp to ±1000, mate = ±1000cp; for terminal mate use 100/0 like Chesskit); (2) classify with chess.com's OFFICIAL expected-points-lost table (Best 0, Excellent ≤0.02, Good ≤0.05, Inaccuracy ≤0.10, Mistake ≤0.20, Blunder >0.20 — divide Win% diff by 100 to get expected points), giving an authentic chess.com feel with publicly documented thresholds; (3) Book = position FEN found in an openings.json (bundle the same Lichess openings TSV freechess/Chesskit use); Forced = only one legal move; checkmate delivered = Best. For Brilliant, re-implement (clean-room) the freechess algorithm — it is the best-documented heuristic: top/near-top move, eval ≥ 0 for mover, second-best line < +700cp ("not winning anyway"), no promotion, not escaping check, leaves a non-pawn piece "hanging" per the isPieceHanging/attacker-defender rules, with the pin/mate-in-1 refutation pass — but DO NOT copy freechess code (CC BY-NC-SA 4.0 is incompatible with a normal code license); Chesskit's simpler sacrifice test (AGPL) is an alternative if StockThink itself goes 
+--- HIGH-CONFIDENCE FACTS (17) ---
+ * chess.com classification is win-probability based ('Expected Points', rating-dependent). Official expected-points-LOST thresholds: Best 0.00, Excellent 0.00–0.02, Good 0.02–0.05, Inaccuracy 0.05–0.10, Mistake 0.10–0.20, Blunder 0.20–1.00
+ * chess.com Brilliant = good piece sacrifice + not in a bad position after the move + not already completely winning; Great = best/near-best move critical to game outcome; Miss = failed to capitalize on opponent's mistake; all rating-adjusted
+ * CAPS2 (chess.com accuracy) is a trade secret: per-move category scores 'mostly averaged', adjusted for mate-distance and reduced multi-blunder penalty; book moves scored as best; engine depth varies by player strength; scores redistributed so most players land
+ * freechess classification logic lives in src/lib/classification.ts + src/lib/analysis.ts + src/lib/board.ts; thresholds are quadratic functions of |prevEval| in centipawns (e.g. Excellent threshold = 0.0002·prevEval² + 0.1231·prevEval + 27.5455)
+ * freechess Great move = previous position classified BLUNDER + |topEval − secondTopEval| ≥ 150cp + destination piece not hanging + no mate involved; Brilliant requires eval ≥ 0 for mover, 2nd-best line < +700cp, no promotion, non-pawn piece left capturable ('ha
+ * freechess accuracy = arithmetic mean of per-move classification values ×100 (blunder 0, mistake 0.2, inaccuracy 0.4, good 0.65, excellent 0.9, best/great/brilliant/book/forced 1) — NOT chess.com's method
+ * freechess LICENSE is CC BY-NC-SA 4.0 (NonCommercial-ShareAlike) — verbatim code reuse forces NC-SA terms; do not copy code, only re-implement the (uncopyrightable) thresholds/algorithm ideas
+ * wintrchess (successor, GPL-3.0) switched to expected points = 1/(1+exp(−0.0035·cp)); point-loss ladder: <0.01 Best, <0.045 Excellent, <0.08 Okay, <0.12 Inaccuracy, <0.22 Mistake, else Blunder (shared/src/lib/reporter/classification/pointLoss.ts)
+ * wintrchess 'Critical' (its Great equivalent) = top move played + expected-points loss of 2nd-best line ≥ 0.1 + not a capture of free material + you don't have forced mate; move accuracy = 103.16·exp(−4·pointLoss) − 3.17 (lichess curve rescaled to 0–1 expected 
+ * Lichess Win% = 50 + 50·winningChances, winningChances = 2/(1+exp(−0.00368208·cp)) − 1, with cp clamped to ±1000 and mate mapped to ±1000cp — candidate fact CONFIRMED verbatim in scalachess core/src/main/scala/eval.scala
+ * Lichess Inaccuracy/Mistake/Blunder = winning-chances delta ≥ 0.1 / 0.2 / 0.3 on the [−1,1] scale (= 5/10/15 Win% points); mate-related: allowing or losing forced mate = Blunder, downgraded to Mistake if already past ±700cp and Inaccuracy past ±999cp; a slower 
+ * Lichess move Accuracy% = 103.1668100711649·exp(−0.04354415386753951·winDiff) − 3.166924740191411 + 1 (uncertainty bonus), clamped [0,100]; winDiff in Win% points; 100 if position improved — candidate formula CONFIRMED (lila modules/analyse/src/main/AccuracyPer
+ * Lichess game accuracy = (volatility-weighted mean + harmonic mean)/2 of per-move accuracies; sliding window size = clamp(numMoves/10, 2, 8); weight = stdev of Win% in window clamped to [0.5, 12]
+ * Chesskit (chesskit.org, AGPL-3.0) is the cleanest client-side TS reference: ladder on Win% diff (<−20 Blunder, <−10 Mistake, <−5 Inaccuracy, <−2 Okay, else Excellent); 'Splendid'=Brilliant needs sacrifice + winDiff ≥ −2 + not losing + alternative line ≤ 97% wi
+ * Estimated game Elo in Chesskit: eloFromAcpl = 3100·exp(−0.01·acpl); if player rating known: estElo = rating·exp(−0.005·(gameCpl − expectedCplForRating)) where expectedCpl = −100·ln(min(rating,3100)/3100); ACPL per move capped at 1000
+ * freechess applies softening rules: a Blunder is downgraded to Good if mover is still ≥ +600cp after the move, or was already ≤ −600cp before it; first moves matching its openings.json book (or cloud-eval positions) are reclassified as Book
+ * Licensing: lila & Chesskit are AGPL-3.0, wintrchess GPL-3.0, freechess CC BY-NC-SA 4.0. Formulas/constants are facts (not copyrightable) and can be re-implemented in an MIT/Apache StockThink, but copying code verbatim triggers copyleft/NC obligations
+--- CODE SNIPPETS (8713 chars, showing up to 4500) ---
+/* ================= 1. chess.com OFFICIAL (support article 8572705) =================
+Expected Points Model: win chance 0.00–1.00 from rating + engine eval.
+Expected points LOST per classification:
+  Best        0.00 – 0.00
+  Excellent   0.00 – 0.02
+  Good        0.02 – 0.05
+  Inaccuracy  0.05 – 0.10
+  Mistake     0.10 – 0.20
+  Blunder     0.20 – 1.00
+Brilliant: "when you find a good piece sacrifice"; must not be in a bad position after; must not be already completely winning; rating-adjusted.
+Great: critical to the outcome (e.g., losing->equal/winning); best or nearly best; rating-adjusted.
+Miss: "when you fail to capitalize on your opponent's mistake". */
+
+/* ================= 2. freechess (WintrCat) src/lib/classification.ts — VERBATIM ================= */
+export const classificationValues = {
+    "blunder": 0, "mistake": 0.2, "inaccuracy": 0.4, "good": 0.65, "excellent": 0.9,
+    "best": 1, "great": 1, "brilliant": 1, "book": 1, "forced": 1
+};
+export function getEvaluationLossThreshold(classif, prevEval) {
+    prevEval = Math.abs(prevEval);
+    let threshold = 0;
+    switch (classif) {
+        case Classification.BEST:
+            threshold = 0.0001 * Math.pow(prevEval, 2) + (0.0236 * prevEval) - 3.7143; break;
+        case Classification.EXCELLENT:
+            threshold = 0.0002 * Math.pow(prevEval, 2) + (0.1231 * prevEval) + 27.5455; break;
+        case Classification.GOOD:
+            threshold = 0.0002 * Math.pow(prevEval, 2) + (0.2643 * prevEval) + 60.5455; break;
+        case Classification.INACCURACY:
+            threshold = 0.0002 * Math.pow(prevEval, 2) + (0.3624 * prevEval) + 108.0909; break;
+        case Classification.MISTAKE:
+            threshold = 0.0003 * Math.pow(prevEval, 2) + (0.4027 * prevEval) + 225.8182; break;
+        default: threshold = Infinity;
+    }
+    return Math.max(threshold, 0);
+}
+
+/* freechess src/lib/analysis.ts — key logic (verbatim excerpts):
+evalLoss = Math.min(evalLoss, cutoffEvalLoss, lastLineEvalLoss);  // best of 3 measures
+if (!secondTopMove) classification = FORCED;
+if (topMove.moveUCI == position.move.uci) classification = BEST;
+else if (noMate) { for (classif of [BEST,EXCELLENT,GOOD,INACCURACY,MISTAKE,BLUNDER])
+    if (evalLoss <= getEvaluationLossThreshold(classif, previousEvaluation.value)) { classification = classif; break; } }
+// cp -> mate (you allowed/created mate): eval>0 BEST; >=-2 BLUNDER; >=-5 MISTAKE; else INACCURACY
+// mate -> cp (you lost a forced mate): if was losing mate & still losing -> BEST; >=400 GOOD; >=150 INACCURACY; >=-100 MISTAKE; else BLUNDER
+// mate -> mate (winning side): faster/equal-or-shorter mate BEST; <= prev+2 EXCELLENT; else GOOD; (going from winning mate to losing mate: <=-4 MISTAKE else BLUNDER)
+
+// BRILLIANT (only if currently BEST):
+let winningAnyways = (absoluteSecondEvaluation >= 700 && topMove.evaluation.type == "cp")
+    || (topMove.evaluation.type == "mate" && secondTopMove.evaluation.type == "mate");
+if (absoluteEvaluation >= 0 && !winningAnyways && !position.move.san.includes("=")) {
+    if (lastBoard.isCheck()) continue; // no brilliant while escaping check
+    // scan all own non-king non-pawn pieces; skip if piece just captured >= candidate value ("better trade elsewhere")
+    if (isPieceHanging(lastPosition.fen, position.fen, piece.square)) classification = BRILLIANT;
+    // REFUTATION pass: simulate every capture of every sacrificed piece (incl. promotions);
+    //  - if capture leaves an enemy piece of >= sacrificed value hanging (attacker pinned) -> not a real capture
+    //  - if sacrificed piece value >= 5 (rook+): viable capture cancels brilliant regardless of mate-in-1
+    //  - if < rook: capture only viable if it does NOT allow mate-in-1 (moves().some(m => m.endsWith("#")))
+    if (!anyPieceViablyCapturable) classification = BEST; // revert
+}
+// GREAT:
+if (noMate && classification != BRILLIANT
+    && lastPosition.classification == Classification.BLUNDER
+    && Math.abs(topMove.evaluation.value - secondTopMove.evaluation.value) >= 150
+    && !isPieceHanging(lastFen, fen, moveDestSquare)) classification = GREAT;
+// Softening:
+if (classification == BLUNDER && absoluteEvaluation >= 600) classification = GOOD;
+if (classification == BLUNDER && previousAbsoluteEvaluation <= -600 && bothCp) classification = GOOD;
+// Accuracy: accuracies[colour].current += classificationValues[classification]; accuracy% = current/maximum*100
+
+// board.ts: pieceValues = { p:1, n:3, b:3, r:5, q:9, k:Infinity, m:0 };
+// isPieceHanging: no
+
+====================================================================================================
+=== EVALBAR ===
+--- SUMMARY ---
+Lichess (lila) is the only major site with public eval-bar code, and it is fully extracted here. The pipeline is: (1) UCI parse layer converts side-to-move scores to white perspective; (2) a sigmoid ("winning chances") maps cp to [-1,1]; (3) the bar renders a single black div whose height% = 100 - (chances+1)*50, smoothed purely by CSS `transition: height 1s`.
+
+The sigmoid (ui/lib/src/ceval/winningChances.ts): chances = 2/(1+exp(-0.00368208*cp)) - 1, with cp clamped to [-1000, 1000]. The constant was fit (PR #11148, scipy curve_fit) to 75k positions from 2300+ rapid games in the June 2022 lichess database, replacing the older -0.004. Lichess's published Win% (accuracy page) is the same function scaled: Win% = 50 + 50*(2/(1+exp(-0.00368208*cp))-1). Mate scores are mapped to a synthetic cp = (21 - min(10,|mate|))*100, signed — so M1→2000cp (chances 0.9987, bar 99.94% full), M10+→1100cp (0.9657, 98.3%). Because cp is clamped at 1000 (chances 0.9509, bar max 97.55% for non-mate), any forced mate always fills more than any cp eval, yet the bar is never pinned at 100% and still shrinks slightly as mate distance grows; the numeric label shows "#N". Game-over (mate 0) is filtered at parse time (`if (isMate && !povEv) return`).
+
+Perspective: per the UCI spec, "cp [is] the score from the engine's point of view" (side to move at search root) and "mate in y moves, not plies; if the engine is getting mated use negative values". Lila converts to white-POV in protocol.ts: `const pivot = this.work.threatMode ? 0 : 1; const ev = this.work.ply % 2 === pivot ? -povEv : povEv;` (odd ply = black to move = negate; threat mode flips the pivot because a null move was injected). Board flipping never touches the math: renderGauge always computes povChances('white', ev) and adds class `reverse` when orientation is black, which CSS flips with `transform: rotateX(180deg)`. When no eval is available the gauge keeps the last value (`gaugeLast`) and dims via `.empty { opacity: 0.5 }`. Mid-search, every streamed `info` line re-renders the gauge and the 1s CSS transition absorbs depth-to-depth jumps.
+
+Stockfish's native WDL: `win_rate_model(v,pos) = int(0.5 + 1000/(1+exp((a - v)/b)))` where a,b 
+--- RECOMMENDATION ---
+Adopt the lichess approach wholesale — it is proven, public, and trivially portable. Concretely: (1) Normalize signs once, at the UCI parse layer: Stockfish reports cp/mate from the side-to-move's perspective, so whiteEval = (stm === 'w') ? ev : -ev; store everything white-POV from then on (if you ever add a 'show threat' null-move search, flip the pivot like lila does). (2) Bar fill: port winningChances.ts verbatim — chances = 2/(1+exp(-0.00368208*clamp(cp,-1000,1000)))-1; mate via cpEquiv = sign(mate)*(21-min(10,|mate|))*100 through the unclamped sigmoid; blackDivHeight% = 100-(chances+1)*50. This gives chess.com-like behavior for free: forced mate renders a nearly-full bar (98.3–99.9%) that always exceeds any cp eval; label the bar 'M5'/'#5' for mate, '+2.3' otherwise, and '1-0'/'0-1' on actual game end (drop UCI 'mate 0'). Reuse the same povChances/povDiff for move classification deltas — lichess uses one function for gauge, graph, and accuracy, and StockThink should too. (3) Smoothing: do zero JS interpolation; set CSS transition: height 0.6–1s on the fill div and just re-render on each streamed 'info' line (throttle DOM writes to ~100-250ms); keep the last value with a dimmed
+--- HIGH-CONFIDENCE FACTS (15) ---
+ * Lichess winning chances formula (current master, ui/lib/src/ceval/winningChances.ts): chances = 2/(1+Math.exp(-0.00368208*cp)) - 1, with cp clamped to [-1000,1000] before applying; result in [-1,1] from white's POV via toPov sign flip
+ * Lichess published Win% = 50 + 50 * (2 / (1 + exp(-0.00368208 * centipawns)) - 1); identical sigmoid scaled to 0-100
+ * The -0.00368208 multiplier was fit via scipy.optimize.curve_fit to 75,000 positions from 2300+ rated rapid games (June 2022 lichess database), replacing old -0.004 (lila PR #11148)
+ * Lichess mate-to-bar mapping: synthetic cp = (21 - Math.min(10, Math.abs(mate))) * 100, signed by mate sign, then fed through the unclamped sigmoid. M1 = 2000cp-equiv (bar 99.94% full); M10+ = 1100cp-equiv (98.3%); max non-mate fill is 97.55% (cp clamp 1000) — 
+ * Lichess gauge render: black div height = `100 - (ev + 1) * 50` % where ev = povChances('white', bestEv); keeps gaugeLast when eval missing (class 'empty'); adds class 'reverse' when orientation === 'black'
+ * Lichess gauge smoothing is pure CSS: `.black { transition: height 1s; }`; orientation flip is pure CSS: `.reverse { transform: rotateX(180deg); }`; empty state `.empty { opacity: 0.5; }`; file ui/lib/css/ceval/_eval-gauge.scss
+ * UCI spec: 'cp = the score from the engine's point of view in centipawns'; 'mate = mate in y moves, not plies. If the engine is getting mated use negative values for y'. Scores are from the side to move at the search-root position
+ * Lila white-POV conversion (ui/lib/src/ceval/protocol.ts lines 119-120): `const pivot = this.work.threatMode ? 0 : 1; const ev = this.work.ply % 2 === pivot ? -povEv : povEv;` — odd ply = black to move = negate; threatMode flips pivot due to injected null move.
+ * Stockfish win_rate_model (src/uci.cpp): returns int(0.5 + 1000/(1+std::exp((a - double(v))/b))) per-mille; a,b are degree-3 polynomials in m = clamp(material,17,78)/58.0, material = P + 3N + 3B + 5R + 9Q; coefficients as[]={-72.32565836,185.93832038,-144.58862
+ * Stockfish UCI 'wdl' info field = 'w d l' per-mille from side-to-move POV: wdl_w = win_rate_model(v), wdl_l = win_rate_model(-v), wdl_d = 1000 - w - l; enabled with setoption name UCI_ShowWDL value true
+ * UCI_ShowWDL docs: 'WDL numbers model expected game outcomes for a given evaluation and game ply for engine self-play at fishtest LTC conditions (60+0.6s per game)' — i.e., self-play, not human, win rates
+ * Since SF 15.1, reported cp is normalized: UCIEngine::to_cp(v,pos) = round(100 * v / a) so '100 centipawns' = 50% self-play win probability at fishtest LTC; this means SF's own cp scale is already win-prob anchored and differs from classical pawn-unit evals the
+ * UCI_ShowWDL and win_rate_model are present in nmrugg/stockfish.js (the standard browser WASM build) src/uci.cpp — native WDL is available client-side with no server
+ * Freechess (open-source chess.com Game Review clone) eval bar uses a LINEAR clamp, not a sigmoid: blackHeight = Math.max(Math.min(totalHeight/2 - evaluation.value/3, totalHeight), 0) with totalHeight = 730px (saturates at ±1095cp); on mate: full bar via setEval
+ * Lichess mid-search behavior: renderGauge re-runs on every parsed streaming 'info' line (each depth/multipv update) and the 1s CSS height transition absorbs the jumps; no JS-side interpolation or easing exists
+--- CODE SNIPPETS (5815 chars, showing up to 4500) ---
+// ============ 1. lichess lila: ui/lib/src/ceval/winningChances.ts (verbatim, master) ============
+const toPov = (color: Color, diff: number): number => (color === 'white' ? diff : -diff);
+/**
+ * https://github.com/lichess-org/lila/pull/11148
+ */
+const rawWinningChances = (cp: number): WinningChances => {
+  const MULTIPLIER = -0.00368208; // https://github.com/lichess-org/lila/pull/11148
+  return 2 / (1 + Math.exp(MULTIPLIER * cp)) - 1;
+};
+const cpWinningChances = (cp: number): WinningChances =>
+  rawWinningChances(Math.min(Math.max(-1000, cp), 1000));
+const mateWinningChances = (mate: number): WinningChances => {
+  const cp = (21 - Math.min(10, Math.abs(mate))) * 100;
+  const signed = cp * (mate > 0 ? 1 : -1);
+  return rawWinningChances(signed);
+};
+const evalWinningChances = (ev: EvalScore): WinningChances =>
+  typeof ev.mate !== 'undefined' ? mateWinningChances(ev.mate) : cpWinningChances(ev.cp!);
+// winning chances for a color: 1 infinitely winning, -1 infinitely losing
+export const povChances = (color: Color, ev: EvalScore): WinningChances =>
+  toPov(color, evalWinningChances(ev));
+// difference in winning chances between two evaluations, in [-1, 1]
+export const povDiff = (color: Color, e1: EvalScore, e2: EvalScore): number =>
+  (povChances(color, e1) - povChances(color, e2)) / 2;
+
+// ============ 2. lichess published Win% (lichess.org/page/accuracy) ============
+// Win% = 50 + 50 * (2 / (1 + exp(-0.00368208 * centipawns)) - 1)
+
+// ============ 3. lichess gauge render: ui/lib/src/ceval/view/main.ts (verbatim) ============
+let gaugeLast = 0;
+let gaugeTicks: VNode[];
+export function renderGauge(ctrl: CevalHandler): VNode | undefined {
+  if (ctrl.ongoing || !ctrl.showEvalGauge()) return;
+  gaugeTicks ??= [...Array(8).keys()].map(i =>
+    hl(i === 3 ? 'tick.zero' : 'tick', { attrs: { style: `height: ${(i + 1) * 12.5}%` } }),
+  );
+  const bestEv = getBestEval(ctrl);
+  let ev;
+  if (bestEv) {
+    ev = povChances('white', bestEv);
+    gaugeLast = ev;
+  } else ev = gaugeLast;
+  return hl(
+    'div.eval-gauge',
+    { class: { empty: !defined(bestEv), reverse: ctrl.getOrientation() === 'black' } },
+    [hl('div.black', { attrs: { style: `height: ${100 - (ev + 1) * 50}%` } }), gaugeTicks],
+  );
+}
+
+// ============ 4. lichess gauge CSS: ui/lib/css/ceval/_eval-gauge.scss (key rules, verbatim) ============
+// .eval-gauge { background: #c0c0c0; overflow: hidden;
+//   &.empty { opacity: 0.5; }
+//   &.reverse { transform: rotateX(180deg); }
+//   .black { width: 100%; height: 50%; transition: height 1s; background: #444; } }
+
+// ============ 5. lichess UCI parse + white-POV sign flip: ui/lib/src/ceval/protocol.ts (verbatim lines) ============
+// case 'score':
+//   isMate = parts[++i] === 'mate';
+//   povEv = parseInt(parts[++i]);
+//   if (parts[i + 1] === 'lowerbound' || parts[i + 1] === 'upperbound') evalType = parts[++i];
+//   break;
+// ...
+// if (isMate && !povEv) return;            // drop "mate 0" (game over)
+// const pivot = this.work.threatMode ? 0 : 1;
+// const ev = this.work.ply % 2 === pivot ? -povEv : povEv;   // odd ply = black to move => negate
+// ... { cp: isMate ? undefined : ev, mate: isMate ? ev : undefined }
+
+// ============ 6. UCI protocol spec (verbatim) ============
+// "cp  the score from the engine's point of view in centipawns."
+// "mate  mate in y moves, not plies. If the engine is getting mated use negativ values for y."
+
+// ============ 7. Stockfish master src/uci.cpp (verbatim; also present in nmrugg/stockfish.js) ============
+WinRateParams win_rate_params(const Position& pos) {
+    int material = pos.count<PAWN>() + 3 * pos.count<KNIGHT>() + 3 * pos.count<BISHOP>()
+                 + 5 * pos.count<ROOK>() + 9 * pos.count<QUEEN>();
+    double m = std::clamp(material, 17, 78) / 58.0;
+    constexpr double as[] = {-72.32565836, 185.93832038, -144.58862193, 416.44950446};
+    constexpr double bs[] = {83.86794042, -136.06112997, 69.98820887, 47.62901433};
+    double a = (((as[0] * m + as[1]) * m + as[2]) * m) + as[3];
+    double b = (((bs[0] * m + bs[1]) * m + bs[2]) * m) + bs[3];
+    return {a, b};
+}
+int win_rate_model(Value v, const Position& pos) {
+    auto [a, b] = win_rate_params(pos);
+    return int(0.5 + 1000 / (1 + std::exp((a - double(v)) / b)));   // per-mille win prob, stm POV
+}
+std::string UCIEngine::wdl(Value v, const Position& pos) {
+    std::stringstream ss;
+    int wdl_w = win_rate_model(v, pos);
+    int wdl_l = win_rate_model(-v, pos);
+    int wdl_d = 1000 - wdl_w - wdl_l;
+    ss << wdl_w << 
+
+====================================================================================================
+=== PRIORART ===
+--- SUMMARY ---
+Surveyed all notable open-source chess.com-style game review prior art, reading actual source code. (1) wintrcat/freechess (842 stars, ABANDONED, license CC BY-NC-SA 4.0 — NonCommercial/ShareAlike, NOT reusable in a permissively-licensed project; ideas/algorithms are fine, verbatim code is not). Its Express server is trivial (PGN parse + classification + reCAPTCHA); all Stockfish evaluation already runs in the BROWSER via up to 8 single-threaded stockfish.js web workers plus free no-key Lichess cloud-eval (multiPv=2) for opening positions — proving a 100% static GitHub Pages version is feasible. Classification uses quadratic centipawn-loss thresholds as functions of |prevEval|, special mate-transition tables, brilliant = winning-side sacrifice of a hanging piece that can't be viably captured, great = punishing a blunder when top-2 engine moves differ ≥150cp; accuracy = naive mean of per-class point values (blunder 0…best 1)×100 — NOT chess.com's method. No natural-language commentary at all (only badges, opening names, engine lines). Known issues: brilliant false positives (#13), F5 breaks page (#38), UI overlaps. (2) Successor wintrcat/wintrchess (205 stars, GPL-3.0) is the most refined clone: expected-points (logistic 1/(1+e^(-0.0035cp))) loss thresholds Best<0.01/Excellent<0.045/Okay<0.08/Inaccuracy<0.12/Mistake<0.22/else Blunder; adds CRITICAL (only-good-move: 2nd-best line loses ≥0.1 EP) and a piece-safety/trapped-piece-based brilliant detector; move accuracy = 103.16·e^(−4·EPloss)−3.17. (3) GuillaumeSD/Chesskit (380 stars, AGPL-3.0, Next.js): analysis fully client-side with bundled single-threaded Stockfish 11–18 WASM; uses Lichess win% formula (50+50·(2/(1+e^(−0.00368208·cp))−1), cp clamped ±1000, mate→100/0); win%-diff classes Blunder<−20/Mistake<−10/Inaccuracy<−5/Okay<−2/else Excellent; Splendid(brilliant)=sacrifice+≤2% drop+not losing+alternative not >97%; Perfect(great)=outcome flip across 50% or only-good-move (+10%), excluding simple recaptures; accuracy is a faithful port of Lichess lila (weighted+harmonic mean) plus ACPL→Elo estimate 3100·e^(−0.01·ACPL). (4) Lichess lila (AGPL-3.0): accuracy 103.1668·e^(−0.043544·winDiff)−3.1669+1; game accuracy =
+--- RECOMMENDATION ---
+1) Architecture: go fully static — prior art proves it. freechess already evaluates entirely in-browser (its server only parses PGN and runs a pure chess.js analyse(); both trivially run client-side), and Chesskit ships Stockfish WASM in public/ with all classification/accuracy in client TS. Use single-threaded Stockfish WASM builds (e.g. 'lite-single' NNUE, ~6MB) because GitHub Pages cannot serve COOP/COEP headers for SharedArrayBuffer multithreading; parallelize like freechess with N (4-8) single-threaded Workers each owning one FEN, with MultiPV=2 (required for Great/Brilliant/only-move logic). Optionally pre-fill opening plies from the free, key-less Lichess cloud-eval API (multiPv=2) and tag them Book, with graceful fallback on 404/429. 2) Licensing: do NOT copy freechess code (CC BY-NC-SA 4.0, incompatible and non-commercial); its thresholds/algorithms may be reimplemented as uncopyrightable methods but prefer not to — its quadratic-cp 'WTF Algorithm' and naive accuracy are the weakest of the surveyed designs anyway. Base classification on the Lichess win% model (Win% = 50+50*(2/(1+e^(-0.00368208cp))-1), accuracy 103.1668·e^(−0.043544·winDiff)−3.1669+1, weighted+harmonic game
+--- HIGH-CONFIDENCE FACTS (22) ---
+ * freechess is licensed CC BY-NC-SA 4.0 (NonCommercial, ShareAlike) — verbatim code reuse is incompatible with MIT/GPL hosting of StockThink; reimplement algorithms instead (LICENSE file, 20,849 bytes, title 'Creative Commons Attribution-NonCommercial-ShareAlike
+ * freechess is abandoned (readme says so), 842 stars, 213 forks; successor is wintrchess
+ * freechess architecture: Express server only does POST /api/parse (chess.js PGN->FENs) and POST /api/report (pure-TS analyse() + reCAPTCHA). ALL Stockfish evaluation runs client-side: lichess cloud-eval API (https://lichess.org/api/cloud-eval?fen=...&multiPv=2,
+ * freechess classifications: brilliant/great/best/excellent/good/inaccuracy/mistake/blunder/book/forced (NO 'miss'); accuracy = mean of per-move classification values (blunder 0, mistake 0.2, inaccuracy 0.4, good 0.65, excellent 0.9, rest 1.0) x100 — much cruder
+ * freechess centipawn classification uses quadratic eval-loss thresholds in |prevEval| (self-described '// WTF Algorithm'), e.g. MISTAKE threshold = 0.0003*prevEval^2 + 0.4027*prevEval + 225.8182 centipawns; plus hard-coded mate-transition tables; blunder is dow
+ * freechess GREAT move rule: previous move classified blunder AND |top1−top2| >= 150cp AND moved piece not hanging; BRILLIANT rule: eval >= 0 for mover, not winning anyway (2nd line < +700cp), non-promotion, leaves a non-pawn piece sacked/hanging whose every cap
+ * freechess has NO natural-language commentary — report shows badges, accuracies, opening name, engine line SANs only; known open issues: brilliant false positives (#13), site breaks on refresh (#38), overlapping UI (#53, #34), reCAPTCHA bug (#60)
+ * wintrchess (successor, 205 stars) is GPL-3.0, monorepo client(React+TS)/server/shared; all classification logic is in shared/src/lib/reporter (pure TS + chess.js, portable to browser)
+ * wintrchess classifies via expected-points loss (logistic 1/(1+exp(-0.0035*cp)); mate=>0/1): Best<0.01, Excellent<0.045, Okay<0.08, Inaccuracy<0.12, Mistake<0.22, else Blunder; enum adds CRITICAL (= chess.com Great: top move played, not free capture, 2nd-best l
+ * Chesskit (380 stars, AGPL-3.0, Next.js/React/MUI) runs game review fully client-side with bundled single-threaded Stockfish WASM builds (11, 16, 16.1, 17, 17.1, 18 incl. '-lite-single' ~6MB versions) in public/engines — the pattern proves multi-engine-version 
+ * Chesskit classification (win% scale): Blunder < -20, Mistake < -10, Inaccuracy < -5, Okay < -2, else Excellent; Best if played == bestMove; Splendid (brilliant) = piece sacrifice + winDiff >= -2 + mover not losing + alternative line not >97% winning; Perfect (
+ * Lichess win% formula (used by Chesskit, en-croissant, wintrchess variant): Win% = 50 + 50*(2/(1+exp(-0.00368208*cp)) - 1), cp clamped to ±1000; mate => 100 or 0 (Chesskit) or via cp=(21-min(10,|mate|))*100 (lila client)
+ * Lichess accuracy: per-move = clamp(103.1668100711649*exp(-0.04354415386753951*winDiff) - 3.166924740191411 + 1, 0, 100); game accuracy = mean(volatility-weighted mean, harmonic mean) where window size = (#moves/10) clamped [2,8] and weight = stddev of window w
+ * Lichess judgments: Inaccuracy/Mistake/Blunder at winning-chances delta >= 0.1/0.2/0.3 (on -1..1 scale; client povDiff is halved); mate advice: MateCreated => Inaccuracy if prevCp<-999, Mistake if <-700, else Blunder; MateLost => Inaccuracy if cp>999, Mistake i
+ * Lichess 'Learn from your mistakes': candidate plies = evalSwings = own-color nodes where |povDiff| > 0.1 OR a mate <= 3 was lost; UX = 'Find a better move for White' -> on wrong try 'You can do better' -> 'View the solution' ('Best was X') / 'Skip this move' -
+ * en-croissant (1652 stars, GPL-3.0) is a Tauri DESKTOP app (Rust backend) — not GitHub-Pages compatible; annotation thresholds: ?! if win% loss >5, ? if >10, ?? if >20; '!' = played best move where top-2 gap >10 win% and it punishes (best move gained >5 win% vs
+ * OpenChess-Insights (71 stars, MIT — only permissively-licensed project in the field) contains a complete rule-based NL commentary engine: ~40 detector functions in chess_review.py (is_hanging, move_hangs_piece, move_creates_fork/allows_fork/misses_fork, move_p
+ * OpenChess-Insights sentence quality examples (verbatim templates): 'This is a book move. The opening is called {opening}.', '{san} is {classification}.', 'This move leaves {pieces} hanging on {squares}.', 'This creates a fork on {pieces}.', 'There was a missed
+
+====================================================================================================
+=== ENGINE ===
+--- SUMMARY ---
+Browser Stockfish engine layer for a static GitHub Pages app is fully solved territory with two main build families. (1) nmrugg/stockfish.js (npm "stockfish", v18.0.7, GPLv3, copyright Chess.com 2026) ships 5 flavors of Stockfish 18; the key one for us is stockfish-18-lite-single (.js 20.7KB + .wasm 7.3MB, NNUE small net embedded in the wasm, single-threaded, needs NO SharedArrayBuffer/COOP/COEP) — the package README explicitly recommends it ("fast and does not require any complicated setup... still far stronger than any human"). The full-strength builds are 113MB wasm — over GitHub's 100MB per-file git limit and over jsDelivr's 50MB file limit, so effectively unusable for us. Usage is dead simple: new Worker('stockfish-18-lite-single.js'), postMessage UCI strings, onmessage receives output lines. (2) lichess's @lichess-org/stockfish-web (v0.4.0, successor of lila-stockfish-web@0.0.11) has tiny wasms (sf_18.wasm 700KB, sf_18_smallnet.wasm 665KB) that load .nnue files separately via setNnueBuffer(Uint8Array, index) — big net nn-c288c895ea92.nnue = 72,754,437 B, small nets nn-4ca89e4b3abf.nnue = 10,419,881 B / nn-37f18f62d772.nnue = 2,876,624 B — but ALL its builds require ['sharedMem','simd','dynamicImportFromWorker'] per lila's engines.ts, i.e. crossOriginIsolated is mandatory. hi-ogawa's repos are historical (his SIMD/NNUE work is merged into both families). SharedArrayBuffer on GitHub Pages: gzuidhof/coi-serviceworker (MIT) works — it intercepts fetches in a service worker and injects COEP/COOP headers; caveats: must be served same-origin (no CDN), HTTPS required, reloads the page on first visit (sessionStorage-guarded), defaults to COEP:credentialless then auto-degrades to require-corp via a second reload (Safari doesn't support credentialless, so Safari users get two reloads), silently fails in Firefox private mode (no serviceWorker). Since single-threaded lite needs none of this, coi-serviceworker should be an optional progressive enhancement for a multi-threaded "strong mode" (stockfish-18-lite.js, also 7MB). Analysis depth calibration from primary sources: lichess fishnet (server analysis) Work.scala uses nodesPerMove = 1,000,000 (manualRequest, NNUE) — 5
+--- RECOMMENDATION ---
+Default engine: vendor stockfish-18-lite-single.js + .wasm (7.3MB total, NNUE, single-thread, zero headers needed) from npm 'stockfish'@18.0.7 directly into the GitHub Pages repo (well under the 100MB git limit; jsDelivr npm/stockfish@18.0.7/bin/... works as a runtime fallback URL since the lite files are <50MB). Load it as a plain Web Worker speaking raw UCI via postMessage/onmessage. Port lichess's protocol.ts almost verbatim for the UCI layer: set UCI_AnalyseMode=true, UCI_Chess960=true, MultiPV=2 (need second-best line for Great/Miss/alternative detection; MultiPV=3 only if cheap), Hash=32 (iOS) / 64 (mobile) / 256-512 (desktop), one in-flight search per worker with stop-then-swap queueing, parse info lines with the depth/nodes/multipv/score/pv switch and remember the cp sign is side-to-move POV. Analysis budget: drive by 'go movetime' with an adaptive target — calibrate nps once at startup (short fixed-nodes search or 'bench'), then pick movetime so the whole game fits the user's chosen budget (Fast ~300ms/pos, Standard ~600ms, Deep ~1200ms); this lands at roughly 100k-700k nodes/position, bracketing lichess's autoTutor (100k) and approaching manualRequest (1M) — genuinely rev
+--- HIGH-CONFIDENCE FACTS (22) ---
+ * npm package 'stockfish' (nmrugg/stockfish.js) v18.0.7 = Stockfish 18, GPLv3, (c) 2026 Chess.com LLC; sponsored by Chess.com for their in-browser engine
+ * stockfish@18.0.7 exact file sizes: bin/stockfish-18-lite-single.js 20,670 B + .wasm 7,295,411 B; stockfish-18-lite.js 32,109 B + .wasm 7,093,151 B (multithreaded); stockfish-18-single.wasm 112,992,459 B; stockfish-18.wasm 113,007,340 B; stockfish-18-asm.js 10,
+ * README recommendation: 'most likely, you should use the lite single-threaded engine because it is fast and does not require any complicated setup... the lite engine is still far stronger than any human will ever be'; multithreaded flavors 'will only run in bro
+ * Browser usage of stockfish.js = plain Web Worker: new Worker(path) then postMessage of raw UCI strings, output lines via onmessage (loadEngine.js: 'if (typeof Worker === "function") { return new Worker(path); }')
+ * WASM builds support Chrome/Edge/Firefox/Opera/Safari on Windows 10+/macOS 11+/iOS 16+/Linux/Android; asm.js fallback (10MB, 'very slow and weak, last resort') runs anywhere
+ * @lichess-org/stockfish-web v0.4.0 contains sf_18.js (26KB) + sf_18.wasm (700,725 B), sf_18_smallnet.wasm (665,161 B), fsf_14.wasm (971,033 B), plus _relaxed-simd variants; NNUE nets are NOT bundled — loaded at runtime via setNnueBuffer(Uint8Array, index) / get
+ * ALL lichess stockfish-web builds require SharedArrayBuffer: lila engines.ts declares requires: ['sharedMem','simd','dynamicImportFromWorker'] for sf_18, sf_18_smallnet, fsf_14 — they cannot run without crossOriginIsolated; lichess's no-SAB fallback is ancient 
+ * Exact NNUE net sizes (HTTP range probe on tests.stockfishchess.org): SF18 big nn-c288c895ea92.nnue = 72,754,437 B; SF17.1 big nn-1c0000000000.nnue = 61,698,882 B; sf_18_smallnet net nn-4ca89e4b3abf.nnue = 10,419,881 B; dual-net small nn-37f18f62d772.nnue = 2,8
+ * lila-stockfish-web@0.0.11 (older pkg name) has sf171-79 = official SF 17.1 (big nn-1c0000000000 + small nn-37f18f62d772) and sf16-7 = linrock SF16 with single 7MB-class net nn-ecb35f70ff2a — useful if we want SF17.1 instead of 18
+ * coi-serviceworker (gzuidhof, MIT, v0.1.7) makes GitHub Pages crossOriginIsolated by rewriting all responses in a service worker: sets COEP (credentialless or require-corp), COOP same-origin, CORP cross-origin; it 'will reload the page on the user's first load'
+ * coi-serviceworker pitfalls: defaults to coepCredentialless()=>true but Safari does not support COEP:credentialless, so the script's coepDegrade path triggers a SECOND reload to fall back to require-corp on Safari; fails silently where navigator.serviceWorker i
+ * Safari supports SharedArrayBuffer only when crossOriginIsolated (since Safari 15.2, WebKit bug 229559); generic service workers that strip/forget COOP+COEP headers silently kill crossOriginIsolated on cache hits — always assert window.crossOriginIsolated befor
+ * Lichess server analysis node budgets (current master): Origin.manualRequest = 1,000,000 nodes/move (user-requested game/study analysis), officialBroadcast = 5,000,000, autoHunter = 300,000, autoTutor (lichess's game-review-like feature) = 100,000; classical en
+ * Chess.com Game Review runs server-side 'Stockfish 16 or 16.1 with the full NNUE'; they found 'diminishing returns in engine quality as depth gets past the low 20s'; free users' in-browser engine is a lite build; 'The full NNUE is 45 MB, which we cannot force-d
+ * UCI essentials: 'go depth N' / 'go movetime ms' / 'go nodes N'; 'position fen <fen> moves <uci...>'; MultiPV spin default 1 max 500; info line format 'info depth 1 seldepth 1 multipv 1 score cp 18 nodes 20 nps 10000 hashfull 0 tbhits 0 time 2 pv e2e4'; 'bestmo
+ * lila protocol.ts (complete reusable reference) sets: UCI_AnalyseMode=true, 'Analysis Contempt'=Off, UCI_Chess960=true, then ucinewgame + isready; queues one pending work item, sends 'stop' and swaps on bestmove; assembles multipv pvs[] and only emits when mult
+ * Mobile limits from lila: maxHashMB = 32 on iOS, 64 on iPad ('iPadOS safari pretends to be desktop but acts more like iphone'), 64 on Android ('budget androids are easy to crash @ 128'), 512 desktop ('allocating 1024 often fails'); sharedWasmMemory() retries We
+ * Lichess caches big NNUE files client-side in OPFS/IndexedDB ('bigFileStorage') with download progress callbacks and deletes them on BAD_NNUE engine error — replicate for any optional big-net mode
+--- CODE SNIPPETS (5723 chars, showing up to 4500) ---
+// ===== 1. Minimal engine layer for StockThink (stockfish npm pkg, browser Worker) =====
+// files needed in repo: stockfish-18-lite-single.js + stockfish-18-lite-single.wasm (7.3MB)
+const sf = new Worker('engine/stockfish-18-lite-single.js');
+sf.onmessage = (e) => parseLine(e.data);          // one UCI output line per message
+sf.postMessage('uci');                             // -> ... uciok
+sf.postMessage('setoption name UCI_AnalyseMode value true');
+sf.postMessage('setoption name MultiPV value 2');  // top-2 lines for Great/Miss detection
+sf.postMessage('setoption name Hash value 32');    // 32 on iOS, 64 mobile, up to 512 desktop
+sf.postMessage('ucinewgame'); sf.postMessage('isready');   // -> readyok
+sf.postMessage('position fen <FEN> moves e2e4 e7e5');
+sf.postMessage('go nodes 250000');                 // or 'go movetime 500' / 'go depth 16'
+// -> info depth 16 seldepth 24 multipv 1 score cp 35 nodes 250133 nps 412000 time 607 pv e2e4 ...
+// -> info depth 16 ... multipv 2 score cp 12 ... pv d2d4 ...
+// -> bestmove e2e4 ponder e7e5
+
+// ===== 2. lichess lila ui/lib/src/ceval/protocol.ts — verbatim info-line parser =====
+const parts = command.trim().split(/\s+/g);
+// ...
+for (let i = 1; i < parts.length; i++) {
+  switch (parts[i]) {
+    case 'depth':   depth = parseInt(parts[++i]); break;
+    case 'nodes':   nodes = parseInt(parts[++i]); break;
+    case 'multipv': multiPv = parseInt(parts[++i]); break;
+    case 'time':    millis = parseInt(parts[++i]); break;
+    case 'score':
+      isMate = parts[++i] === 'mate';
+      povEv = parseInt(parts[++i]);
+      if (parts[i + 1] === 'lowerbound' || parts[i + 1] === 'upperbound') evalType = parts[++i];
+      break;
+    case 'pv': moves = parts.slice(++i); i = parts.length; break;
+  }
+}
+// Sometimes we get #0. Let's just skip it.
+if (isMate && !povEv) return;
+// score is from side-to-move POV; lila flips to fixed POV by ply parity:
+const pivot = this.work.threatMode ? 0 : 1;
+const ev = this.work.ply % 2 === pivot ? -povEv : povEv;
+// For now, ignore most upperbound/lowerbound messages.
+// However non-primary pvs may only have an upperbound.
+if (evalType && multiPv === 1) return;
+// options set on uciok (verbatim):
+this.setOption('UCI_AnalyseMode', 'true');
+this.setOption('Analysis Contempt', 'Off');
+this.setOption('UCI_Chess960', 'true');
+// search dispatch (verbatim):
+this.send(['position fen', this.work.initialFen, 'moves', ...this.work.moves].join(' '));
+const [by, value] = Object.entries(this.work.search)[0];
+this.send(`go ${by} ${value}`);   // search = {depth:N}|{movetime:ms}|{nodes:N}
+
+// ===== 3. lichess fishnet node budgets — lila modules/fishnet/src/main/Work.scala (verbatim) =====
+enum Origin(val nodesPerMove: Int, val slowOk: Boolean):
+  case officialBroadcast extends Origin(5_000_000, false)
+  case manualRequest extends Origin(1_000_000, false) // games & studies
+  case autoHunter extends Origin(300_000, true)
+  case autoTutor extends Origin(100_000, true)
+// JsonApi.scala: "nodes" -> Json.obj("sf18" -> a.nodes, "sf17_1" -> a.nodes, "sf16" -> a.nodes,
+//                                    "classical" -> a.nodes * 3)
+
+// ===== 4. lichess win% conversion — lila ui/lib/src/ceval/winningChances.ts (verbatim) =====
+const rawWinningChances = (cp: number): WinningChances => {
+  const MULTIPLIER = -0.00368208; // https://github.com/lichess-org/lila/pull/11148
+  return 2 / (1 + Math.exp(MULTIPLIER * cp)) - 1;
+};
+const cpWinningChances = (cp: number) => rawWinningChances(Math.min(Math.max(-1000, cp), 1000));
+const mateWinningChances = (mate: number) => {
+  const cp = (21 - Math.min(10, Math.abs(mate))) * 100;
+  return rawWinningChances(cp * (mate > 0 ? 1 : -1));
+};
+export const povDiff = (color, e1, e2) => (povChances(color, e1) - povChances(color, e2)) / 2;
+
+// ===== 5. lichess memory workarounds — lila ceval/util.ts + engines.ts (verbatim) =====
+export const sharedWasmMemory = (lo: number, hi = 32767): WebAssembly.Memory => {
+  let shrink = 4; // 32767 -> 24576 -> 16384 -> 12288 -> 8192 -> 6144 -> etc
+  while (true) {
+    try { return new WebAssembly.Memory({ shared: true, initial: lo, maximum: hi }); }
+    catch (e) {
+      if (hi <= lo || !(e instanceof RangeError)) throw e;
+      hi = Math.max(lo, Math.ceil(hi - hi / shrink));
+      shrink = shrink === 4 ? 3 : 4;
+    }
+  }
+};
+function maxHashMB() {
+  if (isAndroid()) return 64; // budget androids are easy to crash @ 128
+  else if (isIPad()) return 64; // iPadOS safari pretends to be desktop but acts more like iphon
+
+====================================================================================================
+=== LLM ===
+--- SUMMARY ---
+Researched zero-cost natural-language commentary for StockThink across 6 areas, with empirical verification (curl tests against Pollinations and HuggingFace) and primary sources (WebLLM config.ts, HF API, arxiv papers).
+
+IN-BROWSER LLMs: WebLLM (@mlc-ai/web-llm, Apache TVM, WebGPU) is the strongest option. Verified exact download sizes by summing HF repo trees: SmolLM2-360M-Instruct q4f16 207MB (376MB VRAM), Qwen2.5-0.5B-Instruct q4f16 290MB (945MB VRAM), Llama-3.2-1B-Instruct q4f16 705MB (879MB VRAM), Qwen2.5-1.5B q4f16 880MB (1630MB VRAM), SmolLM2-1.7B 966MB (1774MB VRAM), gemma-2-2b 1493MB (1895MB VRAM). All marked low_resource_required:true except gemma. All mlc-ai HF repos verified gated:false/private:false including the Llama-3.2 conversion — no auth, and HF echoes arbitrary Origins in access-control-allow-origin (verified), so GitHub Pages can fetch them; weights cache locally (Cache API/IndexedDB) so download is one-time. WebLLM paper (MacBook M3 Max, Chrome): Phi-3.5-mini 71.1 tok/s, Llama-3.1-8B 41.1 tok/s, ~80% of native; a 0.5–1.5B model comfortably exceeds 20 tok/s on most WebGPU laptops (15 tok/s reported on Intel Iris Xe for 1.5B). WebLLM supports OpenAI-style API with streaming, seed, and "state-of-the-art JSON mode structured generation". transformers.js v3 (ONNX Runtime Web) is the alternative; onnx-community/Qwen2.5-0.5B-Instruct q4f16 is 483MB.
+
+WEBGPU SUPPORT 2026 (~82.3% global, caniuse): Chrome/Edge 113+ (Android 121+, Linux partial since 144/147); Firefox 141 Windows (Jul 2025), 145/147 macOS, Linux expected 2026, Android flagged; Safari 26 across macOS/iOS/visionOS. So AI-mode must be progressive enhancement.
+
+QUALITY: The CCC paper (arxiv 2410.20811) is the key evidence: even GPT-4o freely commenting on chess scores 0.36 correctness with 0.46 illegal-move/nonexistent-piece hallucination rate; feeding it engine-derived concepts lifts correctness to 0.60 (human reference 0.62) and halves hallucination to 0.20. Non-GPT-4o models solve <12% of chess problems. Conclusion: NO model may compute chess facts; a 0.5–2B model can only reword pre-verified facts, and outputs must be verified (whitelist check that mentioned squares/pieces/moves appea
+--- RECOMMENDATION ---
+Build a 3-tier hybrid commentary engine. TIER 1 (default, always works, offline, deterministic): template/slot-filling NLG driven entirely by verified facts from Stockfish + a chess.js-based concept detector. Structure: per-classification phrase banks (8-15 variants each) x concept clauses (hangs piece, missed fork, opens file, king safety drop, eval swing) with seeded-random selection keyed on move number for reproducibility. This matches what chess.com itself apparently ships, and the E2E NLG Challenge showed hand-engineered templates beat neural systems on human-rated quality in exactly this kind of constrained domain. "Explain more" = expanding the same fact set into a longer multi-sentence template (refutation line in SAN, eval numbers, principle explanation). TIER 2 (optional "AI phrasing" toggle, WebGPU only): WebLLM with Qwen2.5-1.5B-Instruct-q4f16_1-MLC (880MB download, 1.6GB VRAM) as default and SmolLM2-360M/Qwen2.5-0.5B (207-290MB) as a low-resource choice; feature-detect navigator.gpu and shader-f16 (fall back to q4f32 variants); load via ServiceWorkerMLCEngine with Cache API so the download is one-time. Prompt = "Rewrite these verified facts as one natural sentence. Fa
+--- HIGH-CONFIDENCE FACTS (12) ---
+ * WebLLM q4f16 model download sizes (sum of HF repo files, verified via HF API): SmolLM2-360M-Instruct 207MB, Qwen2.5-0.5B-Instruct 290MB, Llama-3.2-1B-Instruct 705MB, Qwen2.5-1.5B-Instruct 880MB, SmolLM2-1.7B-Instruct 966MB, gemma-2-2b-it 1493MB
+ * WebLLM vram_required_MB from prebuiltAppConfig: Qwen2.5-0.5B q4f16 944.62, Qwen2.5-1.5B q4f16 1629.75, Llama-3.2-1B q4f16 879.04, SmolLM2-360M q4f16 376.06, SmolLM2-1.7B q4f16 1774.19, gemma-2-2b q4f16 1895.3; all low_resource_required:true except gemma-2-2b f
+ * mlc-ai HF model repos require NO auth: gated:false, private:false verified for mlc-ai/Llama-3.2-1B-Instruct-q4f16_1-MLC (54k downloads) and mlc-ai/Qwen2.5-1.5B-Instruct-q4f16_1-MLC; HF returns access-control-allow-origin echoing arbitrary Origin (tested with O
+ * WebLLM supports streaming, seed-to-reproduce, logit_bias, and 'state-of-the-art JSON mode structured generation, implemented in the WebAssembly portion of the model library'; Web Worker + Service Worker engines; cache backends: Cache API (default), IndexedDB, 
+ * WebLLM decode throughput on MacBook Pro M3 Max: Phi-3.5-mini (3.8B q4) 71.1 tok/s, Llama-3.1-8B (q4) 41.1 tok/s, retaining up to ~80% of native MLC-LLM performance; 1B-class models proportionally faster; ThinkPad Intel Iris Xe ~15 tok/s on a 1.5B model
+ * WebGPU browser support June 2026: Chrome/Edge 113+ (Windows/Mac/ChromeOS), Chrome Android 121+, Chrome Linux partial (144+ Intel, 147+ NVIDIA/Wayland); Firefox 141+ Windows (shipped Jul 15 2025), 145+ macOS Apple Silicon, 147+ all macOS, Linux expected 2026, A
+ * CCC paper (concept-guided chess commentary): GPT-4o freely commenting scores 0.36 correctness with 0.46 rate of 'referring illegal move or non-existing pieces'; with engine-extracted concepts fed in, correctness rises to 0.60 (human reference = 0.62) and hallu
+ * IFEval instruction-following (SmolLM2 paper Table 5): SmolLM2-1.7B-Instruct 56.7, Llama-3.2-1B-Instruct 53.5, Qwen2.5-1.5B-Instruct 47.4; MT-Bench 6.13 / 5.48 / 6.52 — small models follow constraints only ~half the time, so a post-generation fact-whitelist ver
+ * Pollinations is NOT viable keyless in 2026 (verified by live curl): gen.pollinations.ai/text returns 401 'Authentication required. Please provide an API key'; legacy text.pollinations.ai allows anonymous but returned 429 'Queue full for IP ... 1 requests alrea
+ * transformers.js v3 supports WebGPU via ONNX Runtime Web (device:'webgpu', up to 100x faster than WASM); onnx-community/Qwen2.5-0.5B-Instruct ONNX sizes: q4f16 483MB, int8/uint8 512MB, bnb4 764MB; SmolLM2 ungated; onnx-community Llama-3.2-1B lives at onnx-commu
+ * Claude Code under a Max subscription is interactive and subscription-covered with no API key; any scripted/batch Anthropic API usage would require an API key, which this user cannot have. Pre-generating commentary JSON per game inside a Claude Code session (re
+ * freechess (WintrCat) is abandoned; its successor WintrChess (https://github.com/wintrcat/wintrchess) is the open-source chess.com-Game-Review-like reference (classifications, free analysis) — useful prior art for classification, but it requires a Node backend 
+
+====================================================================================================
+=== CONCEPTS ===
+--- SUMMARY ---
+Concept detection for StockThink should be built by porting the lichess-puzzler tagger (ornicar/lichess-puzzler/tagger/cook.py + util.py, MIT-licensed Python on python-chess) to chessops in TypeScript. This is production code that tags millions of lichess puzzles with the exact motifs StockThink needs: fork, pin (two variants), skewer, discovered attack/check, sacrifice, hanging piece, trapped piece, back-rank mate, double check, x-ray, advanced pawn/promotion. All detectors are pure board-state functions built on five primitives — attacks(square), attackers(color, square), SquareSet.between(a,b), pin direction, and piece values {P:1,N:3,B:3,R:5,Q:9,K:99} — every one of which exists in chessops (attacks(), attacksTo(), between(), ray(), and the sniper/blocker pin computation in Position.ctx()). The foundational helpers are is_defended (with x-ray defender handling: temporarily remove a ray attacker and re-check), is_hanging = !is_defended, is_in_bad_spot (attacked AND (hanging OR attackable by lower-value piece)), and is_trapped (no escape move leads to a safe square). Sacrifice detection in cook.py is simply material_diff dropping ≥2 points below the starting diff along the line without promotion compensating; freechess (WintrCat/freechess) instead detects Brilliant by scanning the mover's non-king/non-pawn pieces for any that are newly hanging (isPieceHanging with attacker/defender counting) and worth more than what was captured. For exchange soundness, the chessprogramming.org iterative SEE swap algorithm (gain-array negamax with x-ray reintroduction) is the standard; implement it once over chessops bitboards and use it for "loses material to capture", sacrifice confirmation, and hanging-piece verification. The engine PV is the primary explanation source: python-chess-annotator's pattern is (a) annotate only when winning-chances delta > 7.5% using winning% = 50 + 50*(2/(1+e^(-0.004*cp))-1), (b) attach the refutation PV truncated to 10 plies (extended to game end if it ends the game), (c) end-of-variation comment is "Mate in X", eval/depth, or a game-end label; NAG thresholds ??≤-300cp, ?≤-150cp, ?!≤-75cp. For commentary structure, academia converges on the sa
+--- RECOMMENDATION ---
+Build StockThink's concept detector as a TypeScript port of lichess-puzzler's cook.py/util.py onto chessops (not chess.js — chessops has the bitboard primitives: attacks(), attacksTo(), between(), ray(), and sniper/blocker pin logic; chess.js lacks attackers/pin APIs and freechess's FEN-mangling getAttackers workaround is slow and hacky). Layer the system as: (1) primitives — values, materialDiff, isDefended (with x-ray), isHanging, isInBadSpot, isTrapped, plus one iterative SEE (swap algorithm) over chessops SquareSets; (2) motif detectors run not on the played game alone but on short lines: the move just played, the engine PV after the played move (refutation facts: "this hangs the rook to Bxf7+"), and the PV of the best move that was NOT played (missed-tactic facts for Miss/Great commentary) — exactly how cook.py walks puzzle.mainline[1::2]; (3) PV-grounded commentary following python-chess-annotator: only elaborate when winning-chances delta > ~7.5% (winning% = 50+50*(2/(1+e^(-0.004cp))-1)), show the first ~10 plies of the refutation PV, announce "Mate in X" from engine mate scores; (4) template slots per the literature consensus (Description / Quality / Comparison-to-best / Pl
+--- HIGH-CONFIDENCE FACTS (17) ---
+ * lichess-puzzler tagger (tagger/cook.py) contains working Python detectors for fork, pin_prevents_attack, pin_prevents_escape, skewer, discovered_attack, discovered_check, sacrifice, hanging_piece, trapped_piece, back_rank_mate, double_check, x_ray, advanced_pa
+ * Fork detection (lichess): after a non-king move to a square that is not 'in a bad spot', count attacked enemy non-pawn pieces that are either higher-valued than the moved piece OR (hanging AND not themselves attacking the forking square); fork if count > 1
+ * is_defended handles x-ray defense: if a square's attacker is a ray piece (B/R/Q), remove it from a board copy and re-check whether the piece's own side then attacks the square; is_hanging = not is_defended
+ * is_trapped (lichess): piece is not pawn/king, not pinned, in a bad spot, and every legal escape move either captures a lower-value piece or lands on another bad spot
+ * Sacrifice (lichess): material_diff (P1 N3 B3 R5 Q9) on player's move nodes drops <= initial-2 at any point in the line, and no later player promotion exists
+ * Skewer (lichess): a capture by a ray piece (B/R/Q) where the opponent's previous move originated from a square between from/to of the capture, and the opponent's moved piece was higher-valued than the piece captured behind it
+ * Discovered check (lichess): position is check and the checker set does NOT contain the moved-to square (the checking piece is not the piece that moved)
+ * python-chess board.pin() equivalent in chessops: Position.ctx() computes blockers via snipers = (rookAttacks(king, empty) ∩ rooksAndQueens) ∪ (bishopAttacks(king, empty) ∩ bishopsAndQueens) of opponent; a piece is pinned if it is the single occupied square bet
+ * chessops provides attacks(piece, square, occupied), between(a,b), ray(a,b), kingAttacks/knightAttacks/pawnAttacks/bishopAttacks/rookAttacks/queenAttacks, and attacksTo(square, color, board, occupied) — sufficient primitives to port all cook.py detectors
+ * python-chess-annotator: annotate a move only when winning-chances delta > 7.5 percentage points, where winning% = 50 + 50*(2/(1+exp(-0.004*cp))-1); NAG thresholds in cp delta: blunder < -300, mistake < -150, dubious < -75
+ * python-chess-annotator comment pattern: add refutation PV as a variation truncated to 10 half-moves (unless line ends the game), terminal comment is 'Mate in X' or 'eval/depth' or game-end label (Stalemate/Fifty move rule/Three-fold repetition/Insufficient mat
+ * freechess Brilliant detection: after the move, scan mover's non-king non-pawn pieces; if any isPieceHanging(lastFen, fen, square) and its value exceeds the value captured by the move, classify BRILLIANT; Great move requires opponent's previous move was BLUNDER
+ * freechess isPieceHanging: hanging if any attacker is lower-valued than the piece, or attackers > defenders with exceptions (defended by pawn; piece cheaper than min attacker with a cheap defender; rook 'attacked' only by one minor when a minor was just traded)
+ * Iterative SEE swap algorithm: gain[d] = value[attacker] - gain[d-1] speculative store, remove used attacker from occupancy, re-add x-ray attackers (pawns|bishops|rooks|queens behind), pick least valuable attacker each ply, then back-propagate gain[d-1] = -max(
+ * lichess-org/chess-openings: five TSV files a.tsv–e.tsv with columns eco/name/pgn; dist/ build (make, or CI artifacts) adds uci and epd columns; CC0 public domain; book detection should match by EPD position (transposition-safe), 'play moves backwards until a n
+ * lichess game-phase Divider: middlegame entry when majorsAndMinors <= 10 OR backrank sparse (<4 pieces on a side's first rank) OR mixedness > 150; endgame entry when majorsAndMinors <= 6 (pieces excluding kings and pawns)
+ * McGrath et al. (AlphaZero) probed Stockfish 8 eval concepts material, imbalance, pawns, knights, bishops, rooks, queens, mobility, king_safety, threats, passed_pawns, space, total, plus 116 custom binary concepts incl. has_mate_threat, in_check, can_capture_qu
+--- CODE SNIPPETS (9494 chars, showing up to 4500) ---
+### lichess-puzzler tagger/util.py — foundational predicates (Python, port to chessops)
+values = { PAWN: 1, KNIGHT: 3, BISHOP: 3, ROOK: 5, QUEEN: 9 }
+king_values = { PAWN: 1, KNIGHT: 3, BISHOP: 3, ROOK: 5, QUEEN: 9, KING: 99 }
+
+def material_count(board, side):
+    return sum(len(board.pieces(pt, side)) * v for pt, v in values.items())
+def material_diff(board, side):
+    return material_count(board, side) - material_count(board, not side)
+
+def is_defended(board, piece, square):
+    if board.attackers(piece.color, square):
+        return True
+    for attacker in board.attackers(not piece.color, square):
+        attacker_piece = board.piece_at(attacker)
+        if attacker_piece.piece_type in ray_piece_types:  # B, R, Q
+            bc = board.copy(stack=False)
+            bc.remove_piece_at(attacker)
+            if bc.attackers(piece.color, square):
+                return True   # x-ray defended
+    return False
+
+def is_hanging(board, piece, square):
+    return not is_defended(board, piece, square)
+
+def can_be_taken_by_lower_piece(board, piece, square):
+    for attacker_square in board.attackers(not piece.color, square):
+        attacker = board.piece_at(attacker_square)
+        if attacker.piece_type != chess.KING and values[attacker.piece_type] < values[piece.piece_type]:
+            return True
+    return False
+
+def is_in_bad_spot(board, square):
+    piece = board.piece_at(square)
+    return (bool(board.attackers(not piece.color, square)) and
+            (is_hanging(board, piece, square) or can_be_taken_by_lower_piece(board, piece, square)))
+
+def is_trapped(board, square):
+    if board.is_check() or board.is_pinned(board.turn, square): return False
+    piece = board.piece_at(square)
+    if piece.piece_type in [PAWN, KING]: return False
+    if not is_in_bad_spot(board, square): return False
+    for escape in board.legal_moves:
+        if escape.from_square == square:
+            capturing = board.piece_at(escape.to_square)
+            if capturing and values[capturing.piece_type] >= values[piece.piece_type]:
+                return False
+            board.push(escape)
+            if not is_in_bad_spot(board, escape.to_square):
+                return False
+            board.pop()
+    return True
+
+### lichess-puzzler tagger/cook.py — motif detectors (operate on the PV/mainline)
+def fork(puzzle):
+    for node in puzzle.mainline[1::2][:-1]:
+        if util.moved_piece_type(node) is not KING:
+            board = node.board()
+            if util.is_in_bad_spot(board, node.move.to_square): continue
+            nb = 0
+            for piece, square in util.attacked_opponent_squares(board, node.move.to_square, puzzle.pov):
+                if piece.piece_type == PAWN: continue
+                if util.king_values[piece.piece_type] > util.king_values[util.moved_piece_type(node)] or (
+                    util.is_hanging(board, piece, square)
+                    and square not in board.attackers(not puzzle.pov, node.move.to_square)):
+                    nb += 1
+            if nb > 1: return True
+    return False
+
+def sacrifice(puzzle):
+    diffs = [material_diff(n.board(), puzzle.pov) for n in puzzle.mainline]
+    initial = diffs[0]
+    for d in diffs[1::2][1:]:
+        if d - initial <= -2:
+            return not any(n.move.promotion for n in puzzle.mainline[::2][1:])
+    return False
+
+def discovered_check(puzzle):
+    for node in puzzle.mainline[1::2]:
+        board = node.board()
+        checkers = board.checkers()
+        if checkers and not node.move.to_square in checkers:
+            return True
+    return False
+
+def skewer(puzzle):
+    for node in puzzle.mainline[1::2][1:]:
+        prev = node.parent
+        capture = prev.board().piece_at(node.move.to_square)
+        if capture and util.moved_piece_type(node) in util.ray_piece_types and not node.board().is_checkmate():
+            between = SquareSet.between(node.move.from_square, node.move.to_square)
+            op_move = prev.move
+            if op_move.to_square == node.move.to_square or not op_move.from_square in between:
+                continue
+            if util.king_values[util.moved_piece_type(prev)] > util.king_values[capture.piece_type] \
+               and util.is_in_bad_spot(prev.board(), node.move.to_square):
+                return True
+    return False
+
+def pin_prevents_attack(puzzle):  # relative/absolute pin via board.pin() direction ray
+    for node in puzzle.mainline[1::2]:
+        board = node.board()
+        for square, piece in board.piece_map().items()
+
+====================================================================================================
+=== STACKUX ===
+--- SUMMARY ---
+Board UI: lichess chessground (npm `@lichess-org/chessground`) is the strongest fit: framework-agnostic, zero dependencies, 10K gzipped, GPL-3.0-or-later. Its DrawShape API natively supports everything StockThink needs: `autoShapes` for engine arrows, `customSvg` (100x100 viewBox HTML centered on orig/dest/label) for chess.com-style classification badges on squares, `label` text, custom brushes, and `highlight.custom` square classes. GPL is acceptable because Stockfish itself is GPL, making the whole app GPL anyway. Alternatives: cm-chessboard (MIT code, SVG, Markers/Arrows extensions, but bundled Staunty pieces are CC BY-NC-SA), chessboard2 (ISC, beta v0.5.0, stale since Feb 2024, no arrows), react-chessboard (customArrows/customSquareStyles props if React is chosen). Note chessground ships no CSS/pieces — copy base CSS and a piece set (e.g., cburnett, CC BY-SA) from lichess examples.
+
+Game logic/PGN: chessops (GPL-3.0+, by niklasf/lichess) is the robust choice for pasted chess.com PGNs: its pgn module builds a full game tree (variations preserved), parses comments into {text, shapes, clock, emt, evaluation} — i.e., [%clk]/[%emt]/[%eval]/[%csl]/[%cal] — and `startingPosition(game.headers)` + `transform` cleanly yields a FEN per node. chess.js v1.4.0 works (permissive parser, comments retrievable via getComments(), history({verbose:true}) gives before/after FENs) but discards RAV variations and is not round-trippable; fine as a lightweight move-validation layer for the play-vs-engine board, weaker for review parsing.
+
+Chess.com Game Review UX: summary screen shows per-player accuracy (typically 50–95, 100 possible), estimated game rating, classification-count table with icons for both players, phase icons (opening/middlegame/endgame), eval graph, coach bubble. Per-move: destination square tinted in the classification color, badge icon at the square's top-right corner, coach comment explaining WHY, "Show Line" plays best continuation, retry-mistakes recomputes adjusted accuracy. Expected-points-lost thresholds from the official support article: Best 0.00, Excellent ≤0.02, Good ≤0.05, Inaccuracy ≤0.10, Mistake ≤0.20, Blunder >0.20; Brilliant = sound piece sacrific
+--- RECOMMENDATION ---
+Stack: Vite + vanilla TypeScript (smallest payload, no framework tax) with chessground (@lichess-org/chessground) as the board — it is the only library with first-class autoShapes/customSvg/label support, which directly implements classification badges on squares, best-move arrows, and last-move highlights without hacks; GPL-3.0 is a non-issue since Stockfish makes the app GPL regardless. Copy chessground base CSS + a cburnett piece set from lichess examples (avoid cm-chessboard's CC BY-NC-SA Staunty pieces). Use chessops for PGN ingestion (handles chess.com exports' %clk comments, NAGs, variations, FEN headers losslessly; use the documented transform pattern to attach a FEN to every mainline node for the engine queue) and optionally chess.js only for the simple play-vs-engine move validation if its API feels lighter. Replicate the chess.com report with: summary card (per-player accuracy, estimated rating, classification-count table using the freechess/wintrchess palette and badge icon style — draw badges as inline SVG circles with !!/!/star glyphs at the destination square's top-right corner via chessground customSvg at center:'label'), per-move coach comment under the move list w
+--- HIGH-CONFIDENCE FACTS (17) ---
+ * Chessground is framework-agnostic, zero-dependency, 10K gzipped (31K unzipped), GPL-3.0-or-later, installed as npm `@lichess-org/chessground`; using it requires distributing the combined work under GPL
+ * Chessground DrawShape supports classification badges natively: `customSvg: { html: string; center?: 'orig'|'dest'|'label' }` (midpoint of 100x100 viewbox), `label: { text, fill }` ('label moved to top right of square' when no brush), plus `drawable.autoShapes`
+ * cm-chessboard: MIT-licensed code, SVG rendering, ES6, no dependencies, with Markers, Arrows, Accessibility, PromotionDialog and RightClickAnnotator extensions; BUT bundled Staunty piece SVGs are CC BY-NC-SA 4.0 (non-commercial) and Wikimedia pieces CC BY-SA 3.
+ * chessboard2 (@chrisoakman/chessboard2) is ISC-licensed, v0.5.0, last pushed 2024-02-17 — beta and effectively stale; no built-in arrow/badge system comparable to chessground
+ * chess.js v1.4.0 loadPgn DISCARDS recursive annotation variations (RAV); comments are preserved and retrievable via getComments() returning [{fen, comment}]; default permissive parser accepts non-standard SAN; history({verbose:true}) returns before/after FENs p
+ * chessops (GPL-3.0-or-later) pgn module preserves full game trees including variations, and parseComment returns {text, shapes, clock, emt, evaluation} — directly parsing chess.com [%clk], plus [%emt], [%eval], [%csl], [%cal]; the parser 'will interpret any inp
+ * Chess.com expected-points-lost classification thresholds: Best 0.00, Excellent 0.00–0.02, Good 0.02–0.05, Inaccuracy 0.05–0.10, Mistake 0.10–0.20, Blunder 0.20–1.00; Brilliant = good piece sacrifice + best-or-nearly-best + not already completely winning (ratin
+ * Replica classification colors used by freechess AND wintrchess (sampled from chess.com): brilliant #1baaa6, great/critical #5b8baf, best #98bc49, excellent #98bc49, good/okay #97af8b, inaccuracy #f4bf44, mistake #e28c28, blunder #c93230, forced #97af8b, book/t
+ * freechess badge placement formula: classification icon drawn at destination-square top-right corner — x = toX*sq + (68/90)*sq, y = toY*sq − (10/90)*sq, icon 56px where sq = 160px (1280px board); both last-move squares are filled with the classification color a
+ * Chess.com Game Review UX: per-player accuracy typically 50–95 (100 possible), estimated game rating, classification-count table for both players, phase icons for opening/middlegame/endgame, coach bubble explaining WHY a move is good/bad, 'Show Line' plays out 
+ * Lichess advantage chart (ui/chart/src/acpl.ts) uses chart.js 4.x: plots WIN-CHANCE (winningChances.povChances('white',{cp})) not raw centipawns ('Plot winchance because logarithmic'), line with fill target:'origin' (white above / black below), orange accent bo
+ * GitHub Pages serves .wasm files with 'content-type: application/wasm' and 'access-control-allow-origin: *' (verified live via curl -I https://mdn.github.io/webassembly-examples/js-api-examples/simple.wasm), so WebAssembly.instantiateStreaming works without fal
+ * GitHub Pages cannot set COOP/COEP headers, so SharedArrayBuffer (needed only by MULTI-threaded Stockfish builds) requires coi-serviceworker: MIT, must be a separate un-bundled file served from your own origin adjacent to index.html (or a parent dir), included 
+ * Vite project-page deployment: set base: '/<REPO>/' in vite.config (e.g. '/stockthink/'); official GitHub Actions workflow uses actions/checkout → setup-node → npm ci → npm run build → actions/configure-pages → actions/upload-pages-artifact (path './dist') → ac
+ * Lichess play-vs-computer level mapping (verbatim from fishnet src/api.rs): Skill Level per level 1-8 = [-9,-5,-1,3,7,11,16,20]; depth = [5,5,5,5,5,8,13,22]; movetime ms = [50,100,150,200,300,400,500,1000]; lichess uses Fairy-Stockfish to allow negative skill l
+ * Stockfish UCI_LimitStrength (default false) + UCI_Elo (1320–3190, calibrated at 120s+1s vs CCRL 40/4) overrides Skill Level; below 1320 Elo, combine Skill Level 0–20 with shallow depth limits
+ * WintrChess (freechess successor, github.com/WintrCat/wintrchess) renamed classifications: great→critical, good→okay, book→theory, added 'risky' (#8983ac, NAG $5) and per-classification NAG export ($3 brilliant, $1 critical, $2 mistake, $4 blunder, $6 inaccurac
+
+
+%%%% VERIFIER CORRECTIONS %%%%
+
+--- verify:chesscom-review ---
+ CORRECTION: CAPS2 claim has WRONG SOURCE ATTRIBUTION and overstated paraphrase: support article 8708970 (fetched twice) contains ONLY: CAPS2 name ('an improved version of the original Chess.com CAPS'), 'Moves are still compared against the top engine recommendations, but the math on how these are calculated has changed', the school-test analogy, and 'the majority of scores now fall mostly between 50 and 95'. 
+ CORRECTION: chess.com 'Great = best/near-best move critical to game outcome' is IMPRECISE: the 'always the best or nearly best move' sentence in article 8572705 describes BRILLIANT, not Great. Great verbatim: 'These are moves that were critical to the outcome of the game, such as turning a losing position into an equal one, an equal position into a winning one, or finding the only good move in a position. Sim
+ CORRECTION: wintrchess source path error: the move-accuracy formula 103.16·exp(−4·pointLoss)−3.17 and the per-colour plain mean live in shared/src/lib/reporter/accuracy.ts, NOT in classification/critical.ts (critical.ts holds only the Critical logic). Verified via GitHub contents API listing of shared/src/lib/reporter (files: accuracy.ts, classify.ts, expectedPoints.ts, report.ts; classification/ = brilliant.
+ CORRECTION: wintrchess pointLoss claim is INCOMPLETE: pointLoss.ts also contains mate-transition ladders the claim omitted — mate→mate: BEST if mateLoss<0 (or ==0 while losing), EXCELLENT if mateLoss<2, OKAY if <7, else INACCURACY; mate→cp (lost a forced mate): EXCELLENT if subjective cp ≥800, OKAY ≥400, INACCURACY ≥200, MISTAKE ≥0, else BLUNDER; cp→mate (allowed mate, values are mate distances): BEST if >0, 
+ CORRECTION: Chesskit Perfect ('Great') sharpened against verbatim code: 'only good move' is STRICT > 10 not ≥ 10: getIsTheOnlyGoodMove returns (positionWin% − lastPositionAlternativeLineWin%)·(isWhiteMove?1:−1) > 10; hasChangedGameOutcome requires BOTH winPercentageDiff > 10 AND crossing 50 ((last<50 && pos>50) || (last>50 && pos<50)); plus three guards the claim partly omitted: return false if winPercentageD
+ CORRECTION: Minor: freechess repo metadata — GitHub API reports license NOASSERTION (CC BY-NC-SA isn't a GitHub-detected SPDX license; the LICENSE file itself is CC BY-NC-SA 4.0), and the repo is not archived (last push 2025-08-02, 842 stars); wintrchess is the active successor but freechess isn't formally archived.
+ ADDITIONS: CRITICAL DEPLOYMENT FACTS MISSED (engine on GitHub Pages): (1) GitHub Pages serves static files and provides no way to set custom HTTP response headers, so COOP/COEP cross-origin isolation cannot be enabled server-side; without it SharedArrayBuffer is unavailable and MULTI-THREADED Stockfish WASM will not run. Workaround verified: gzuidhof/coi-serviceworker (MIT license) — 'Cross-origin isolation (COOP and COEP) through a service worker for situations in which you can't control the headers (e.g. GH pages)'; caveats: it force-reloads the page on first visit, and must be served as a separate same-origin file (not bundled, not from a CDN). (2) Engine builds (nmrugg/stockfish.js README, currently Stockfish 18, GPLv3): full NNUE build >100MB (poor UX, near GitHub's 100MB-per-file git limit — would need chunking or external CDN); 'lite' NNUE build ~7MB; each available single-threaded (no special headers needed, ignores 'setoption name Threads') and multi-threaded (requires COOP/COEP/SharedArrayBuffer); README recommends lite single-threaded for most projects — the right default for StockThink, with optional multi-threaded upgrade via coi-serviceworker. Engine GPLv3 is compatible with an 
+
+--- verify:prior-art ---
+ CORRECTION: Lichess comment template is not exactly '<Judgement>. <move> was best.' — Advice.scala makeComment optionally prepends the eval: withEval.so(evalComment.so(c => s"($c) ")) + judgment + "." + s" $move was best." So with withEval=true the output is e.g. '(-2.5) Mistake. Nf3 was best.'; the claimed bare form is only the withEval=false case. Source: raw.githubusercontent.com/lichess-org/lila/master/mo
+ CORRECTION: Chesskit Elo is NOT 'blended' with the known rating: in estimateElo.ts, when a rating is known the function returns ONLY rating*exp(-0.005*cplDiff) (or the algebraically identical rating/exp(-0.005*-cplDiff) for negative diffs), discarding eloFromCpl entirely — except the corner case cplDiff === 0 which returns eloFromCpl. Also note its CPL averaging clamps per-move loss to 1000 cp and converts ma
+ CORRECTION: en-croissant '!!' does NOT require the punish condition: in getAnnotation, once (best move played && top-2 win% gap > 10), `if (is_sacrifice) return "!!"` executes BEFORE the punish check; only '!' additionally requires getWinChance(best now) - getWinChance(two plies ago) > 5. The researcher's '!! = same conditions + is_sacrifice' wrongly implies the punish gain is needed for '!!'. Source: src/uti
+ CORRECTION: wintrchess file paths wrong for 2 of 4 cited files: expectedPoints.ts and accuracy.ts are at shared/src/lib/reporter/ (NOT shared/src/lib/reporter/classification/ — those URLs 404); only pointLoss.ts, brilliant.ts, critical.ts live under reporter/classification/. Verified via the git trees API for wintrcat/wintrchess master
+ CORRECTION: wintrchess mate handling is richer than 'mate => 0/1': the EP function's mate=>0/1 only feeds cp→cp accuracy; pointLossClassify has explicit mate-transition tables — mate→mate: winning→losing mate gives MISTAKE if subjectiveValue < -3 else BLUNDER (counterintuitive but verbatim); mateLoss < 0 or (==0 while losing) BEST, < 2 EXCELLENT, < 7 OKAY, else INACCURACY; mate→cp: >=800 EXCELLENT, >=400 OKAY
+ CORRECTION: python-chess-annotator 'archived' is imprecise: the repo lives under the rpdelaney-archive ORGANIZATION but GitHub's archived flag is false (API: "archived": false). It is de-facto abandoned via org naming, not formally archived
+ CORRECTION: The 'multi-threaded Stockfish is unavailable on GitHub Pages' claim is too strong: GitHub Pages indeed cannot set COOP/COEP response headers, but gzuidhof/coi-serviceworker explicitly provides 'Cross-origin isolation (COOP and COEP) through a service worker for situations in which you can't control the headers (e.g. GH pages)' — enabling SharedArrayBuffer/multi-threaded Stockfish on Pages at the c
+ CORRECTION: OpenChess-Insights estimate_elo signature/formula differs from the inventory listing: it is estimate_elo(acpl, n_moves) = ceil((3000 * e^(-0.01*acpl) * sqrt(n_moves/50)) / 100) * 100, hard-returning 100 when acpl > 500 — note base 3000 with a move-count factor, not Chesskit's 3100*exp(-0.01*acpl). Source: chess_review.py lines 1129-1135
+ CORRECTION: freechess GREAT rule is incomplete as stated: besides (previous move BLUNDER && |top1-top2| >= 150cp && moved piece not hanging) it also requires the move to already be classified BEST (the whole great/brilliant block is gated on classification == BEST) and noMate to be true. BRILLIANT similarly additionally requires the pre-move position not be in check (if lastBoard.isCheck()) continue). Source:
+ CORRECTION: Chesskit Splendid '>97% winning' threshold is white-POV only as written: isAlternateCompletelyWinning = alternative > 97 for White moves, mirrored as < 3 for Black; and both Splendid and Perfect return false when no alternative line exists (lastPositionAlternativeLineWinPercentage falsy) — so MultiPV >= 2 is a hard requirement, and a 0-value alternative line would also bail (falsy-check bug). Sour
+ ADDITIONS: "(1) coi-serviceworker escape hatch: gzuidhof/coi-serviceworker (MIT-licensed, npm-installable) enables cross-origin isolation on GitHub Pages via a service worker, making SharedArrayBuffer multi-threaded Stockfish feasible if StockThink ever wants it; caveats: one-time reload on first load, file must be served same-origin and unbundled, HTTPS required. (2) lichess cloud-eval operational realities verified live: keyless and CORS-usable, but it is a CACHE — uncached FENs return 404, so a local-engine fallback is mandatory (freechess treats cloud as opportunistic and marks position.worker='cloud'/'local'); freechess also abandons cloud usage for the rest of the game once a position misses. It returns knodes/depth/pvs, often at very high depth (75 for startpos). (3) Chesskit ships chunked WASM (stockfish-17.1-single-part-0..5.wasm, stockfish-18-single-6563532-part-0..5.wasm) — splitting big engine binaries into ~part files is the proven pattern for staying under GitHub's 100MB per-file limit while hosting full NNUE builds on Pages; the -lite-single 16.1 build is the small-download option. (4) wintrchess shared/src/lib/reporter/utils contains a GPL-3.0 TypeScript+chess.js implementatio
+
+--- verify:eval-bar ---
+ CORRECTION: MID-SEARCH BEHAVIOR claim is wrong in two ways. (1) Lila does NOT emit/re-render 'on every parsed streaming info line': protocol.ts only updates currentEval when `depth === (this.currentEval?.depth ?? 0) + 1` and only emits when `multiPv === this.expectedPvs && this.currentEval` — i.e. once per completed depth/multipv set. (2) There IS JS-side rate limiting: ui/lib/src/ceval/ctrl.ts line 85: `onEm
+ CORRECTION: ISSUE #11026 RATIONALE is wrong. The issue exists ('Use the engine's WDL values for the eval bar', opened by dav1312 2022-06-17, now CLOSED), but the 'material/ply dependence means same cp fills bar differently and jumps on captures' rationale does NOT appear in the thread. The actual maintainer rationale (ornicar, 2024-01-31): 'Lichess eval bars already use a winning chances function. It targets 
+ CORRECTION: SF 15.1 NORMALIZATION claim conflates two eras. Normalization did start with SF 15.1 ('+1 evaluation = 50% chance of winning against an equally strong opponent', per the 15.1 release blog), but SF 15.1 used a CONSTANT divisor (UCI::to_cp(v) = 100*v/NormalizeToPawnValue, a single int constant), NOT the quoted material-dependent `UCIEngine::to_cp(v, pos) = round(100 * v / a)` — that material-depende
+ CORRECTION: CHESS.COM SUPPORT ARTICLE claim over-attributes. The article at support.chess.com/en/articles/8379354 explains only positive/negative pawn-unit meaning; it does NOT mention forced-mate display (+M#/-M#) or the bar being fully one color — that part of the claim is unsupported by the cited source (the rendering detail is observable in their product but not documented there). Core fact stands: no pub
+ CORRECTION: FREECHESS totalHeight sharpening: totalHeight is not a hardcoded constant in evalbar.ts — it is `const totalHeight = evaluationBar.clientHeight;` read ONCE at script load from the SVG element, which has height="730" in src/public/pages/report/index.html; separately, '730' is hardcoded as string literals inside setEvalBarToWinner. The ±1095cp saturation figure is correct given the 730px height. (Go
+ CORRECTION: UCI SPEC quote nuance: the spec literally says 'If the engine is getting mated use negativ values for y' (typo 'negativ' in the original); also the spec only says 'from the engine's point of view' — 'side to move at the search-root position' is the universal de-facto interpretation (and what Stockfish does, as lila's ply-parity flip confirms), but it is not verbatim spec text. Source: https://www.
+ ADDITIONS: CRITICAL MISSED FACTS: (1) Lichess Accuracy formula on the same accuracy page (needed for StockThink's accuracy score): Accuracy% = 103.1668 * exp(-0.04354 * (winPercentBefore - winPercentAfter)) - 3.1669 — verbatim from https://lichess.org/page/accuracy. (2) winningChances.ts also exports povDiff = (povChances(e1) - povChances(e2)) / 2 (move-quality delta in [-1,1], the input to lichess inaccuracy/mistake/blunder thresholds) plus two ready-made similarity thresholds: areSimilarEvals uses povDiff < 0.14, and hasMultipleSolutions uses povChances >= 0.3524 ('cp equivalent >= 200') — useful calibration anchors for move classification. (3) lila ctrl.ts sorts multipv lines by povChances (sortPvsInPlace, line 284-285), not by raw cp — mate lines sort correctly above cp lines because of the mate-to-cp-equivalent mapping. (4) getBestEval (view/main.ts) prefers local engine eval over server eval: `ctrl.getNode().ceval ?? (showFishnetAnalysis ? ctrl.getNode().eval : undefined)` — pattern for mixing cached/PGN evals with live engine output. (5) nmrugg/stockfish.js is GPL-3.0; a GitHub Pages app bundling it must ship the license and source offer (compatible with a free static app, but the whol
