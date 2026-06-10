@@ -155,6 +155,28 @@ export const see = (pos: Chess, from: Square, to: Square): number => {
   return gain[0] + 0; // normalize -0
 };
 
+/** Can the piece on `square` be captured by a cheaper non-king piece? */
+export const canBeTakenByLowerPiece = (board: Board, square: Square): boolean => {
+  const piece = board.get(square);
+  if (!piece) return false;
+  for (const sq of attackersTo(board, square, opposite(piece.color), board.occupied)) {
+    const attacker = board.get(sq)!;
+    if (attacker.role !== 'king' && PIECE_VALUES[attacker.role] < PIECE_VALUES[piece.role])
+      return true;
+  }
+  return false;
+};
+
+/** lichess-puzzler is_in_bad_spot: attacked AND (hanging OR cheaper attacker). */
+export const isInBadSpot = (board: Board, square: Square): boolean => {
+  const piece = board.get(square);
+  if (!piece) return false;
+  return (
+    attackersTo(board, square, opposite(piece.color), board.occupied).nonEmpty() &&
+    (!isDefended(board, square) || canBeTakenByLowerPiece(board, square))
+  );
+};
+
 /** Squares of `color`'s non-pawn, non-king pieces. */
 export const minorMajorSquares = (board: Board, color: Color): Square[] => {
   const out: Square[] = [];
