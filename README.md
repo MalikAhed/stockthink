@@ -14,7 +14,7 @@ No server. No account. No API keys. No cost. Powered by **Stockfish 18 (NNUE)** 
 
 ## Use it
 
-Live at **https://malikabuallatta.github.io/stockthink/** — paste a PGN from chess.com (Game → Share → PGN) or lichess, pick an engine time, and hit *Analyze game*. Everything runs locally; nothing is uploaded anywhere.
+Live at **https://malikahed.github.io/stockthink/** — paste a PGN from chess.com (Game → Share → PGN) or lichess, pick an engine time, and hit *Analyze game*. Everything runs locally; nothing is uploaded anywhere.
 
 ## Development
 
