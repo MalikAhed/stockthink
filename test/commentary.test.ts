@@ -64,7 +64,7 @@ describe('commentary engine', () => {
     expect(c.short).toContain('hanging');
     expect(c.short).toContain('Ne5 was best');
     expect(c.long).toContain('28.4 win-percentage points');
-    expect(c.long).toContain('Evaluation after the move: -2.5');
+    expect(c.long).toContain('After this, White is'); // eval words, never raw centipawns
   });
 
   it('flags an allowed forced mate', () => {
