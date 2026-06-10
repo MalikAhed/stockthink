@@ -1,8 +1,12 @@
 /**
- * Classification visual vocabulary — chess.com-matched palette (sampled by
- * freechess/wintrchess) + glyphs + the SVG badge drawn on the board square.
+ * Classification visual vocabulary — official chess.com badge images
+ * (self-hosted in public/badges/) + matched palette + glyph fallbacks.
  */
 import type { Classification } from '../analysis/classify';
+
+/** URL of the official chess.com badge image for a classification. */
+export const badgeUrl = (cls: Classification): string =>
+  `${import.meta.env.BASE_URL}badges/${cls}.png`;
 
 export const CLASS_COLORS: Record<Classification, string> = {
   brilliant: '#26c2a3',
@@ -62,22 +66,13 @@ export const CLASS_ORDER: Classification[] = [
 ];
 
 /**
- * SVG fragment for a classification badge at the top-right of a square
- * (chessground customSvg space: 100×100 viewBox per square).
+ * SVG fragment for a classification badge at the top-right of a square —
+ * the official chess.com badge image (chessground customSvg space:
+ * 100×100 viewBox per square).
  */
-export const badgeSvg = (cls: Classification): string => {
-  const glyph = CLASS_GLYPHS[cls];
-  const fontSize = glyph.length > 1 ? 15 : 17;
-  return (
-    `<g class="st-badge">` +
-    `<circle cx="86" cy="14" r="15" fill="${CLASS_COLORS[cls]}" stroke="#fff" stroke-width="2.2"/>` +
-    `<text x="86" y="14" font-size="${fontSize}" font-weight="bold" fill="#fff"` +
-    ` text-anchor="middle" dominant-baseline="central"` +
-    ` font-family="Arial, sans-serif">${glyph}</text>` +
-    `</g>`
-  );
-};
+export const badgeSvg = (cls: Classification): string =>
+  `<g class="st-badge"><image href="${badgeUrl(cls)}" x="68" y="-4" width="34" height="34"/></g>`;
 
-/** Small inline HTML badge (move list, coach header). */
+/** Small inline HTML badge (move list, coach header, summary). */
 export const badgeHtml = (cls: Classification): string =>
-  `<span class="badge" style="background:${CLASS_COLORS[cls]}">${CLASS_GLYPHS[cls]}</span>`;
+  `<img class="badge" src="${badgeUrl(cls)}" alt="${CLASS_LABELS[cls]}" draggable="false">`;

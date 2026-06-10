@@ -392,17 +392,12 @@ table.counts { width: 100%; border-collapse: collapse; margin-top: 8px; font-siz
 .cnt-row.zero { opacity: 0.35; }
 
 .badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  /* official chess.com badge image */
+  display: inline-block;
   width: 18px;
   height: 18px;
-  border-radius: var(--r-full);
-  color: #fff;
-  font-size: 10px;
-  font-weight: 800;
   flex-shrink: 0;
-  border: 1.5px solid rgba(255, 255, 255, 0.85);
+  user-select: none;
 }
 
 /* eval graph */
@@ -422,7 +417,7 @@ table.counts { width: 100%; border-collapse: collapse; margin-top: 8px; font-siz
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
 }
 .verdict-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; min-height: 24px; }
-.verdict-row .badge { width: 22px; height: 22px; font-size: 12px; }
+.verdict-row .badge { width: 22px; height: 22px; }
 .verdict-label {
   font-size: 15px;
   font-weight: 600;
@@ -485,7 +480,13 @@ table.counts { width: 100%; border-collapse: collapse; margin-top: 8px; font-siz
   border-radius: var(--r-full);
 }
 .mv.empty { cursor: default; }
-.mv-glyph { margin-left: 5px; font-size: 11px; font-weight: 800; }
+.mv-badge {
+  width: 13px;
+  height: 13px;
+  margin-left: 4px;
+  vertical-align: -2px;
+  user-select: none;
+}
 
 /* nav controls — chess.com bottom bar */
 .controls {

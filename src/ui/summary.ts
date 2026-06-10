@@ -3,7 +3,7 @@
  * classification-count table (chess.com Game Review layout).
  */
 import type { AnnotatedReport } from '../analyze';
-import { CLASS_COLORS, CLASS_GLYPHS, CLASS_LABELS, CLASS_ORDER } from './badges';
+import { badgeHtml, CLASS_COLORS, CLASS_LABELS, CLASS_ORDER } from './badges';
 
 const esc = (s: string): string =>
   s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -20,7 +20,7 @@ export function renderSummary(el: HTMLElement, report: AnnotatedReport): void {
       <tr class="cnt-row${w.counts[c] + b.counts[c] === 0 ? ' zero' : ''}">
         <td class="cnt-w">${w.counts[c] || ''}</td>
         <td class="cnt-label" style="color:${CLASS_COLORS[c]}">
-          <span class="badge" style="background:${CLASS_COLORS[c]}">${CLASS_GLYPHS[c]}</span>
+          ${badgeHtml(c)}
           ${CLASS_LABELS[c]}
         </td>
         <td class="cnt-b">${b.counts[c] || ''}</td>
