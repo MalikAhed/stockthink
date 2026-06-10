@@ -2,7 +2,7 @@
  * Move list: two-column numbered SAN with classification colors/badges.
  */
 import type { AnnotatedMove } from '../analyze';
-import { CLASS_COLORS, CLASS_GLYPHS } from './badges';
+import { badgeUrl, CLASS_COLORS } from './badges';
 
 /** Classes that get a glyph next to the SAN in the list. */
 const GLYPHED = new Set(['brilliant', 'great', 'inaccuracy', 'mistake', 'miss', 'blunder']);
@@ -33,7 +33,7 @@ export function renderMoveList(
 
 const moveCell = (m: AnnotatedMove, currentPly: number): string => {
   const glyph = GLYPHED.has(m.classification)
-    ? `<span class="mv-glyph" style="color:${CLASS_COLORS[m.classification]}">${CLASS_GLYPHS[m.classification]}</span>`
+    ? `<img class="mv-badge" src="${badgeUrl(m.classification)}" alt="" draggable="false">`
     : '';
   const cls = m.ply === currentPly ? ' current' : '';
   const color =
