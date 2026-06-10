@@ -1,37 +1,185 @@
 /**
- * StockThink — free, fully client-side chess game review.
- * Boot module: proves the engine loads; replaced by the real app as UI lands.
+ * StockThink app shell: input → progress → review screens.
  */
+import 'chessground/assets/chessground.base.css';
+import 'chessground/assets/chessground.brown.css';
+import 'chessground/assets/chessground.cburnett.css';
+import './style.css';
+
+import { Chessground } from 'chessground';
+import type { Api } from 'chessground/api';
+import type { DrawShape } from 'chessground/draw';
+import type { Key } from 'chessground/types';
+import { analyzeGame, type AnnotatedMove, type AnnotatedReport, type Tier } from './analyze';
+import { formatEval } from './analysis/commentary';
 import { winPercent } from './analysis/winprob';
+import { badgeSvg } from './ui/badges';
+import { renderCoach } from './ui/coach';
+import { renderGraph } from './ui/graph';
+import { renderMoveList } from './ui/movelist';
+import { renderSummary } from './ui/summary';
 
-const app = document.getElementById('app')!;
-app.innerHTML = `
-  <div style="font-family: system-ui, sans-serif; padding: 2rem; max-width: 640px; margin: 0 auto;">
-    <h1 style="color:#81b64c">StockThink</h1>
-    <p>Free chess game review, entirely in your browser.</p>
-    <pre id="engine-log" style="background:#312e2b;padding:1rem;border-radius:8px;min-height:8rem"></pre>
-  </div>`;
+const $ = <T extends HTMLElement = HTMLElement>(sel: string): T =>
+  document.querySelector(sel) as T;
 
-const log = (line: string) => {
-  document.getElementById('engine-log')!.textContent += line + '\n';
+/* ------------------------------------------------------------ state --- */
+let report: AnnotatedReport | null = null;
+let ply = 0; // 0 = initial position, n = after move n
+let board: Api | null = null;
+let orientation: 'white' | 'black' = 'white';
+
+const BAD = new Set(['inaccuracy', 'mistake', 'miss', 'blunder']);
+
+/* ---------------------------------------------------------- screens --- */
+const screens = {
+  input: () => $('#screen-input'),
+  progress: () => $('#screen-progress'),
+  review: () => $('#screen-review'),
 };
 
-// Engine smoke test: load the worker, confirm UCI handshake, eval startpos.
-const engineUrl = `${import.meta.env.BASE_URL}engine/stockfish-18-lite-single.js`;
-const sf = new Worker(engineUrl);
-log('loading Stockfish 18 Lite (7.3 MB, one-time)…');
-sf.onmessage = (e: MessageEvent<string>) => {
-  const line = e.data;
-  if (line === 'uciok') {
-    log('✓ engine ready (UCI handshake ok)');
-    sf.postMessage('position startpos');
-    sf.postMessage('go depth 15');
-  } else if (line.startsWith('info depth 15') && line.includes(' multipv 1 ')) {
-    const cp = Number(/score cp (-?\d+)/.exec(line)?.[1] ?? 0);
-    log(`startpos at depth 15: +${(cp / 100).toFixed(2)} → ${winPercent({ cp }).toFixed(1)}% for White`);
-  } else if (line.startsWith('bestmove')) {
-    log(`✓ ${line}`);
-    sf.terminate();
+function show(name: keyof typeof screens): void {
+  for (const [key, get] of Object.entries(screens))
+    get().classList.toggle('hidden', key !== name);
+}
+
+/* ----------------------------------------------------------- analyze --- */
+async function startAnalysis(): Promise<void> {
+  const pgn = ($('#pgn-input') as HTMLTextAreaElement).value.trim();
+  const tier = ($('#tier') as unknown as HTMLSelectElement).value as Tier;
+  const errEl = $('#input-error');
+  errEl.classList.add('hidden');
+  if (!pgn) {
+    errEl.textContent = 'Paste a PGN first.';
+    errEl.classList.remove('hidden');
+    return;
   }
-};
-sf.postMessage('uci');
+  show('progress');
+  $('#progress-text').textContent = 'Starting engines…';
+  $('#progress-fill').style.width = '0%';
+  try {
+    report = await analyzeGame(pgn, tier, (done, total) => {
+      $('#progress-fill').style.width = `${Math.round((done / total) * 100)}%`;
+      $('#progress-text').textContent = `Evaluating position ${done} / ${total}`;
+    });
+    initReview();
+  } catch (e) {
+    show('input');
+    errEl.textContent = e instanceof Error ? e.message : String(e);
+    errEl.classList.remove('hidden');
+  }
+}
+
+/* ------------------------------------------------------------ review --- */
+function initReview(): void {
+  const r = report!;
+  show('review');
+  ply = 0;
+  orientation = 'white';
+  board = Chessground($('#board'), {
+    fen: r.initialFen,
+    coordinates: true,
+    movable: { free: false, color: undefined },
+    draggable: { enabled: false },
+    selectable: { enabled: false },
+    drawable: { enabled: false, visible: true },
+  });
+  renderSummary($('#summary'), r);
+  render();
+}
+
+/** Squares to highlight for a move (castling shown as the king's hop). */
+function displaySquares(m: AnnotatedMove): [Key, Key] {
+  if (m.san.startsWith('O-O')) {
+    const rank = m.color === 'white' ? '1' : '8';
+    return [`e${rank}` as Key, (m.san.startsWith('O-O-O') ? `c${rank}` : `g${rank}`) as Key];
+  }
+  return [m.uci.slice(0, 2) as Key, m.uci.slice(2, 4) as Key];
+}
+
+function render(): void {
+  const r = report!;
+  if (!r.moves.length || !board) return;
+  const m = ply > 0 ? r.moves[ply - 1] : null;
+
+  // board + badge + best-move arrow
+  const shapes: DrawShape[] = [];
+  let lastMove: Key[] | undefined;
+  if (m) {
+    const [from, to] = displaySquares(m);
+    lastMove = [from, to];
+    shapes.push({ orig: to, customSvg: { html: badgeSvg(m.classification), center: 'orig' } });
+    if (BAD.has(m.classification) && m.bestUci && !m.wasBest)
+      shapes.push({
+        orig: m.bestUci.slice(0, 2) as Key,
+        dest: m.bestUci.slice(2, 4) as Key,
+        brush: 'green',
+      });
+  }
+  board.set({ fen: m ? m.fenAfter : r.initialFen, lastMove, orientation });
+  board.setAutoShapes(shapes);
+
+  // eval bar
+  const ev = m ? m.evalAfter : r.moves[0].evalBefore;
+  const win = m ? m.winPercentAfter : winPercent(ev);
+  ($('#eval-bar .white-fill') as HTMLElement).style.height = `${win}%`;
+  $('#eval-bar .eval-label').textContent = formatEval(ev);
+
+  // panels
+  renderGraph($('#graph'), r.moves, ply, seek);
+  renderMoveList($('#moves'), r.moves, ply, seek);
+  renderCoach($('#coach'), r, m);
+  renderPlayerBars();
+}
+
+function renderPlayerBars(): void {
+  const h = report!.headers;
+  const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+  const white = `${esc(h.White ?? 'White')} <span class="elo">${esc(h.WhiteElo ?? '')}</span>`;
+  const black = `${esc(h.Black ?? 'Black')} <span class="elo">${esc(h.BlackElo ?? '')}</span>`;
+  $('#player-top').innerHTML = orientation === 'white' ? black : white;
+  $('#player-bottom').innerHTML = orientation === 'white' ? white : black;
+}
+
+function seek(p: number): void {
+  if (!report) return;
+  ply = Math.max(0, Math.min(report.moves.length, p));
+  render();
+}
+
+/* ------------------------------------------------------------ wiring --- */
+$('#analyze-btn').addEventListener('click', () => void startAnalysis());
+$('#btn-start').addEventListener('click', () => seek(0));
+$('#btn-prev').addEventListener('click', () => seek(ply - 1));
+$('#btn-next').addEventListener('click', () => seek(ply + 1));
+$('#btn-end').addEventListener('click', () => seek(report?.moves.length ?? 0));
+$('#btn-flip').addEventListener('click', () => {
+  orientation = orientation === 'white' ? 'black' : 'white';
+  render();
+});
+$('#btn-new').addEventListener('click', () => {
+  report = null;
+  show('input');
+});
+
+document.addEventListener('keydown', e => {
+  if (!report || screens.review().classList.contains('hidden')) return;
+  if (e.target instanceof HTMLTextAreaElement) return;
+  switch (e.key) {
+    case 'ArrowLeft':
+      seek(ply - 1);
+      break;
+    case 'ArrowRight':
+      seek(ply + 1);
+      break;
+    case 'Home':
+      seek(0);
+      break;
+    case 'End':
+      seek(report.moves.length);
+      break;
+    case 'f':
+      orientation = orientation === 'white' ? 'black' : 'white';
+      render();
+      break;
+  }
+});
