@@ -12,7 +12,66 @@
     </style>
   </head>
   <body>
-    <div id="app"></div>
+    <div id="app">
+      <header class="topbar">
+        <span class="logo">♞ Stock<b>Think</b></span>
+        <span class="tagline">free in-browser game review</span>
+      </header>
+
+      <section id="screen-input" class="screen">
+        <h1>Game Review</h1>
+        <p class="hint">Paste a PGN (chess.com / lichess export) and let Stockfish 18 review every move — entirely in your browser.</p>
+        <textarea id="pgn-input" spellcheck="false" placeholder='[Event "..."]&#10;&#10;1. e4 e5 2. Nf3 ...'></textarea>
+        <div class="row">
+          <label class="tier-label">Engine time
+            <select id="tier">
+              <option value="fast">Fast (~0.2s/move)</option>
+              <option value="standard" selected>Standard (~0.5s/move)</option>
+              <option value="deep">Deep (~1s/move)</option>
+            </select>
+          </label>
+          <button id="analyze-btn" class="primary">Analyze game</button>
+        </div>
+        <p id="input-error" class="error hidden"></p>
+      </section>
+
+      <section id="screen-progress" class="screen hidden">
+        <h1>Analyzing…</h1>
+        <div class="progress-track"><div id="progress-fill"></div></div>
+        <p id="progress-text">Starting engines…</p>
+      </section>
+
+      <section id="screen-review" class="screen hidden">
+        <div class="review-layout">
+          <div class="board-zone">
+            <div id="eval-bar"><div class="white-fill"></div><span class="eval-label">0.0</span></div>
+            <div class="board-col">
+              <div class="player-bar" id="player-top"></div>
+              <div id="board" class="board"></div>
+              <div class="player-bar" id="player-bottom"></div>
+            </div>
+          </div>
+          <aside class="sidebar">
+            <div id="summary"></div>
+            <div id="graph"></div>
+            <div id="coach"></div>
+            <div id="moves" class="moves-scroll"></div>
+            <div class="controls">
+              <button id="btn-start" title="Start (Home)">⏮</button>
+              <button id="btn-prev" title="Previous (←)">◀</button>
+              <button id="btn-next" title="Next (→)">▶</button>
+              <button id="btn-end" title="End (End)">⏭</button>
+              <button id="btn-flip" title="Flip board (f)">⇅</button>
+              <button id="btn-new" title="Review another game">New</button>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <footer class="footer">
+        <span>Runs 100% in your browser · Stockfish 18 Lite (GPL) · openings CC0 lichess · pieces cburnett CC BY-SA</span>
+      </footer>
+    </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
