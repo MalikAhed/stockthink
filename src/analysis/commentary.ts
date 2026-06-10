@@ -8,6 +8,7 @@
  * does not). Phrase variants are picked by a PRNG seeded on the ply so
  * output is stable for a given game.
  */
+import { evalWords, renderBetterWas, renderMissedWin, renderPrimary } from '../explain/templates';
 import type { Classification } from './classify';
 import type { MoveFacts, PieceOn } from './concepts';
 import type { MoveReport } from './report';
@@ -108,19 +109,42 @@ const BAD = new Set<Classification>(['inaccuracy', 'mistake', 'miss', 'blunder']
 /**
  * Build short + long commentary for one analyzed move.
  * `facts` must come from moveFacts(move.fenBefore, move.uci).
+ *
+ * When the WHY engine produced an explanation (move.explain), the short text
+ * is the spec §7/§8 output: ONE primary verified fact + (for bad moves) the
+ * "better was" clause. The legacy fact-clause path remains as a fallback.
  */
 export function commentFor(move: MoveReport, facts: MoveFacts): Commentary {
   const rand = rng(move.ply * 2654435761);
   const opener = pick(rand, OPENERS[move.classification]);
-  const tactic = tacticClause(move, facts);
   const parts: string[] = [];
+  const ex = move.explain;
+  const isBad = BAD.has(move.classification);
 
   if (move.classification === 'book' && move.opening) {
     parts.push(`${opener} — the ${move.opening.name}.`);
+  } else if (ex !== undefined && move.classification !== 'forced') {
+    // ---- WHY path (max one primary fact + one better-was clause) ----
+    if (isBad) {
+      if (move.classification === 'miss' && move.bestSan)
+        parts.push(renderMissedWin(move.bestSan, ex?.betterWas ?? null));
+      else {
+        if (ex?.primary) parts.push(renderPrimary(ex.primary));
+        if (move.bestSan) parts.push(renderBetterWas(move.bestSan, ex?.betterWas ?? null));
+        if (parts.length === 0) parts.push(`${opener}.`);
+      }
+    } else if (ex?.primary) {
+      parts.push(renderPrimary(ex.primary));
+    } else {
+      const moverWin = move.color === 'white' ? move.winPercentAfter : 100 - move.winPercentAfter;
+      parts.push(`${opener}, keeping the position ${evalWords(moverWin, false)}.`);
+    }
   } else {
+    // ---- legacy fact-clause path ----
+    const tactic = tacticClause(move, facts);
     parts.push(`${opener}.`);
     if (tactic) parts.push(`${tactic}.`);
-    if (BAD.has(move.classification) && move.bestSan && !tactic?.includes(move.bestSan))
+    if (isBad && move.bestSan && !tactic?.includes(move.bestSan))
       parts.push(`${move.bestSan} was best.`);
   }
   const short = parts.join(' ');
@@ -128,7 +152,7 @@ export function commentFor(move: MoveReport, facts: MoveFacts): Commentary {
   // ---- explain more ----
   const long: string[] = [short];
   if (move.classification !== 'book') {
-    if (BAD.has(move.classification))
+    if (isBad)
       long.push(
         `This move cost ${move.winDrop.toFixed(1)} win-percentage points` +
           ` (${moverName(move.color)}'s winning chances fell).`,
@@ -138,7 +162,12 @@ export function commentFor(move: MoveReport, facts: MoveFacts): Commentary {
       long.push(`The engine preferred ${move.bestSan}, e.g. ${bestLine.sanPv.join(' ')}.`);
     else if (move.wasBest && bestLine && bestLine.sanPv.length > 1)
       long.push(`The main line continues ${bestLine.sanPv.slice(1).join(' ')}.`);
-    long.push(`Evaluation after the move: ${formatEval(move.evalAfter)}.`);
+    const moverWin = move.color === 'white' ? move.winPercentAfter : 100 - move.winPercentAfter;
+    long.push(
+      move.evalAfter.mate !== undefined
+        ? `After this, ${moverName(move.color)} ${moverWin >= 50 ? 'has a forced mate' : 'is getting mated'}.`
+        : `After this, ${moverName(move.color)} is ${evalWords(moverWin, false)}.`,
+    );
     if (facts.isCastling) long.push(`${moverName(move.color)} castles to safety.`);
     if (facts.isPromotion) long.push('The pawn promotes.');
   }

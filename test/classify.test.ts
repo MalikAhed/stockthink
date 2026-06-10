@@ -25,22 +25,35 @@ const A = (
 });
 
 describe('classifyMoves — expected-points ladder', () => {
-  it('walks the official chess.com thresholds', () => {
+  it('walks the official chess.com thresholds (blunder gate downgrades unconfirmed)', () => {
     // 5 plies, evals tuned so each move lands in a distinct class:
-    // drops ≈ 1.8 / 4.6 / 9.2 / 18.2 / 48 win% points
+    // drops ≈ 1.8 / 4.6 / 9.2 / 18.2 / 48 win% points.
+    // The last drop is blunder-sized, but with no refutation PV the
+    // explanation engine cannot confirm a concrete cost → Mistake (§2.4).
     const game = parseGame('1. e4 e5 2. Nf3 Nc6 3. Bc4');
     const evals = [0, -20, 30, -70, 130, -500];
     const analyses = evals.map(cp => A({ cp }, { cp: cp - 40 }, 'a2a3'));
     const cls = classifyMoves(game, analyses).map(j => j.classification);
-    expect(cls).toEqual(['excellent', 'good', 'inaccuracy', 'mistake', 'blunder']);
+    expect(cls).toEqual(['excellent', 'good', 'inaccuracy', 'mistake', 'mistake']);
   });
 
-  it('flags a Miss when failing to punish a blunder (but a blunder stays a blunder)', () => {
-    const game = parseGame('1. e4 e5 2. Nf3');
-    // e4 = blunder (0 → −400), e5 = inaccuracy for black (drop ≈ 9.8) → Miss
-    const analyses = [0, -400, -250, -240].map(cp => A({ cp }, { cp: cp - 40 }, 'a2a3'));
+  it('keeps a Blunder when the explanation engine confirms hung material', () => {
+    // Qd5?? hangs the queen to Rxd5 — refutation walk verifies value 9.
+    const game = parseGame('[FEN "3r3k/8/8/8/8/8/3Q4/3K4 w - - 0 1"]\n\n1. Qd5');
+    const analyses = [A({ cp: 0 }, { cp: -40 }, 'd2a2'), A({ cp: -900 }, null, 'd8d5')];
+    analyses[1].lines[0].pvUci = ['d8d5'];
     const j = classifyMoves(game, analyses);
     expect(j[0].classification).toBe('blunder');
+    expect(j[0].explain?.primary?.kind).toBe('loses_material');
+  });
+
+  it('flags a Miss when failing to punish a bad move', () => {
+    const game = parseGame('1. e4 e5 2. Nf3');
+    // e4 = blunder-sized drop (0 → −400, unconfirmed → mistake),
+    // e5 = inaccuracy for black (drop ≈ 9.8) → Miss
+    const analyses = [0, -400, -250, -240].map(cp => A({ cp }, { cp: cp - 40 }, 'a2a3'));
+    const j = classifyMoves(game, analyses);
+    expect(j[0].classification).toBe('mistake');
     expect(j[1].classification).toBe('miss');
   });
 
@@ -82,16 +95,16 @@ describe('classifyMoves — special classes', () => {
     expect(j[6].accuracy).toBe(100);
   });
 
-  it('upgrades the only good punish of a blunder to Great', () => {
+  it('upgrades the only good punish of a bad move to Great', () => {
     const game = parseGame('1. e4 e5 2. Nf3');
     const analyses = [
       A({ cp: 0 }, { cp: -30 }, 'a2a3'),
       A({ cp: -20 }, { cp: -60 }, 'a2a3'), // before black's e5
-      A({ cp: 300 }, { cp: 100 }, 'g1f3'), // e5 was a blunder; Nf3 only good move (gap 200)
+      A({ cp: 300 }, { cp: 100 }, 'g1f3'), // e5 threw the game away; Nf3 only good move (gap 200)
       A({ cp: 280 }, { cp: 80 }, 'a7a6'),
     ];
     const j = classifyMoves(game, analyses);
-    expect(j[1].classification).toBe('blunder');
+    expect(j[1].classification).toBe('mistake'); // blunder-sized but unconfirmed (§2.4 gate)
     expect(j[2].classification).toBe('great');
   });
 
@@ -138,7 +151,7 @@ describe('buildReport', () => {
     const b = r.players.black;
     expect(w.counts.excellent).toBe(1);
     expect(w.counts.inaccuracy).toBe(1);
-    expect(w.counts.blunder).toBe(1);
+    expect(w.counts.mistake).toBe(1); // blunder-sized drop, unconfirmed → mistake
     expect(b.counts.good).toBe(1);
     expect(b.counts.mistake).toBe(1);
     expect(w.accuracy).toBeGreaterThan(0);

@@ -12,6 +12,7 @@
  * Good), allowing mate is a huge one (Blunder), automatically.
  */
 import type { PositionAnalysis } from '../engine/engine';
+import { type Explanation, explainMove } from '../explain/explain';
 import { isHanging, minorMajorSquares, PIECE_VALUES, see } from './board';
 import type { ParsedGame } from './pgn';
 import {
@@ -61,6 +62,8 @@ export interface MoveJudgment {
   wasBest: boolean;
   /** Set on book moves: the deepest matched opening so far. */
   opening?: OpeningInfo;
+  /** WHY-engine result: verified primary fact + "better was" purpose. */
+  explain?: Explanation | null;
 }
 
 export interface ClassifyOptions {
@@ -176,6 +179,49 @@ export function classifyMoves(
       }
     }
 
+    // --- WHY explanation (refutation walk / purpose detection) ---
+    let explain: Explanation | null = null;
+    if (classification !== 'book' && classification !== 'forced') {
+      const isBad =
+        classification === 'inaccuracy' ||
+        classification === 'mistake' ||
+        classification === 'miss' ||
+        classification === 'blunder';
+      try {
+        explain = explainMove({
+          fenBefore: ply.fenBefore,
+          fenAfter: ply.fenAfter,
+          uci: ply.uci,
+          mover,
+          evalAfter,
+          refutationUci: after.lines[0]?.pvUci ?? [],
+          bestPvUci: before.lines[0]?.pvUci ?? [],
+          bestEval: evalBefore,
+          isBad,
+          winDrop,
+        });
+      } catch {
+        explain = null; // never block the report on an explainer bug
+      }
+    }
+
+    // Blunder gate (§2.4): only call it a Blunder when the explanation
+    // engine confirms a concrete cost (material ≥ a piece, forced mate, or
+    // a stalemate that throws the game away); otherwise a human coach would
+    // say "Mistake".
+    if (classification === 'blunder') {
+      const p = explain?.primary;
+      const confirmed =
+        (p !== undefined &&
+          p !== null &&
+          (p.kind === 'allows_mate' ||
+            (p.kind === 'loses_material' && p.value >= 3) ||
+            (p.kind === 'loses_material_eventually' && p.value >= 3))) ||
+        isMateForSide(evalAfter, mover === 'white' ? 'black' : 'white') ||
+        after.terminal; // stalemated from a winning position
+      if (!confirmed) classification = 'mistake';
+    }
+
     judgments.push({
       classification,
       epLoss,
@@ -187,11 +233,16 @@ export function classifyMoves(
       bestUci: before.bestmoveUci,
       wasBest,
       opening: classification === 'book' ? lastOpening : undefined,
+      explain,
     });
   }
 
   return judgments;
 }
+
+/** Is this white-POV eval a forced mate for the given side? */
+const isMateForSide = (ev: EvalScore, side: Color): boolean =>
+  ev.mate !== undefined && (side === 'white' ? ev.mate > 0 : ev.mate < 0);
 
 const onlyOneLegalMove = (pos: Chess): boolean => {
   let count = 0;
@@ -281,9 +332,10 @@ const hasMateInOne = (pos: Chess): boolean => {
 };
 
 /**
- * Great: the best move played right after the opponent blundered, when it
+ * Great: the best move played right after the opponent erred badly, when it
  * was the ONLY good move (top-2 engine lines ≥ 150cp apart, no mates) and
- * the moved piece is not left hanging.
+ * the moved piece is not left hanging. (Mistake counts too: the blunder
+ * gate can downgrade an unconfirmed blunder to mistake.)
  */
 function isGreat(
   posAfter: Chess,
@@ -291,7 +343,7 @@ function isGreat(
   before: PositionAnalysis,
   prev: MoveJudgment | undefined,
 ): boolean {
-  if (prev?.classification !== 'blunder') return false;
+  if (prev?.classification !== 'blunder' && prev?.classification !== 'mistake') return false;
   const top = before.lines[0];
   const second = before.lines[1];
   if (!top || !second) return false;
