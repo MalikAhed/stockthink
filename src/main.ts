@@ -2,9 +2,7 @@
  * StockThink app shell: input → progress → review screens.
  */
 import 'chessground/assets/chessground.base.css';
-import 'chessground/assets/chessground.brown.css';
-import 'chessground/assets/chessground.cburnett.css';
-import './style.css';
+import './style.css'; // includes chess.com green board + Neo piece theme
 
 import { Chessground } from 'chessground';
 import type { Api } from 'chessground/api';
@@ -132,12 +130,25 @@ function render(): void {
 }
 
 function renderPlayerBars(): void {
-  const h = report!.headers;
+  const r = report!;
+  const h = r.headers;
   const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
-  const white = `${esc(h.White ?? 'White')} <span class="elo">${esc(h.WhiteElo ?? '')}</span>`;
-  const black = `${esc(h.Black ?? 'Black')} <span class="elo">${esc(h.BlackElo ?? '')}</span>`;
-  $('#player-top').innerHTML = orientation === 'white' ? black : white;
-  $('#player-bottom').innerHTML = orientation === 'white' ? white : black;
+  const strip = (name: string, elo: string | undefined): string =>
+    `<div class="player-avatar">${esc(name.charAt(0).toUpperCase() || '?')}</div>
+     <div class="player-info">
+       <span class="player-name">${esc(name)}</span>
+       <span class="elo">${elo ? `(${esc(elo)})` : ''}</span>
+     </div>`;
+  const white = strip(h.White ?? 'White', h.WhiteElo);
+  const black = strip(h.Black ?? 'Black', h.BlackElo);
+  const top = $('#player-top');
+  const bottom = $('#player-bottom');
+  top.innerHTML = orientation === 'white' ? black : white;
+  bottom.innerHTML = orientation === 'white' ? white : black;
+  // green side-bar marks the player to move (chess.com active strip)
+  const toMove: 'white' | 'black' = ply < r.moves.length ? r.moves[ply].color : 'white';
+  top.classList.toggle('active', toMove !== orientation);
+  bottom.classList.toggle('active', toMove === orientation);
 }
 
 function seek(p: number): void {

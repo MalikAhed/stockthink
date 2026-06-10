@@ -5,17 +5,17 @@
 import type { Classification } from '../analysis/classify';
 
 export const CLASS_COLORS: Record<Classification, string> = {
-  brilliant: '#1baaa6',
-  great: '#5b8baf',
-  best: '#98bc49',
-  excellent: '#98bc49',
-  good: '#97af8b',
-  book: '#a98865',
-  forced: '#97af8b',
-  inaccuracy: '#f4bf44',
-  mistake: '#e28c28',
-  miss: '#dd5f4c',
-  blunder: '#c93230',
+  brilliant: '#26c2a3',
+  great: '#5c8bb0',
+  best: '#95b776',
+  excellent: '#95b776',
+  good: '#95af7a',
+  book: '#a88865',
+  forced: '#7c9c7b',
+  inaccuracy: '#f7c045',
+  mistake: '#e58f2a',
+  miss: '#ff7769',
+  blunder: '#ca3431',
 };
 
 export const CLASS_GLYPHS: Record<Classification, string> = {
