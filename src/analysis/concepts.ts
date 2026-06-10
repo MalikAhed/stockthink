@@ -131,6 +131,7 @@ export function moveFacts(fenBefore: string, uci: string): MoveFacts {
       )
         forkedPieces.push(pieceOn(board, sq));
     }
+    forkedPieces.sort((a, b) => PIECE_VALUES[b.role] - PIECE_VALUES[a.role]);
   }
 
   // pin / skewer along the moved ray piece's line
