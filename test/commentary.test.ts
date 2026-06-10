@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest';
+import { Chess } from 'chessops/chess';
+import { makeFen, parseFen } from 'chessops/fen';
+import { parseUci } from 'chessops/util';
 import { commentFor, formatEval } from '../src/analysis/commentary';
 import { moveFacts } from '../src/analysis/concepts';
 import type { MoveReport } from '../src/analysis/report';
+import { explainMove } from '../src/explain/explain';
 
 /** Minimal MoveReport fixture. */
 const mr = (over: Partial<MoveReport>): MoveReport => ({
@@ -24,7 +28,37 @@ const mr = (over: Partial<MoveReport>): MoveReport => ({
   wasBest: true,
   bestSan: 'e4',
   lines: [],
+  volatile: false,
   ...over,
+});
+
+const fenAfterMove = (fen: string, uci: string): string => {
+  const pos = Chess.fromSetup(parseFen(fen).unwrap()).unwrap();
+  pos.play(parseUci(uci)!);
+  return makeFen(pos.toSetup());
+};
+
+const BAD = new Set(['inaccuracy', 'mistake', 'miss', 'blunder']);
+
+/** Run the WHY engine for a fixture, exactly as classify.ts does in production. */
+const withExplain = (
+  m: MoveReport,
+  refutationUci: string[] = [],
+  bestPvUci: string[] = [],
+): MoveReport => ({
+  ...m,
+  explain: explainMove({
+    fenBefore: m.fenBefore,
+    fenAfter: fenAfterMove(m.fenBefore, m.uci),
+    uci: m.uci,
+    mover: m.color,
+    evalAfter: m.evalAfter,
+    refutationUci,
+    bestPvUci,
+    bestEval: m.evalBefore,
+    isBad: BAD.has(m.classification),
+    winDrop: m.winDrop,
+  }),
 });
 
 describe('commentary engine', () => {
@@ -45,55 +79,65 @@ describe('commentary engine', () => {
 
   it('explains a blunder that hangs a piece, and suggests the best move', () => {
     const fen = '1k1r4/8/8/8/3B4/5N2/8/1K6 w - - 0 1';
-    const m = mr({
-      san: 'Ng1',
-      uci: 'f3g1',
-      fenBefore: fen,
-      classification: 'blunder',
-      winDrop: 28.4,
-      epLoss: 0.284,
-      evalBefore: { cp: 50 },
-      evalAfter: { cp: -250 },
-      wasBest: false,
-      bestUci: 'f3e5',
-      bestSan: 'Ne5',
-      lines: [{ eval: { cp: 50 }, sanPv: ['Ne5', 'Rd5'], uciPv: ['f3e5', 'd8d5'] }],
-    });
+    const m = withExplain(
+      mr({
+        san: 'Ng1',
+        uci: 'f3g1',
+        fenBefore: fen,
+        classification: 'blunder',
+        winDrop: 28.4,
+        epLoss: 0.284,
+        evalBefore: { cp: 50 },
+        evalAfter: { cp: -250 },
+        wasBest: false,
+        bestUci: 'f3e5',
+        bestSan: 'Ne5',
+        lines: [{ eval: { cp: 50 }, sanPv: ['Ne5', 'Rd5'], uciPv: ['f3e5', 'd8d5'] }],
+      }),
+      ['d8d4'], // refutation: Rxd4
+      ['f3e5', 'd8d5'],
+    );
     const c = commentFor(m, moveFacts(fen, m.uci));
     expect(c.short).toContain('bishop on d4');
-    expect(c.short).toContain('hanging');
-    expect(c.short).toContain('Ne5 was best');
+    expect(c.short).toMatch(/hangs|hanging/);
+    expect(c.short).toContain('Ne5');
     expect(c.long).toContain('28.4 win-percentage points');
     expect(c.long).toContain('After this, White is'); // eval words, never raw centipawns
   });
 
   it('flags an allowed forced mate', () => {
-    const m = mr({
-      san: 'Kb1',
-      uci: 'b2b1',
-      color: 'white',
-      fenBefore: '1k6/8/8/8/8/8/1K4r1/8 w - - 0 1',
-      classification: 'blunder',
-      evalAfter: { mate: -3 },
-      wasBest: false,
-      bestSan: 'Kc3',
-    });
+    const m = withExplain(
+      mr({
+        san: 'Kb1',
+        uci: 'b2b1',
+        color: 'white',
+        fenBefore: '1k6/8/8/8/8/8/1K4r1/8 w - - 0 1',
+        classification: 'blunder',
+        evalAfter: { mate: -3 },
+        wasBest: false,
+        bestSan: 'Kc3',
+      }),
+    );
     const c = commentFor(m, moveFacts(m.fenBefore, m.uci));
     expect(c.short).toContain('forced mate in 3');
   });
 
   it('celebrates a fork on the short line', () => {
     const fen = '7k/2q5/8/8/4Pr2/2N5/8/K7 w - - 0 1';
-    const m = mr({
-      san: 'Nd5',
-      uci: 'c3d5',
-      fenBefore: fen,
-      classification: 'best',
-      wasBest: true,
-      bestSan: 'Nd5',
-    });
+    const m = withExplain(
+      mr({
+        san: 'Nd5',
+        uci: 'c3d5',
+        fenBefore: fen,
+        classification: 'best',
+        wasBest: true,
+        bestSan: 'Nd5',
+      }),
+    );
     const c = commentFor(m, moveFacts(fen, m.uci));
-    expect(c.short).toMatch(/forks the queen on c7 and the rook on f4/);
+    expect(c.short).toMatch(
+      /forks the (queen on c7 and the rook on f4|rook on f4 and the queen on c7)/,
+    );
   });
 
   it('never mentions squares that are not in the verified data (no hallucination)', () => {
@@ -103,10 +147,12 @@ describe('commentary engine', () => {
       ['4k3/8/2n5/8/8/8/8/4KB2 w - - 0 1', 'f1b5', { classification: 'excellent' }],
     ];
     for (const [fen, uci, over] of cases) {
-      const m = mr({ fenBefore: fen, uci, san: uci, ...over });
+      const m = withExplain(mr({ fenBefore: fen, uci, san: uci, ...over }));
       const f = moveFacts(fen, uci);
       const c = commentFor(m, f);
       const allowed = new Set<string>([
+        // every square inside the WHY engine's verified facts is allowed
+        ...(JSON.stringify(m.explain ?? {}).match(/[a-h][1-8]/g) ?? []),
         uci.slice(0, 2),
         uci.slice(2, 4),
         ...(m.bestSan?.match(/[a-h][1-8]/g) ?? []),

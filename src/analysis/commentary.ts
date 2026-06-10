@@ -2,15 +2,17 @@
  * Commentary engine — Tier 1: deterministic template NLG.
  *
  * Every sentence is slot-filled exclusively from engine-verified data
- * (MoveReport) and board-verified facts (MoveFacts), so the text cannot
- * hallucinate pieces, squares or tactics (CCC paper, arxiv 2410.20811:
- * concept-grounded commentary matches human correctness; free generation
- * does not). Phrase variants are picked by a PRNG seeded on the ply so
- * output is stable for a given game.
+ * (MoveReport) and the WHY engine's verified facts (move.explain), so the
+ * text cannot hallucinate pieces, squares or tactics. The research is
+ * unanimous on this split (MATE arXiv:2411.06655: +30–45pts when facts are
+ * supplied vs derived; ChessQA arXiv:2510.23948: language-about-chess is
+ * LLMs' strongest skill, evaluation their weakest): analysis must stay
+ * deterministic; language layers may only reword. Phrase variants are
+ * picked by a PRNG seeded on the ply so output is stable for a given game.
  */
 import { evalWords, renderBetterWas, renderMissedWin, renderPrimary } from '../explain/templates';
 import type { Classification } from './classify';
-import type { MoveFacts, PieceOn } from './concepts';
+import type { MoveFacts } from './concepts';
 import type { MoveReport } from './report';
 import type { EvalScore } from './winprob';
 
@@ -34,17 +36,6 @@ const rng = (seed: number) => () => {
 
 const pick = <T>(rand: () => number, xs: T[]): T => xs[Math.floor(rand() * xs.length)];
 
-const ROLE_NAMES: Record<string, string> = {
-  pawn: 'pawn',
-  knight: 'knight',
-  bishop: 'bishop',
-  rook: 'rook',
-  queen: 'queen',
-  king: 'king',
-};
-
-const named = (p: PieceOn): string => `${ROLE_NAMES[p.role]} on ${p.square}`;
-
 /** Format a white-POV eval like "+1.4", "-0.3" or "#4" / "#-3". */
 export const formatEval = (ev: EvalScore): string => {
   if (ev.mate !== undefined) return `#${ev.mate}`;
@@ -53,38 +44,6 @@ export const formatEval = (ev: EvalScore): string => {
 };
 
 const moverName = (color: 'white' | 'black') => (color === 'white' ? 'White' : 'Black');
-const oppName = (color: 'white' | 'black') => (color === 'white' ? 'Black' : 'White');
-
-/* ----------------------------------------------------- fact clauses --- */
-
-/** Most salient verified tactical clause for this move, if any. */
-function tacticClause(m: MoveReport, f: MoveFacts): string | undefined {
-  const mateAfter = m.evalAfter.mate;
-  const moverSign = m.color === 'white' ? 1 : -1;
-  if (mateAfter !== undefined && mateAfter * moverSign < 0)
-    return `This allows a forced mate in ${Math.abs(mateAfter)}`;
-  if (f.hangs.length > 0) return `It leaves the ${named(f.hangs[0])} hanging`;
-  if (
-    m.evalBefore.mate !== undefined &&
-    m.evalBefore.mate * moverSign > 0 &&
-    (mateAfter === undefined || mateAfter * moverSign <= 0) &&
-    m.bestSan
-  )
-    return `There was a forced mate in ${Math.abs(m.evalBefore.mate)} starting with ${m.bestSan}`;
-  if (f.missedFreePieces.length > 0 && !f.winsMaterial)
-    return `The ${named(f.missedFreePieces[0])} could have been captured`;
-  if (f.forkedPieces.length >= 2)
-    return `The ${ROLE_NAMES[f.piece.role]} forks the ${f.forkedPieces.map(named).join(' and the ')}`;
-  if (f.skewers) return `It skewers the ${named(f.skewers.front)} against the ${named(f.skewers.behind)}`;
-  if (f.pins) return `It pins the ${named(f.pins.front)} to the ${named(f.pins.behind)}`;
-  if (f.trapped) return `The ${oppName(m.color).toLowerCase()} ${named(f.trapped)} is trapped`;
-  if (f.winsMaterial && f.captured) return `It wins the ${named(f.captured)}`;
-  if (mateAfter !== undefined && mateAfter * moverSign > 0)
-    return `${moverName(m.color)} now has a forced mate in ${Math.abs(mateAfter)}`;
-  if (f.isDoubleCheck) return `Double check — the king must move`;
-  if (f.isDiscoveredCheck) return `A discovered check`;
-  return undefined;
-}
 
 /* ----------------------------------------------------- phrase banks --- */
 
@@ -110,9 +69,10 @@ const BAD = new Set<Classification>(['inaccuracy', 'mistake', 'miss', 'blunder']
  * Build short + long commentary for one analyzed move.
  * `facts` must come from moveFacts(move.fenBefore, move.uci).
  *
- * When the WHY engine produced an explanation (move.explain), the short text
- * is the spec §7/§8 output: ONE primary verified fact + (for bad moves) the
- * "better was" clause. The legacy fact-clause path remains as a fallback.
+ * The short text is the spec §7/§8 output: ONE primary verified fact +
+ * (for bad moves) the "better was" clause, all rendered from the WHY
+ * engine's verified facts. There is deliberately no free-form fallback:
+ * when no fact is verified, the text says less rather than guessing.
  */
 export function commentFor(move: MoveReport, facts: MoveFacts): Commentary {
   const rand = rng(move.ply * 2654435761);
@@ -121,31 +81,24 @@ export function commentFor(move: MoveReport, facts: MoveFacts): Commentary {
   const ex = move.explain;
   const isBad = BAD.has(move.classification);
 
-  if (move.classification === 'book' && move.opening) {
-    parts.push(`${opener} — the ${move.opening.name}.`);
-  } else if (ex !== undefined && move.classification !== 'forced') {
-    // ---- WHY path (max one primary fact + one better-was clause) ----
-    if (isBad) {
-      if (move.classification === 'miss' && move.bestSan)
-        parts.push(renderMissedWin(move.bestSan, ex?.betterWas ?? null));
-      else {
-        if (ex?.primary) parts.push(renderPrimary(ex.primary));
-        if (move.bestSan) parts.push(renderBetterWas(move.bestSan, ex?.betterWas ?? null));
-        if (parts.length === 0) parts.push(`${opener}.`);
-      }
-    } else if (ex?.primary) {
-      parts.push(renderPrimary(ex.primary));
-    } else {
-      const moverWin = move.color === 'white' ? move.winPercentAfter : 100 - move.winPercentAfter;
-      parts.push(`${opener}, keeping the position ${evalWords(moverWin, false)}.`);
-    }
-  } else {
-    // ---- legacy fact-clause path ----
-    const tactic = tacticClause(move, facts);
+  if (move.classification === 'book') {
+    parts.push(move.opening ? `${opener} — the ${move.opening.name}.` : `${opener}.`);
+  } else if (move.classification === 'forced') {
     parts.push(`${opener}.`);
-    if (tactic) parts.push(`${tactic}.`);
-    if (isBad && move.bestSan && !tactic?.includes(move.bestSan))
-      parts.push(`${move.bestSan} was best.`);
+  } else if (isBad) {
+    // ---- WHY path (max one primary fact + one better-was clause) ----
+    if (move.classification === 'miss' && move.bestSan)
+      parts.push(renderMissedWin(move.bestSan, ex?.betterWas ?? null));
+    else {
+      if (ex?.primary) parts.push(renderPrimary(ex.primary));
+      if (move.bestSan) parts.push(renderBetterWas(move.bestSan, ex?.betterWas ?? null));
+      if (parts.length === 0) parts.push(`${opener}.`);
+    }
+  } else if (ex?.primary) {
+    parts.push(renderPrimary(ex.primary));
+  } else {
+    const moverWin = move.color === 'white' ? move.winPercentAfter : 100 - move.winPercentAfter;
+    parts.push(`${opener}, keeping the position ${evalWords(moverWin, false)}.`);
   }
   const short = parts.join(' ');
 

@@ -26,6 +26,7 @@ const move = (over: Partial<AnnotatedMove>): AnnotatedMove => ({
   wasBest: true,
   bestSan: 'e4',
   lines: [],
+  volatile: false,
   facts: null,
   commentary: { short: 'The strongest move.', long: 'The strongest move. Evaluation: +0.3.' },
   ...over,
