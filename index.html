@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="StockThink — free chess game analysis in your browser. Paste a PGN, get a full chess.com-style game review powered by Stockfish." />
     <title>StockThink — Free Chess Game Review</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
     <style>
       /* Critical pre-app styles: dark canvas, no flash of white */
       :root { color-scheme: dark; }
@@ -14,7 +20,7 @@
   <body>
     <div id="app">
       <header class="topbar">
-        <span class="logo">♞ Stock<b>Think</b></span>
+        <span class="wordmark">StockTh<span class="wordmark-dot"></span>nk</span>
         <span class="tagline">free in-browser game review</span>
       </header>
 
@@ -53,13 +59,13 @@
           </div>
           <aside class="sidebar">
             <div id="summary"></div>
-            <div id="graph"></div>
             <div id="coach"></div>
             <div id="moves" class="moves-scroll"></div>
+            <div id="graph"></div>
             <div class="controls">
               <button id="btn-start" title="Start (Home)">⏮</button>
               <button id="btn-prev" title="Previous (←)">◀</button>
-              <button id="btn-next" title="Next (→)">▶</button>
+              <button id="btn-next" class="nav-primary" title="Next (→)">▶</button>
               <button id="btn-end" title="End (End)">⏭</button>
               <button id="btn-flip" title="Flip board (f)">⇅</button>
               <button id="btn-new" title="Review another game">New</button>
@@ -69,7 +75,7 @@
       </section>
 
       <footer class="footer">
-        <span>Runs 100% in your browser · Stockfish 18 Lite (GPL) · openings CC0 lichess · pieces cburnett CC BY-SA</span>
+        <span>Runs 100% in your browser · Stockfish 18 Lite (GPL) · openings CC0 lichess · pieces © Chess.com (Neo)</span>
       </footer>
     </div>
     <script type="module" src="/src/main.ts"></script>

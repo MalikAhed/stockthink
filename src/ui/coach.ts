@@ -1,8 +1,9 @@
 /**
- * Coach panel: classification headline + verified commentary for the
- * current move, with an "explain more" expansion.
+ * Coach panel: chess.com-style speech bubble — classification verdict row
+ * (badge · "<san> is <classification>" · eval chip) + verified commentary.
  */
 import type { AnnotatedMove, AnnotatedReport } from '../analyze';
+import { formatEval } from '../analysis/commentary';
 import { badgeHtml, CLASS_COLORS } from './badges';
 
 const esc = (s: string): string =>
@@ -32,27 +33,32 @@ export function renderCoach(
   if (!move) {
     const opening = report.opening ? `${report.opening.name}. ` : '';
     el.innerHTML = `
-      <div class="coach">
-        <div class="coach-head"><span class="coach-title">Game Review</span></div>
-        <p class="coach-text">${esc(opening)}Use ← → (or click a move) to step through the game.</p>
+      <div id="commentary-card">
+        <div class="bubble">
+          <div class="verdict-row">
+            <span class="verdict-label">Game Review</span>
+          </div>
+          <div class="commentary-text">${esc(opening)}Use ← → (or click a move) to step through the game.</div>
+        </div>
       </div>`;
     return;
   }
   const c = move.classification;
   el.innerHTML = `
-    <div class="coach" style="border-left-color:${CLASS_COLORS[c]}">
-      <div class="coach-head">
-        ${badgeHtml(c)}
-        <span class="coach-title" style="color:${CLASS_COLORS[c]}">
-          ${move.san} is ${headline(c)}
-        </span>
+    <div id="commentary-card">
+      <div class="bubble">
+        <div class="verdict-row">
+          ${badgeHtml(c)}
+          <span class="verdict-label"><span class="san">${esc(move.san)}</span> is <span class="verdict-class" style="color:${CLASS_COLORS[c]}">${headline(c)}</span></span>
+          <span class="score-chip">${formatEval(move.evalAfter)}</span>
+        </div>
+        <div class="commentary-text">${esc(move.commentary.short)}</div>
+        ${
+          move.commentary.long && move.commentary.long !== move.commentary.short
+            ? `<details class="coach-more"><summary>Explain more</summary>
+               <div class="commentary-text">${esc(move.commentary.long)}</div></details>`
+            : ''
+        }
       </div>
-      <p class="coach-text">${esc(move.commentary.short)}</p>
-      ${
-        move.commentary.long && move.commentary.long !== move.commentary.short
-          ? `<details class="coach-more"><summary>Explain more</summary>
-             <p class="coach-text">${esc(move.commentary.long)}</p></details>`
-          : ''
-      }
     </div>`;
 }
