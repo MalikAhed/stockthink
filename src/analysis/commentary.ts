@@ -105,6 +105,8 @@ export function commentFor(move: MoveReport, facts: MoveFacts): Commentary {
   // ---- explain more ----
   const long: string[] = [short];
   if (move.classification !== 'book') {
+    if (move.volatile)
+      long.push('This is a sharp position — small errors are punished quickly.');
     if (isBad)
       long.push(
         `This move cost ${move.winDrop.toFixed(1)} win-percentage points` +
