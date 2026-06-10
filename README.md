@@ -12,6 +12,10 @@ No server. No account. No API keys. No cost. Powered by **Stockfish 18 (NNUE)** 
 4. **Accuracy** — lichess accuracy curve per move; game accuracy = mean of volatility-weighted and harmonic means. Plus an estimated game rating.
 5. **Commentary** — a rule-based concept detector (hanging pieces, forks, pins, skewers, sacrifices, mate threats, missed tactics…) extracts *verified facts* from the engine lines; a template engine words them into short, clear sentences. Because every statement is derived from engine-verified facts, the commentary **cannot hallucinate**.
 
+## Use it
+
+Live at **https://malikabuallatta.github.io/stockthink/** — paste a PGN from chess.com (Game → Share → PGN) or lichess, pick an engine time, and hit *Analyze game*. Everything runs locally; nothing is uploaded anywhere.
+
 ## Development
 
 ```bash
@@ -26,3 +30,5 @@ npm run build    # production build (GitHub Pages base path)
 GPL-3.0-or-later — required by Stockfish (GPLv3) and chessground (GPL-3.0), and we're happy about it: this project exists because open source made it possible.
 
 Stockfish 18 WASM build © Chess.com LLC, GPLv3, from [nmrugg/stockfish.js](https://github.com/nmrugg/stockfish.js).
+
+Attributions: board UI [chessground](https://github.com/lichess-org/chessground) (GPL-3.0+) with **cburnett** piece set (CC BY-SA 3.0, Colin M.L. Burnett); chess rules [chessops](https://github.com/niklasf/chessops) (GPL-3.0+); opening names from [lichess-org/chess-openings](https://github.com/lichess-org/chess-openings) (CC0); win%/accuracy formulas from lichess (AGPL-3.0 project — formulas reimplemented); classification thresholds from chess.com's published support article; Brilliant/Great heuristics re-implemented clean-room from ideas in freechess/wintrchess.
