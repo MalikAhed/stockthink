@@ -64,6 +64,14 @@ export interface MoveJudgment {
   opening?: OpeningInfo;
   /** WHY-engine result: verified primary fact + "better was" purpose. */
   explain?: Explanation | null;
+  /**
+   * True when the position BEFORE the move is tactically volatile: side to
+   * move in check, mate on the board, or shallow vs deep eval diverging by
+   * more than ~65cp (arXiv:2412.17948's quiet-position margins M₁=60/M₂=70,
+   * inverted as a sharpness detector). Static positional features are
+   * unreliable here, so positional-only explanations are suppressed.
+   */
+  volatile: boolean;
 }
 
 export interface ClassifyOptions {
@@ -71,7 +79,14 @@ export interface ClassifyOptions {
   openings?: Map<string, OpeningInfo>;
 }
 
-/** chess.com official ladder: expected points lost → classification. */
+/**
+ * chess.com official ladder: expected points lost → classification.
+ * These bands also sit safely above the engine's measured self-noise:
+ * at practical node budgets ~20% of positions show ≥2.5 win% eval flips
+ * under semantically null transformations and ~6% show ≥5 (consistency-
+ * checks paper, arXiv:2306.09983), so nothing below a 5-win%-point drop
+ * is ever labelled worse than "good".
+ */
 const ladder = (epLoss: number): Classification => {
   if (epLoss <= 0.02) return 'excellent';
   if (epLoss <= 0.05) return 'good';
@@ -79,6 +94,24 @@ const ladder = (epLoss: number): Classification => {
   if (epLoss <= 0.2) return 'mistake';
   return 'blunder';
 };
+
+/**
+ * Volatility margin (cp) between the first and the deepest completed
+ * mainline iteration beyond which a position counts as tactically sharp
+ * (arXiv:2412.17948: 60–70cp static-vs-search divergence is the empirical
+ * quiet/volatile boundary).
+ */
+const VOLATILITY_CP = 65;
+
+/** Is the position tactically volatile? (see MoveJudgment.volatile) */
+function isVolatile(analysis: PositionAnalysis, pos: Chess): boolean {
+  if (pos.isCheck()) return true;
+  const deep = analysis.lines[0]?.eval;
+  const shallow = analysis.shallowEval;
+  if (!deep || !shallow) return false;
+  if (deep.mate !== undefined || shallow.mate !== undefined) return true;
+  return Math.abs((deep.cp ?? 0) - (shallow.cp ?? 0)) > VOLATILITY_CP;
+}
 
 /** Mover-POV scalar where mate counts as ±infinity-ish for comparisons. */
 const moverPovValue = (ev: EvalScore, mover: Color): number => {
@@ -179,6 +212,14 @@ export function classifyMoves(
       }
     }
 
+    // --- volatility gate (suppresses positional talk in sharp positions) ---
+    let volatile = false;
+    try {
+      volatile = isVolatile(before, chessFrom(ply.fenBefore));
+    } catch {
+      volatile = false;
+    }
+
     // --- WHY explanation (refutation walk / purpose detection) ---
     let explain: Explanation | null = null;
     if (classification !== 'book' && classification !== 'forced') {
@@ -200,6 +241,11 @@ export function classifyMoves(
           isBad,
           winDrop,
         });
+        // In a tactically volatile position, static positional features are
+        // about to be overturned by tactics — a positional "why" would be
+        // noise, so drop it and let the comparative fallback speak instead.
+        if (volatile && explain?.primary?.kind === 'positional')
+          explain = { ...explain, primary: null };
       } catch {
         explain = null; // never block the report on an explainer bug
       }
@@ -234,6 +280,7 @@ export function classifyMoves(
       wasBest,
       opening: classification === 'book' ? lastOpening : undefined,
       explain,
+      volatile,
     });
   }
 
@@ -333,9 +380,15 @@ const hasMateInOne = (pos: Chess): boolean => {
 
 /**
  * Great: the best move played right after the opponent erred badly, when it
- * was the ONLY good move (top-2 engine lines ≥ 150cp apart, no mates) and
- * the moved piece is not left hanging. (Mistake counts too: the blunder
- * gate can downgrade an unconfirmed blunder to mistake.)
+ * was the ONLY good move and the moved piece is not left hanging. (Mistake
+ * counts too: the blunder gate can downgrade an unconfirmed blunder.)
+ *
+ * "Only good move" = top-2 engine lines ≥ 10 win-percentage points apart.
+ * The gap is measured in win% space, not centipawns: cp gaps are
+ * meaningless when both lines are far from equality (+800 vs +650 is the
+ * same result), and 10 win% sits safely above the engine's ~2.5–5 win%
+ * self-noise floor (arXiv:2306.09983 flags 0.2–0.25 on [−1,1] — i.e.
+ * 10–12.5 win% — as unambiguous).
  */
 function isGreat(
   posAfter: Chess,
@@ -348,7 +401,7 @@ function isGreat(
   const second = before.lines[1];
   if (!top || !second) return false;
   if (top.eval.mate !== undefined || second.eval.mate !== undefined) return false;
-  if (Math.abs((top.eval.cp ?? 0) - (second.eval.cp ?? 0)) < 150) return false;
+  if (Math.abs(winPercent(top.eval) - winPercent(second.eval)) < 10) return false;
   const move = parseUci(uci);
   if (!move || !('to' in move)) return false;
   return !isHanging(posAfter.board, move.to);

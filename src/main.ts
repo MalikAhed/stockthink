@@ -11,6 +11,7 @@ import type { Key } from 'chessground/types';
 import { analyzeGame, type AnnotatedMove, type AnnotatedReport, type Tier } from './analyze';
 import { formatEval } from './analysis/commentary';
 import { winPercent } from './analysis/winprob';
+import { renderAiPanel } from './ui/aipanel';
 import { badgeSvg } from './ui/badges';
 import { renderCoach } from './ui/coach';
 import { renderGraph } from './ui/graph';
@@ -82,6 +83,10 @@ function initReview(): void {
     drawable: { enabled: false, visible: true },
   });
   renderSummary($('#summary'), r);
+  renderAiPanel($('#ai-tools'), {
+    getReport: () => report,
+    onCommentaryUpdated: () => render(),
+  });
   render();
 }
 

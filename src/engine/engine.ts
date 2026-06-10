@@ -56,6 +56,14 @@ export interface PositionAnalysis {
   bestmoveUci: string | null;
   /** True when the position has no legal moves (mate/stalemate). */
   terminal: boolean;
+  /**
+   * White-POV eval of the FIRST (shallowest) completed mainline iteration.
+   * |shallow − deep| is the per-position volatility margin: a divergence
+   * beyond ~60–70cp marks a tactically volatile position whose static
+   * features are about to be overturned (arXiv:2412.17948 quiet-position
+   * filter, inverted).
+   */
+  shallowEval?: EvalScore;
 }
 
 export interface EngineOptions {
@@ -115,6 +123,7 @@ export class Engine {
   ): Promise<PositionAnalysis> {
     const stm = sideToMove(fen);
     const lines = new Map<number, EngineLine>();
+    let shallow: EngineLine | undefined;
 
     return new Promise((resolve, reject) => {
       const timer = setTimeout(
@@ -125,6 +134,7 @@ export class Engine {
         if (raw.startsWith('info ')) {
           const line = parseInfo(raw, stm);
           if (!line) return;
+          if (line.multipv === 1 && shallow === undefined) shallow = line;
           const prev = lines.get(line.multipv);
           if (!prev || line.depth >= prev.depth) lines.set(line.multipv, line);
           if (line.multipv === 1 && (!prev || line.depth > prev.depth) && onDepth)
@@ -139,6 +149,7 @@ export class Engine {
             lines: [...lines.values()].sort((a, b) => a.multipv - b.multipv),
             bestmoveUci: terminal ? null : best,
             terminal,
+            shallowEval: shallow?.eval,
           });
         }
       };

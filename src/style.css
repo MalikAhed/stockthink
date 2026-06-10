@@ -538,3 +538,38 @@ table.counts { width: 100%; border-collapse: collapse; margin-top: 8px; font-siz
   .sidebar { width: 100%; max-height: none; }
   #eval-bar { margin: 48px 0; }
 }
+
+/* ------------------------------------------------------- AI panel --- */
+.ai-panel {
+  background: var(--bg-surface-2, #2b2926);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 13px;
+}
+.ai-panel summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--text-secondary, #b8b4ac);
+  user-select: none;
+}
+.ai-panel .ai-tag {
+  font-size: 11px;
+  color: var(--text-tertiary, #8a857c);
+  font-weight: 400;
+  margin-left: 6px;
+}
+.ai-panel .ai-section { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+.ai-panel .ai-hint { color: var(--text-tertiary, #8a857c); font-size: 12px; margin: 2px 0; }
+.ai-panel button { font-size: 12px; padding: 6px 10px; align-self: flex-start; }
+.ai-panel textarea {
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--bg-surface-1, #211f1c);
+  color: inherit;
+  border: 1px solid var(--bg-surface-3, #3a3733);
+  border-radius: 6px;
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  padding: 6px;
+  resize: vertical;
+}
