@@ -101,7 +101,7 @@ describe('commentary engine', () => {
     expect(c.short).toContain('bishop on d4');
     expect(c.short).toMatch(/hangs|hanging/);
     expect(c.short).toContain('Ne5');
-    expect(c.long).toContain('28.4 win-percentage points');
+    expect(c.long).toContain('cost White 28.4% in winning chances');
     expect(c.long).toContain('After this, White is'); // eval words, never raw centipawns
   });
 
