@@ -40,15 +40,6 @@ Take items top-down. Move finished items to Done (bottom) with date + commit.
 
 ## Precision (stop over-triggering — facts must be the REASON, not coincidence)
 
-- [ ] **P1 · Extend PV intent-confirmation to other facts** — `pinSignificance`
-  (annotate.ts, shipped 2026-06-11) gates `creates_pin` on engine follow-up /
-  SEE / pressure. Apply the same pattern to other geometry-triggered facts that
-  can fire incidentally: `wins_tempo`, `traps_piece`, `creates_fork` (forker
-  safety is checked, but is the fork the engine's plan?), `defends_piece`.
-- [ ] **P2 · Two-move concept pairing** — when a move has no strong fact of its
-  own, look at the mover's next move in the engine PV and explain the pair as
-  one plan ("prepares X"), instead of saying something weak about move one.
-
 ## Phrasing & composer (after a concept's detector is solid, make it SPEAK well)
 
 - [ ] **C1 · Recapture phrasing** — "A straightforward recapture." / "Takes back."
@@ -86,6 +77,8 @@ Take items top-down. Move finished items to Done (bottom) with date + commit.
 _(items land here with the open question attached)_
 
 ## Done
+- [x] P1 · PV intent-confirmation everywhere — 2026-06-11 (forkConfirmed/tempoConfirmed vs engine best defense; newly-trapped only; pinned attackers threaten nothing off-ray)
+- [x] P2 · Two-move pairing ('prepares' fact) — 2026-06-11 (quiet move + engine follow-up told as one plan; Opera 7…Qe7 → 'prepares Qb4+, forking…'; coverage 93%→96%)
 - [x] R15 · Pin — 2026-06-11 (relative pins in pinsHeld/pinsCreatedEx; exploit-a-pin recall mapping; line-wide harness fix lifted pin 21%→79.5%, skewer 0%→100%, fork→100%)
 - [x] I1 · Puzzle fixtures — 2026-06-11 (HF /filter FTS index never builds → use /rows scan; Themes arrives as an array)
 - [x] I2 · Recall harness — 2026-06-11 (test/recall.test.ts; metrics → improve/metrics.json; floors ratchet up)
