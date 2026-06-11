@@ -12,7 +12,7 @@ Full detail: `../docs/knowledge/concept-taxonomy.md`.
 | Hanging piece (wins/hangs) | ✅ | Recapture | ❌ D1 |
 | Fork (+missed/allowed) | ✅ | Escapes attack | ❌ D2 |
 | Pin (+missed) | ✅ | Purpose-phrased suggestion | ❌ D3 |
-| Trapped piece | ✅ | Skewer | ❌ D4 |
+| Trapped piece | ✅ | Skewer | 🟡 D4 |
 | Mate / mate threat / allows mate | ✅ | Discovered attack (material) | ❌ D5 |
 | Discovered check | ✅ | Pressure stacking | ❌ D6 |
 | Sacrifice / trade / captures-higher | ✅ | Early queen | ❌ D7 |
@@ -38,9 +38,14 @@ trappedPiece→traps_piece · mateIn1→delivers_mate/mate_threat · sacrifice�
 | Date | gate coverage | fork | pin | skewer | discAtk | hanging | trapped | mateIn1 | sac |
 |---|---|---|---|---|---|---|---|---|---|
 | 2026-06-11 | 93–100% | 62% | 21% | 0% | 63% | 100% | 72% | 100% | 75% |
+| 2026-06-11b | 93–100% | 100% | 80% | 100% | 95% | 100% | 100% | 100% | 86% |
 
 ## Daily log (append ONE entry per session, 1–3 lines, newest on top)
 
+- **2026-06-11c** · 3 units · DS1–DS4 dataset items queued (STS, WAC/ECM EPDs,
+  [%eval] games, more puzzle themes) · R15 relative pins + exploit-pin mapping ·
+  recall harness now line-wide (themes are line-level): pin 21→80, skewer 0→100,
+  fork→100; floors ratcheted. Next: R-list top-down; D4 skewer wiring; sac 86%.
 - **2026-06-11b** · 2 units · I1 fixtures (HF /rows scan, 10×200 puzzles) + I2
   recall harness. Baseline: hanging/mateIn1 100%, sac 75%, trapped 72%, discAtk
   63%, fork 62%, pin 21%, skewer 0%. Next: R-list; pin+skewer are the gaps.
