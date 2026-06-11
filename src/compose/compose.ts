@@ -61,7 +61,9 @@ export function composeComment(m: MoveReport): Comment {
 
   const badFacts = facts.filter(isBad);
   const missedFacts = facts.filter(isMissed);
-  const purposeFacts = facts.filter(isPurpose);
+  // "a fair trade" is redundant next to "wins a piece" — keep the stronger story
+  const wonMaterial = facts.some(f => f.kind === 'wins_free_piece' || f.kind === 'captures_higher');
+  const purposeFacts = facts.filter(f => isPurpose(f) && !(wonMaterial && f.kind === 'trade'));
 
   const used: Fact[] = [];
   const parts: string[] = [];

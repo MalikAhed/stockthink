@@ -126,7 +126,8 @@ export function annotateMove(before: Chess, move: NormalMove, ctx: AnnotateConte
   }
 
   /* ---- what the played move achieves ----------------------------------- */
-  const victim = before.board.get(move.to);
+  const target = before.board.get(move.to);
+  const victim = target && target.color !== mover ? target : undefined;
   if (victim && capturesFreePiece(before, move))
     facts.push({ kind: 'wins_free_piece', victim: { role: victim.role, square: makeSquare(move.to) } });
   else if (victim && capturesHigherPiece(before, move))
@@ -231,7 +232,8 @@ export function annotateMove(before: Chess, move: NormalMove, ctx: AnnotateConte
       if (missedMate !== null)
         facts.push({ kind: 'missed_mate', mateIn: missedMate, move: bestSan });
 
-      const bestVictim = before.board.get(best.to);
+      const bestTarget = before.board.get(best.to);
+      const bestVictim = bestTarget && bestTarget.color !== mover ? bestTarget : undefined;
       if (bestVictim && capturesFreePiece(before, best))
         facts.push({
           kind: 'missed_free_piece',

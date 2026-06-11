@@ -26,6 +26,13 @@ const valueAt = (pos: Chess, sq: Square): number => {
   return p ? PIECE_VALUES[p.role] : 0;
 };
 
+/** Value of an ENEMY piece on `sq` (0 for empty or own piece — castling is
+ *  encoded king-takes-rook and must never read as a capture). */
+const enemyValueAt = (pos: Chess, sq: Square): number => {
+  const p = pos.board.get(sq);
+  return p && p.color !== pos.turn ? PIECE_VALUES[p.role] : 0;
+};
+
 /* ------------------------------------------------------- hanging pieces --- */
 
 /**
@@ -105,19 +112,19 @@ export function trapsPieces(before: Chess, move: NormalMove): Square[] {
 
 /** Capture that wins the full victim value (nothing recaptures profitably). */
 export function capturesFreePiece(before: Chess, move: NormalMove): boolean {
-  const victim = valueAt(before, move.to);
+  const victim = enemyValueAt(before, move.to);
   return victim > 0 && seeCapture(before, move) >= victim;
 }
 
 /** Capture of a piece worth more than the capturer. */
 export function capturesHigherPiece(before: Chess, move: NormalMove): boolean {
-  const victim = valueAt(before, move.to);
+  const victim = enemyValueAt(before, move.to);
   return victim > 0 && victim > valueAt(before, move.from);
 }
 
 /** Equal-value capture the opponent can safely recapture: a trade. */
 export function isTrade(before: Chess, move: NormalMove): boolean {
-  const victim = valueAt(before, move.to);
+  const victim = enemyValueAt(before, move.to);
   if (!victim || victim !== valueAt(before, move.from)) return false;
   if (seeCapture(before, move) < 0) return false;
   const b = after(before, move);
@@ -148,8 +155,10 @@ export function freeCaptures(pos: Chess): NormalMove[] {
  */
 export function isSacrifice(before: Chess, move: NormalMove): boolean {
   if (valueAt(before, move.from) === 0) return false;
-  if (before.board.get(move.from)!.role === 'pawn') return false;
-  if (valueAt(before, move.to) > 0) return seeCapture(before, move) <= -2;
+  const role = before.board.get(move.from)!.role;
+  if (role === 'pawn' || role === 'king') return false; // king moves incl. castling
+  if (enemyValueAt(before, move.to) > 0) return seeCapture(before, move) <= -2;
+  if (before.board.get(move.to)) return false; // own piece on target: castling encoding
   return seeSquare(after(before, move), move.to) >= 2;
 }
 
