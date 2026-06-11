@@ -119,6 +119,24 @@ In the browser the same exchange works as copy-prompt → paste into
 Claude/ChatGPT → import JSON. Either way the R4 verifier checks every
 sentence's squares/pieces/moves against the facts before accepting it.
 
+**Mode B prompt contract** (ablation-validated by C1 2603.20510 + CCC
+2410.20811 + ChessQA — see `docs/research/LAST-RESEARCH-NOTES.md`):
+- Per position include: FEN **plus explicit piece list plus legal-move list**
+  (FEN alone fails from tokenization), the opponent's last move, and the
+  detector facts as theme hints.
+- **One PV per claim**, not MultiPV — extra lines are noise to the wordsmith.
+- Facts prioritized by before/after impact; the verdict + classification are
+  stated as ground truth the LLM must not contradict (LLMs reach "sound
+  analysis, wrong conclusion" — the verdict is never theirs to make).
+- **Feigned discovery**: instruct the model to explain the move as if
+  discovering it through analysis; never reveal an engine supplied it, never
+  mention scores/centipawns (single biggest quality lever in C1's ablation).
+- Output style: 4–10 sentences scaled to move complexity, moves annotated in
+  words ("Qxh7+ — queen takes h7 with check"), every claim grounded in
+  explicit coordinates, objective voice.
+- R4 verification on import: every square/piece/move mentioned must appear in
+  the factsheet whitelist; mismatch → fall back to Mode A template.
+
 ## Milestones
 
 1. **M1 — primitives + tactical detectors** with the cook.py/chess_review.py
