@@ -16,6 +16,9 @@ import { Chess } from 'chessops/chess';
 import { parseFen } from 'chessops/fen';
 import { makeSan } from 'chessops/san';
 import { parseUci } from 'chessops/util';
+import type { NormalMove } from 'chessops/types';
+import { annotateMove } from '../concepts/annotate';
+import type { Fact } from '../concepts/facts';
 
 export interface EngineLineReport {
   /** White-POV eval of this line. */
@@ -38,6 +41,8 @@ export interface MoveReport extends Ply {
   wasBest: boolean;
   /** Top engine lines (MultiPV) from the position before the move. */
   lines: EngineLineReport[];
+  /** Stage-2 typed facts (concept annotator), priority-sorted. */
+  facts: Fact[];
 }
 
 export interface PlayerSummary {
@@ -72,6 +77,18 @@ export function buildReport(game: ParsedGame, analyses: PositionAnalysis[]): Gam
     const evalAfter = after?.lines.length ? after.lines[0].eval : evalBefore;
     const bestUci = before.lines[0]?.pvUci[0] ?? null;
     const winDrop = winPercentDrop(ply.color, evalBefore, evalAfter);
+    const played = parseUci(ply.uci) as NormalMove | undefined;
+    const facts =
+      played && pos.isLegal(played)
+        ? annotateMove(pos, played, {
+            evalBefore,
+            evalAfter,
+            winDrop,
+            bestUci,
+            lines: before.lines.map(l => ({ eval: l.eval, pvUci: l.pvUci })),
+            replyPv: after?.lines[0]?.pvUci,
+          })
+        : [];
     return {
       ...ply,
       evalBefore,
@@ -83,6 +100,7 @@ export function buildReport(game: ParsedGame, analyses: PositionAnalysis[]): Gam
       bestSan: bestUci ? sanOf(pos, bestUci) : null,
       wasBest: bestUci === ply.uci,
       lines,
+      facts,
     };
   });
 
