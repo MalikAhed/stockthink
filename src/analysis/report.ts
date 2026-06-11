@@ -56,12 +56,15 @@ export interface PlayerSummary {
   acpl: number;
   /** Chesskit formula: 3100·e^(−0.01·acpl). */
   estimatedElo: number;
+  counts: Record<Classification, number>;
 }
 
 export interface GameReport {
   headers: Record<string, string>;
   moves: MoveReport[];
   players: { white: PlayerSummary; black: PlayerSummary };
+  /** Deepest book match in the game. */
+  opening: string | null;
 }
 
 const PV_PLIES = 10;
@@ -121,6 +124,7 @@ export function buildReport(game: ParsedGame, analyses: PositionAnalysis[]): Gam
       white: summarize('white', moves),
       black: summarize('black', moves),
     },
+    opening: [...moves].reverse().find(m => m.openingName)?.openingName ?? null,
   };
 }
 
@@ -129,9 +133,18 @@ function summarize(color: 'white' | 'black', moves: MoveReport[]): PlayerSummary
   const winPercents: number[] = [];
   let cpLossSum = 0;
   let cpLossMoves = 0;
+  const counts = Object.fromEntries(
+    (
+      [
+        'brilliant', 'great', 'best', 'excellent', 'good', 'book',
+        'forced', 'inaccuracy', 'mistake', 'miss', 'blunder',
+      ] as Classification[]
+    ).map(c => [c, 0]),
+  ) as Record<Classification, number>;
 
   for (const m of moves) {
     if (m.color !== color) continue;
+    counts[m.classification]++;
     accuracies.push(m.accuracy);
     // player-POV win% before this move (for volatility windows)
     const before = winPercent(m.evalBefore);
@@ -154,6 +167,7 @@ function summarize(color: 'white' | 'black', moves: MoveReport[]): PlayerSummary
     accuracy: Math.round(gameAccuracy(accuracies, winPercents) * 10) / 10,
     acpl: Math.round(acpl),
     estimatedElo: Math.round(3100 * Math.exp(-0.01 * acpl)),
+    counts,
   };
 }
 

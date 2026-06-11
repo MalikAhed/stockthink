@@ -9,16 +9,13 @@ import type { Api } from 'chessground/api';
 import type { DrawShape } from 'chessground/draw';
 import type { Key } from 'chessground/types';
 import { analyzeGame, type AnnotatedMove, type AnnotatedReport, type Tier } from './analyze';
-import { type EvalScore, winPercent } from './analysis/winprob';
+import { winPercent } from './analysis/winprob';
+import type { VariationChip } from './compose/compose';
+import { badgeSvg } from './ui/badges';
+import { formatEval, renderCoach } from './ui/coach';
 import { renderGraph } from './ui/graph';
 import { renderMoveList } from './ui/movelist';
-
-/** "+1.3" / "−0.5" / "M5" for the eval-bar chip. */
-function formatEval(ev: EvalScore): string {
-  if (ev.mate !== undefined) return `M${Math.abs(ev.mate)}`;
-  const pawns = (ev.cp ?? 0) / 100;
-  return `${pawns > 0 ? '+' : pawns < 0 ? '−' : ''}${Math.abs(pawns).toFixed(1)}`;
-}
+import { renderSummary } from './ui/summary';
 
 const $ = <T extends HTMLElement = HTMLElement>(sel: string): T =>
   document.querySelector(sel) as T;
@@ -28,6 +25,7 @@ let report: AnnotatedReport | null = null;
 let ply = 0; // 0 = initial position, n = after move n
 let board: Api | null = null;
 let orientation: 'white' | 'black' = 'white';
+let previewTimer: ReturnType<typeof setInterval> | null = null;
 
 /* ---------------------------------------------------------- screens --- */
 const screens = {
@@ -94,12 +92,37 @@ function displaySquares(m: AnnotatedMove): [Key, Key] {
   return [m.uci.slice(0, 2) as Key, m.uci.slice(2, 4) as Key];
 }
 
+function stopPreview(): void {
+  if (previewTimer !== null) {
+    clearInterval(previewTimer);
+    previewTimer = null;
+  }
+}
+
+/** Play an engine line on the board, move by move (variation chip click). */
+function playChip(chip: VariationChip): void {
+  if (!board) return;
+  stopPreview();
+  board.set({ fen: chip.fen, lastMove: undefined });
+  board.setAutoShapes([]);
+  let i = 0;
+  previewTimer = setInterval(() => {
+    if (!board || i >= chip.uciPv.length) {
+      stopPreview();
+      return;
+    }
+    const uci = chip.uciPv[i++];
+    board.move(uci.slice(0, 2) as Key, uci.slice(2, 4) as Key);
+  }, 700);
+}
+
 function render(): void {
   const r = report!;
   if (!r.moves.length || !board) return;
+  stopPreview();
   const m = ply > 0 ? r.moves[ply - 1] : null;
 
-  // board + best-move arrow (when the played move lost ≥5 win%)
+  // board + best-move arrow (when the played move lost ≥5 win%) + badge
   const shapes: DrawShape[] = [];
   let lastMove: Key[] | undefined;
   if (m) {
@@ -111,6 +134,7 @@ function render(): void {
         dest: m.bestUci.slice(2, 4) as Key,
         brush: 'green',
       });
+    shapes.push({ orig: to, customSvg: { html: badgeSvg(m.classification), center: 'orig' } });
   }
   board.set({ fen: m ? m.fenAfter : r.initialFen, lastMove, orientation });
   board.setAutoShapes(shapes);
@@ -122,6 +146,8 @@ function render(): void {
   $('#eval-bar .eval-label').textContent = formatEval(ev);
 
   // panels
+  renderSummary($('#summary'), r);
+  renderCoach($('#coach'), r, m, playChip);
   renderGraph($('#graph'), r.moves, ply, seek);
   renderMoveList($('#moves'), r.moves, ply, seek);
   renderPlayerBars();

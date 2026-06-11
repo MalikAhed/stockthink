@@ -573,3 +573,15 @@ table.counts { width: 100%; border-collapse: collapse; margin-top: 8px; font-siz
   padding: 6px;
   resize: vertical;
 }
+
+/* variation chips — engine lines as clickable playback, never prose (R2) */
+.chips-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.var-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--bg-surface-2, #3a3733); color: var(--text-1, #e8e6e3);
+  border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 999px;
+  padding: 4px 10px; font-size: 12px; cursor: pointer;
+  font-family: 'JetBrains Mono', monospace;
+}
+.var-chip:hover { border-color: var(--green, #81b64c); }
+.var-chip .chip-line { color: var(--text-2, #b0aca7); }

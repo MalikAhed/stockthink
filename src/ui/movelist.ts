@@ -1,8 +1,20 @@
 /**
- * Move list: two-column numbered SAN. (Classification badges/colors removed
- * pending the analysis-system redesign.)
+ * Move list: two-column numbered SAN with classification badges on every
+ * notable move (chess.com style — quiet classes stay clean).
  */
 import type { AnnotatedMove } from '../analyze';
+import type { Classification } from '../analysis/classify';
+import { badgeUrl, CLASS_COLORS } from './badges';
+
+/** Classes whose badge appears in the move list. */
+const BADGED: Classification[] = [
+  'brilliant',
+  'great',
+  'inaccuracy',
+  'mistake',
+  'miss',
+  'blunder',
+];
 
 export function renderMoveList(
   el: HTMLElement,
@@ -30,5 +42,10 @@ export function renderMoveList(
 
 const moveCell = (m: AnnotatedMove, currentPly: number): string => {
   const cls = m.ply === currentPly ? ' current' : '';
-  return `<span class="mv${cls}" data-ply="${m.ply}">${m.san}</span>`;
+  const c = m.classification;
+  const badge = BADGED.includes(c)
+    ? `<img class="mv-badge" src="${badgeUrl(c)}" alt="${c}" draggable="false">`
+    : '';
+  const color = BADGED.includes(c) ? ` style="color:${CLASS_COLORS[c]}"` : '';
+  return `<span class="mv${cls}" data-ply="${m.ply}"${color}>${m.san}${badge}</span>`;
 };
