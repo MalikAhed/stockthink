@@ -24,7 +24,13 @@ import {
   isSacrifice,
   trapsPieces,
 } from '../src/concepts/detectors';
-import { discoveredAttacks, isSkewer, pinsCreated } from '../src/concepts/primitives';
+import {
+  discoveredAttacks,
+  isSkewer,
+  pinnedDefenderInfo,
+  pinsCreatedEx,
+  pinsHeld,
+} from '../src/concepts/primitives';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const FIXTURE_DIR = join(ROOT, 'test', 'fixtures', 'puzzles');
@@ -71,7 +77,12 @@ type Detector = (before: Chess, tactic: NormalMove, setup: NormalMove) => boolea
 
 const DETECTORS: Record<string, Detector> = {
   fork: (b, m) => createsFork(b, m).length > 0,
-  pin: (b, m) => pinsCreated(b, m).length > 0,
+  // The tactic either creates a pin or exploits one: captures a pinned piece,
+  // or wins material because the victim's defender is pinned.
+  pin: (b, m) =>
+    pinsCreatedEx(b, m).length > 0 ||
+    pinsHeld(b.board, b.turn).some(p => p.pinned === m.to) ||
+    (b.board.get(m.to) !== undefined && pinnedDefenderInfo(b.board, m.to) !== null),
   skewer: (b, m, setup) => isSkewer(b, m, setup),
   discoveredAttack: (b, m) => discoveredAttacks(b, m).length > 0,
   hangingPiece: (b, m) => capturesFreePiece(b, m),
@@ -87,7 +98,14 @@ const DETECTORS: Record<string, Detector> = {
 /** Minimum acceptable recall per theme — ratchet UP as detectors improve.
  *  A theme absent here is measured but not enforced. */
 const FLOORS: Record<string, number> = {
+  fork: 0.95,
+  pin: 0.75,
+  skewer: 0.95,
+  discoveredAttack: 0.9,
+  hangingPiece: 0.95,
+  trappedPiece: 0.95,
   mateIn1: 0.95,
+  sacrifice: 0.8,
 };
 
 interface ThemeResult {
@@ -122,12 +140,19 @@ describe('puzzle recall', () => {
         const posRes = Chess.fromSetup(setupRes.unwrap());
         if (posRes.isErr) continue;
         const pos = posRes.unwrap();
-        const setup = parseUci(p.moves[0]) as NormalMove | undefined;
-        const tactic = parseUci(p.moves[1]) as NormalMove | undefined;
-        if (!setup || !tactic) continue;
-        pos.play(setup);
+        const moves = p.moves.map(u => parseUci(u) as NormalMove | undefined);
+        if (moves.some(m => !m)) continue;
         total++;
-        if (det(pos, tactic, setup)) fired++;
+        // Lichess themes describe the whole solution line: credit the theme
+        // if the detector fires on ANY of our moves (odd plies; even plies
+        // are the opponent's setup/replies).
+        let hit = false;
+        for (let i = 0; i + 1 < moves.length; i += 2) {
+          pos.play(moves[i]!); // opponent's move
+          if (det(pos, moves[i + 1]!, moves[i]!)) { hit = true; break; }
+          pos.play(moves[i + 1]!); // our move, continue down the line
+        }
+        if (hit) fired++;
         else if (missed.length < 10) missed.push(p.id);
       }
       const recall = total ? fired / total : 0;
