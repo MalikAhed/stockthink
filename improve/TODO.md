@@ -31,11 +31,12 @@ Take items top-down. Move finished items to Done (bottom) with date + commit.
 - [ ] **R12 · Threats / forks** — https://www.chessprogramming.org/Threats_(Stockfish)
 - [ ] **R13 · Pawn structure** — https://www.chessprogramming.org/Pawn_Structure
 - [ ] **R14 · Piece square tables** — https://www.chessprogramming.org/Piece-Square_Tables
-- [ ] **R15 · Pin detection** — https://www.chessprogramming.org/Pin
 - [ ] **R16 · Discovered attack** — https://www.chessprogramming.org/Discovered_Attack
 - [ ] **R17 · Overloaded piece** — https://www.chessprogramming.org/Overloading
 - [ ] **R18 · Deflection** — https://www.chessprogramming.org/Deflection
-- [ ] **R19 · Skewer** — https://www.chessprogramming.org/Skewer
+- [ ] **R19 · Skewer** — https://www.chessprogramming.org/Skewer — `isSkewer`
+  primitive proves 100% line-recall; remaining work is D4 wiring: fact kind +
+  template + annotate hookup.
 
 ## Phrasing & composer (after a concept's detector is solid, make it SPEAK well)
 
@@ -50,15 +51,30 @@ Take items top-down. Move finished items to Done (bottom) with date + commit.
   `../docs/knowledge/chesscom-templates.md` §9), deterministic rotation.
 - [ ] **C7 · Opening idea lines** — one-sentence idea for top ~50 book openings.
 
+## Datasets (ground-truth expansion — wire each into a harness before relying on it)
+
+- [ ] **DS1 · More lichess puzzle themes** — extend fetch-fixtures themes list:
+  deflection, attraction, xRayAttack, doubleCheck, exposedKing, quietMove,
+  capturingDefender (supports D20/D21 + Later items). Same script, zero cost.
+- [ ] **DS2 · STS (Strategic Test Suite)** — 15 positional themes × 100 EPD
+  (open files, outposts, pawn play, space, activity, king safety…); ideal
+  precision check for `positional.ts` detectors: best move should trigger the
+  theme's fact. https://github.com/fsmosca/STS-Rating (STS1-STS15_LAN_v6.epd)
+- [ ] **DS3 · Tactics EPD suites (WAC/ECM)** — classic best-move suites for
+  "missed tactic" precision. https://github.com/ChrisWhittington/Chess-EPDs
+- [ ] **DS4 · Lichess [%eval] games** — sample evaluated games from
+  https://database.lichess.org/ to calibrate the classification ladder
+  (win%-drop thresholds vs real game distributions; absorbs the Later item).
+
 ## Later / research
 - [ ] X-ray, attraction, clearance, back-rank naming, double check.
 - [ ] Volatility flag to suppress positional facts in sharp positions (spec'd).
 - [ ] Endgame: pawn races, king activity, fortress.
-- [ ] Calibration: lichess [%eval] games to tune the classification ladder.
 
 ## Blocked / questions for the user
 _(items land here with the open question attached)_
 
 ## Done
+- [x] R15 · Pin — 2026-06-11 (relative pins in pinsHeld/pinsCreatedEx; exploit-a-pin recall mapping; line-wide harness fix lifted pin 21%→79.5%, skewer 0%→100%, fork→100%)
 - [x] I1 · Puzzle fixtures — 2026-06-11 (HF /filter FTS index never builds → use /rows scan; Themes arrives as an array)
 - [x] I2 · Recall harness — 2026-06-11 (test/recall.test.ts; metrics → improve/metrics.json; floors ratchet up)
