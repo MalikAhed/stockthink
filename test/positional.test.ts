@@ -25,7 +25,7 @@ describe('positionalPurposes', () => {
     const p = pos('6k1/5ppp/8/8/3p4/8/5PPP/3R2K1 w - - 0 30');
     expect(positionalPurposes(p, mv('d1d7'))).toContainEqual({
       kind: 'rook_seventh',
-      square: sq('d7'),
+      square: 'd7',
     });
   });
 
@@ -33,7 +33,7 @@ describe('positionalPurposes', () => {
     const p = pos('r1b1kb1r/pp3ppp/8/8/8/2N5/PPPPPPPP/R1B1KB1R w KQkq - 0 15');
     expect(positionalPurposes(p, mv('c3d5'))).toContainEqual({
       kind: 'knight_outpost',
-      square: sq('d5'),
+      square: 'd5',
     });
   });
 
@@ -64,7 +64,7 @@ describe('positionalPurposes', () => {
     const p = pos('4r1k1/5ppp/8/8/8/4N3/5PPP/3QK3 w - - 0 30');
     expect(positionalPurposes(p, mv('d1e2'))).toContainEqual({
       kind: 'releases_pin',
-      square: sq('e3'),
+      square: 'e3',
       role: 'knight',
     });
   });
@@ -91,7 +91,7 @@ describe('positionalPurposes', () => {
     const p = pos('rnbqkbnr/pppppppp/8/8/8/5NP1/PPPPPP1P/RNBQKB1R w KQkq - 0 3');
     expect(positionalPurposes(p, mv('f1g2'))).toContainEqual({
       kind: 'fianchetto',
-      square: sq('g2'),
+      square: 'g2',
     });
   });
 
@@ -99,7 +99,7 @@ describe('positionalPurposes', () => {
     const p = pos('6k1/5ppp/8/8/p7/1P6/5PPP/6K1 w - - 0 40');
     expect(positionalPurposes(p, mv('b3b4'))).toContainEqual({
       kind: 'passed_pawn',
-      square: sq('b4'),
+      square: 'b4',
     });
   });
 
@@ -108,7 +108,7 @@ describe('positionalPurposes', () => {
     expect(positionalPurposes(p, mv('g1f3'))).toContainEqual({
       kind: 'develops',
       role: 'knight',
-      square: sq('f3'),
+      square: 'f3',
     });
   });
 
@@ -136,7 +136,7 @@ describe('positionalRegressions', () => {
     const p = pos('6k1/5ppp/8/8/8/2N5/5PPP/6K1 w - - 0 30');
     expect(positionalRegressions(p, mv('c3a4'))).toContainEqual({
       kind: 'rim_knight',
-      square: sq('a4'),
+      square: 'a4',
     });
   });
 

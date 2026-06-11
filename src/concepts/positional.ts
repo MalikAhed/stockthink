@@ -11,21 +11,21 @@ import { attacks, between } from 'chessops/attacks';
 import type { Board } from 'chessops/board';
 import { Chess } from 'chessops/chess';
 import type { Color, NormalMove, Role, Square } from 'chessops/types';
-import { opposite, parseSquare } from 'chessops/util';
+import { makeSquare, opposite, parseSquare } from 'chessops/util';
 import { attackersTo, PIECE_VALUES } from './board';
 import { isPinned, materialDiff } from './primitives';
 
 export type PositionalFact =
   | { kind: 'castles'; side: 'king' | 'queen' }
-  | { kind: 'passed_pawn'; square: Square }
+  | { kind: 'passed_pawn'; square: string }
   | { kind: 'simplifies_ahead'; lead: number }
-  | { kind: 'releases_pin'; square: Square; role: Role }
+  | { kind: 'releases_pin'; square: string; role: Role }
   | { kind: 'rook_open_file'; file: number }
-  | { kind: 'rook_seventh'; square: Square }
-  | { kind: 'knight_outpost'; square: Square }
+  | { kind: 'rook_seventh'; square: string }
+  | { kind: 'knight_outpost'; square: string }
   | { kind: 'file_battery'; file: number; partnerRole: Role }
-  | { kind: 'fianchetto'; square: Square }
-  | { kind: 'develops'; role: Role; square: Square }
+  | { kind: 'fianchetto'; square: string }
+  | { kind: 'develops'; role: Role; square: string }
   | { kind: 'improves_shield' }
   | { kind: 'center_gain' }
   | { kind: 'mobility_gain'; role: Role; gain: number };
@@ -35,7 +35,7 @@ export type RegressionFact =
   | { kind: 'opens_king_file'; file: number }
   | { kind: 'doubled_pawns'; file: number }
   | { kind: 'isolated_pawn'; file: number }
-  | { kind: 'rim_knight'; square: Square }
+  | { kind: 'rim_knight'; square: string }
   | { kind: 'lags_development' }
   | { kind: 'cedes_center' };
 
@@ -205,7 +205,7 @@ export function positionalPurposes(posBefore: Chess, mv: NormalMove): Positional
     isPassedPawn(b1, mover, mv.to) &&
     !(b0.get(mv.from)?.role === 'pawn' && isPassedPawn(b0, mover, mv.from))
   )
-    out.push({ kind: 'passed_pawn', square: mv.to });
+    out.push({ kind: 'passed_pawn', square: makeSquare(mv.to) });
 
   // trades down while ahead (equal-value capture, lead ≥ a minor piece)
   const victim = b0.get(mv.to);
@@ -223,7 +223,7 @@ export function positionalPurposes(posBefore: Chess, mv: NormalMove): Positional
     const p1 = b1.get(sq);
     if (!p1 || p1.role === 'king' || sq === mv.to) continue;
     if (b0.get(sq)?.role === p1.role && isPinned(b0, sq) && !isPinned(b1, sq))
-      out.push({ kind: 'releases_pin', square: sq, role: p1.role });
+      out.push({ kind: 'releases_pin', square: makeSquare(sq), role: p1.role });
   }
 
   // rook to an open file
@@ -245,7 +245,7 @@ export function positionalPurposes(posBefore: Chess, mv: NormalMove): Positional
       for (const esq of b1.pieces(opposite(mover), 'pawn'))
         if (rankOf(esq) === seventh) enemyPawns++;
       if ((eking !== undefined && rankOf(eking) === back) || enemyPawns > 0)
-        out.push({ kind: 'rook_seventh', square: mv.to });
+        out.push({ kind: 'rook_seventh', square: makeSquare(mv.to) });
     }
   }
 
@@ -255,7 +255,7 @@ export function positionalPurposes(posBefore: Chess, mv: NormalMove): Positional
     OUTPOSTS[mover].includes(mv.to) &&
     safeFromEnemyPawns(b1, mover, mv.to)
   )
-    out.push({ kind: 'knight_outpost', square: mv.to });
+    out.push({ kind: 'knight_outpost', square: makeSquare(mv.to) });
 
   // new heavy-piece file battery
   if (moved && (moved.role === 'rook' || moved.role === 'queen')) {
@@ -268,7 +268,7 @@ export function positionalPurposes(posBefore: Chess, mv: NormalMove): Positional
 
   // fianchetto (bishop to b2/g2/b7/g7 behind the knight-pawn)
   if (moved?.role === 'bishop' && FIANCHETTO[mover].includes(mv.to))
-    out.push({ kind: 'fianchetto', square: mv.to });
+    out.push({ kind: 'fianchetto', square: makeSquare(mv.to) });
 
   // develops a minor in the opening
   if (posBefore.fullmoves <= 12 && HOME_MINORS[mover].includes(mv.from)) {
@@ -278,7 +278,7 @@ export function positionalPurposes(posBefore: Chess, mv: NormalMove): Positional
       (p.role === 'knight' || p.role === 'bishop') &&
       !(fileOf(mv.to) === 0 || fileOf(mv.to) === 7)
     )
-      out.push({ kind: 'develops', role: p.role, square: mv.to });
+      out.push({ kind: 'develops', role: p.role, square: makeSquare(mv.to) });
   }
 
   // improves the king's pawn shield (castled-ish kings only)
@@ -334,7 +334,7 @@ export function positionalRegressions(posBefore: Chess, mv: NormalMove): Regress
 
   const moved = b1.get(mv.to);
   if (moved?.role === 'knight' && (fileOf(mv.to) === 0 || fileOf(mv.to) === 7))
-    out.push({ kind: 'rim_knight', square: mv.to });
+    out.push({ kind: 'rim_knight', square: makeSquare(mv.to) });
 
   if (posBefore.fullmoves <= 12) {
     const own = undevelopedMinors(b1, mover);

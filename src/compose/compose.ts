@@ -1,0 +1,143 @@
+/**
+ * Stage-4 explanation composer, Mode A (V2 spec).
+ *
+ * Builds 1–3 sentence comments from the move's typed facts only. Structure is
+ * enforced here, not hoped for:
+ *  - bad moves: cause → consequence → what was better and WHY (R5)
+ *  - good moves: purpose
+ *  - zero facts: one short neutral sentence, never eval-speak (R3)
+ * Engine lines never enter prose — they ship as clickable chips (R2).
+ */
+import type { MoveReport } from '../analysis/report';
+import type { Fact } from '../concepts/facts';
+import { renderFact } from './templates';
+
+export interface VariationChip {
+  label: string;
+  sanPv: string[];
+  uciPv: string[];
+  /** Position the line starts from. */
+  fen: string;
+}
+
+export interface Comment {
+  text: string;
+  /** "Explain more" expansion — remaining facts, one sentence each. */
+  more: string | null;
+  chips: VariationChip[];
+}
+
+const BAD_KINDS: Fact['kind'][] = ['hangs_piece', 'allows_mate', 'allows_fork', 'refutation'];
+const MISSED_KINDS: Fact['kind'][] = [
+  'missed_mate',
+  'missed_free_piece',
+  'missed_fork',
+  'missed_pin',
+  'missed_trap',
+  'missed_mate_threat',
+];
+const CONTEXT_KINDS: Fact['kind'][] = ['only_move', 'forced'];
+
+const isBad = (f: Fact): boolean => BAD_KINDS.includes(f.kind) || f.kind === 'regression';
+const isMissed = (f: Fact): boolean => MISSED_KINDS.includes(f.kind);
+const isPurpose = (f: Fact): boolean =>
+  !isBad(f) && !isMissed(f) && !CONTEXT_KINDS.includes(f.kind);
+
+/** Neutral one-liners for fact-less moves (R3 — short, never eval-speak). */
+const NEUTRAL: Partial<Record<MoveReport['classification'], string>> = {
+  best: 'The most precise continuation.',
+  excellent: 'A solid choice.',
+  good: 'A reasonable continuation.',
+};
+
+export function composeComment(m: MoveReport): Comment {
+  const facts = m.facts;
+  const chips = buildChips(m);
+
+  if (m.classification === 'book')
+    return { text: m.openingName ? `Book: ${m.openingName}.` : 'A known book move.', more: null, chips: [] };
+
+  const sentence = (f: Fact | undefined): string | null => (f ? renderFact(f) : null);
+
+  const badFacts = facts.filter(isBad);
+  const missedFacts = facts.filter(isMissed);
+  const purposeFacts = facts.filter(isPurpose);
+
+  const used: Fact[] = [];
+  const parts: string[] = [];
+
+  const isBadMove =
+    m.classification === 'inaccuracy' ||
+    m.classification === 'mistake' ||
+    m.classification === 'blunder' ||
+    m.classification === 'miss';
+
+  if (m.classification === 'forced') {
+    parts.push('The only legal move.');
+  } else if (isBadMove) {
+    // R5: cause → consequence first
+    const cause = badFacts.find(f => f.kind !== 'regression') ?? badFacts[0];
+    if (cause) {
+      parts.push(sentence(cause)!);
+      used.push(cause);
+    }
+    // then what was better, and WHY (the best move's own facts)
+    const better = missedFacts[0];
+    if (better) {
+      parts.push(sentence(better)!);
+      used.push(better);
+    } else if (m.bestSan && !m.wasBest) {
+      parts.push(`${m.bestSan} was the better way.`);
+    }
+    // a bad move with no concrete facts at all: name the better move, say no more (R3)
+    if (parts.length === 0 && m.bestSan) parts.push(`${m.bestSan} was stronger here.`);
+  } else {
+    // good move: purpose (top 2 facts max)
+    const lead = facts.find(f => f.kind === 'only_move');
+    if (lead && (m.classification === 'great' || m.classification === 'brilliant')) {
+      parts.push(sentence(lead)!);
+      used.push(lead);
+    }
+    for (const f of purposeFacts) {
+      if (parts.length >= 2) break;
+      parts.push(sentence(f)!);
+      used.push(f);
+    }
+    if (parts.length === 0) {
+      const neutral = NEUTRAL[m.classification];
+      if (neutral) parts.push(neutral);
+    }
+  }
+
+  // "explain more": every remaining fact, one sentence each
+  const rest = facts
+    .filter(f => !used.includes(f) && !CONTEXT_KINDS.includes(f.kind))
+    .map(renderFact)
+    .filter((s): s is string => s !== null && !parts.includes(s));
+
+  return {
+    text: parts.join(' '),
+    more: rest.length ? rest.join(' ') : null,
+    chips,
+  };
+}
+
+function buildChips(m: MoveReport): VariationChip[] {
+  const chips: VariationChip[] = [];
+  if (!m.wasBest && m.bestSan && m.lines[0]?.sanPv.length)
+    chips.push({
+      label: `Best: ${m.bestSan}`,
+      sanPv: m.lines[0].sanPv,
+      uciPv: m.lines[0].uciPv,
+      fen: m.fenBefore,
+    });
+  const refutation = m.facts.find(f => f.kind === 'refutation');
+  if (refutation && refutation.kind === 'refutation')
+    chips.push({
+      label: `Why it fails: ${refutation.moves[0].san}`,
+      sanPv: refutation.moves.map(x => x.san),
+      uciPv: refutation.moves.map(x => x.uci),
+      fen: m.fenAfter,
+    });
+  return chips;
+}
