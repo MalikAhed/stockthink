@@ -54,7 +54,9 @@ done — do not touch it.
    - append ONE daily-log entry, 1–3 lines MAX (date · units · what · next)
 3. If you discovered new gaps, add ≤5 items to `TODO.md` — never let it balloon.
 4. Commit bookkeeping, then **`git push`** — GitHub Pages auto-deploys main.
-   A session that doesn't push didn't happen.
+   A session that doesn't push didn't happen. (If push fails with HTTP2/host
+   errors: `git config http.version HTTP/1.1`, auth via
+   `-c credential.helper='!~/bin/gh auth git-credential'`, retry.)
 5. Tell the user: units done, what improved, what's next. STOP.
 
 ## Model notes
