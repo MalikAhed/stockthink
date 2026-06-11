@@ -1,0 +1,201 @@
+PuzzleId,FEN,Moves,Rating,Themes
+009FP,r1b1k1nr/ppp2pbp/3ppqp1/8/2BnP3/N2P2QP/PPP2PP1/R1B1K2R b KQkq - 4 9,e6e5 c1g5 f6g5 g3g5,1234,advantage opening short trappedPiece
+00BM8,r4rk1/pp2bppp/2ppnn2/8/N1P1P3/q1P4P/P2N2PB/R2Q1R1K b - - 0 16,a8d8 d2b1 a3a4 d1a4,1457,advantage master middlegame short trappedPiece
+00ZWf,r1b2bnr/ppQp3p/2n2q1k/6pP/2B1P3/3P4/PPP2PP1/RNB1K2R w KQ - 1 11,c2c3 f8d6 c7d6 f6d6,1351,crushing middlegame short trappedPiece
+01V4g,3r1rk1/p2nppbp/2p2np1/qpPp4/N2P1B2/PP1BP2P/5PP1/R2Q1RK1 b - - 0 15,b5a4 b3b4 a5b5 d3b5,1252,advantage middlegame short trappedPiece
+01ctt,8/ppp1kpp1/3b3p/3pn2b/3P1B2/2P4P/PPBN1PP1/5K2 b - - 0 23,e5g6 f4d6 e7d6 g2g4 g6f4 g4h5,1662,crushing endgame long trappedPiece
+01iqw,r3kb1r/1p3pp1/p1p1b3/4p1Bp/4P3/2NQ1PP1/PPP2qBP/R6K b kq - 1 16,f7f6 g5e3 e6c4 e3f2 c4d3 c2d3,1734,advantage long middlegame trappedPiece
+01rBE,r1bqr3/ppppk1pp/1b3n2/nP2p1NP/4P3/2PP4/P4PP1/RNBQK2R b KQ - 0 11,d7d5 c1a3 e7d7 g5f7 d8e7 a3e7,1554,advantage long middlegame trappedPiece
+01sqg,4rr1k/pp4pp/2p1Bn2/2b1pP1q/8/2NP1R2/PPPB2QP/4K3 b - - 6 20,f6d5 f3h3 c5f2 e1f2 h5h3 g2h3,1597,crushing long master middlegame trappedPiece
+01vxD,rn1q1r1k/pbN5/1pp1Qp1p/2Pp2p1/3Pn3/P7/1P2PPPP/R3KBNR w KQ - 1 17,c7a8 b7c8 e6c8 d8c8,1891,crushing middlegame short trappedPiece
+025gx,5r1k/2b1Npp1/1p2p2p/1qn5/3Q4/P7/3R1PPP/3R2K1 w - - 0 26,d2b2 b5e8 e7d5 e6d5,2004,advantage middlegame short trappedPiece
+026Br,3r2k1/p3pp1p/2Q3pb/q2rP3/N4P2/P5P1/7P/2R2R1K b - - 0 24,d5d2 c1c5 d2d1 c5a5,1733,crushing master middlegame short trappedPiece
+02A3t,2q2bk1/4Q2p/p5p1/1p3pB1/8/5N1P/PP3PP1/6K1 w - - 1 30,e7a7 f8c5 a7c5 c8c5,1861,advantage endgame short trappedPiece
+02E9M,r2qk2r/p1p2ppp/2pb1n2/3p4/2P2Qb1/1PN1P3/PB3PPP/R3KB1R w KQkq - 4 12,f4g5 h7h6 g5g7 h8h7 g7h7 f6h7,2009,advantage clearance long master middlegame trappedPiece
+02FSn,r2qk2r/1pp3p1/p1nbbn1p/3p1p2/3P4/PQN1PN1P/1PPB1P2/R3KB1R w KQkq - 0 13,b3b7 c6a5 b7a8 d8a8,1425,crushing master middlegame short trappedPiece
+02Wga,5r1k/2r3p1/pp1N3p/2p4n/5p2/1B3P1P/PPP4B/R5K1 w - - 2 28,d6e4 c5c4 b3a4 b6b5 a4b5 a6b5,1446,advantage long middlegame trappedPiece
+02cdm,r2qk1nr/p2b1ppp/2pbp3/2ppN3/5P2/1P2P2P/PBPP2P1/RN1QK2R b KQkq - 2 9,f7f6 d1h5 g7g6 e5g6 h7g6 h5h8,1297,crushing long opening pin trappedPiece
+02f60,5rk1/3b4/3bpr1p/3p2pP/2pP1qP1/2P2B2/2Q1RRP1/5NK1 b - - 17 39,g8g7 g2g3 f4f3 f2f3 f6f3 c2g6 g7h8 g6h6,2023,crushing deflection middlegame trappedPiece veryLong
+02nYL,r2qk2r/1p2bp1p/p1n1b3/3pPpp1/3P4/PQN2N2/1P3PPP/R1B2RK1 w kq - 0 13,b3b7 c6a5 b7a8 d8a8,1544,crushing middlegame short trappedPiece
+02utb,8/3b2r1/k6p/p4p2/4pr2/P5R1/1R3P1N/7K b - - 3 39,g7g3 f2g3 f4f3 h2f3,1083,advantage endgame short trappedPiece
+038q1,8/8/3k4/p1b1p2p/P1R3pP/2P5/6K1/8 w - - 4 45,g2g3 d6d5 c4g4 h5g4,1332,crushing endgame short trappedPiece
+03Cdz,r1b1rnk1/pp1n1p1p/4p1pP/3pP3/3Q1P2/2N3q1/PPPKB1P1/R6R b - - 2 18,b7b6 e2f3 c8a6 h1h3 g3h3 g2h3,2256,advantage long middlegame trappedPiece
+03NcI,2r2r1k/pbq1Q1pp/1p1p1n2/8/3P1B2/2P5/PP1n1PPP/1BR1R1K1 w - - 0 18,f4d2 c7c6 f2f3 c8e8 e7f8 e8f8,1760,advantage long middlegame trappedPiece
+03TNb,5k1r/pN3p2/2n1pQp1/3p2Pq/3P4/2P1K2r/PP3P2/R4R2 w - - 7 29,e3d2 h3f3 f1h1 f3f6 h1h5 f6f2,1912,advantage long middlegame trappedPiece
+03hDc,8/2kb4/8/R1pB4/2P2P2/p5P1/r5P1/6K1 w - - 0 45,a5c5 c7b6 c5b5 d7b5,2024,advantage defensiveMove endgame master short trappedPiece
+04779,r1b2rk1/pp3pp1/1qn1pn1p/1N1p4/3P1B2/8/PPP1BPPP/R2Q1RK1 b - - 3 12,a7a6 f4c7 b6b5 e2b5,1642,advantage opening short trappedPiece
+047JD,5r2/p5k1/3p4/2pP2pQ/2Pb1q2/4N3/P4PPP/5R1K w - - 1 35,e3g4 f8h8 h5h8 g7h8,1545,advantage endgame short trappedPiece
+04DEQ,5rk1/1bq1bppp/2p1pn2/4N3/3P4/3B3P/1BP2PP1/QR4K1 w - - 4 21,a1a7 f8a8 a7a8 b7a8,1318,advantage middlegame short trappedPiece
+04LdT,5r2/4r3/pp1k2pp/4p3/1PR3PP/2PP4/3KR3/8 w - - 1 37,d3d4 d6d5 c4c7 e7c7,1948,crushing endgame rookEndgame short trappedPiece
+04YaR,5rk1/7p/p1p5/3pB1q1/3P2p1/2PB1rQb/PP2RPpP/4R1K1 w - - 4 32,d3h7 g8h7 e5d6 f3g3,1226,crushing hangingPiece middlegame short trappedPiece
+04aK0,rBb1qrk1/pp2bppp/4p3/8/2B5/1QP5/PP3PPP/3RK1NR b K - 0 11,a8b8 c4b5 e8d8 d1d8,1376,advantage master middlegame short trappedPiece
+04mZc,r1b2rk1/pp1p1pbp/1qn1pnp1/2p3B1/2B1P3/P1NP1N2/1PP2PPP/R2QK2R b KQ - 0 9,b6b2 c3a4 b2a1 d1a1,1525,advantage opening short trappedPiece
+04ovF,8/p5k1/1p6/1Rb3P1/2P5/1P4K1/b6P/8 w - - 3 44,h2h4 a7a6 b5c5 b6c5,1590,crushing endgame master short trappedPiece
+05EY5,r1b1k2r/1p1p1ppp/p1N1pn2/P1b5/4P3/2N1BP2/1qP3PP/R2QKB1R b KQkq - 0 10,c5e3 c3a4 b2a1 d1a1,1845,advantage opening short trappedPiece
+05HRv,r2qkb1r/pp3ppp/4bn2/2p1Q3/3pPP2/3P4/PPP1N1PP/RNB2RK1 w kq - 1 12,f4f5 f8d6 e5d6 d8d6,1316,advantage opening short trappedPiece
+05nKb,r3r2k/6pp/p1n2p2/1pp2b2/2B2P2/2P2N1P/PP3PP1/3R1K1R w - - 0 18,c4b3 c5c4 b3c4 b5c4,1414,crushing master middlegame short trappedPiece
+05nh4,1r3rk1/1ppq1pbp/3p1np1/1P2p3/2P5/2NPPQPb/3B1PBP/1R3RK1 w - - 1 16,f1e1 h3g4 f3b7 b8b7,1599,advantage middlegame short trappedPiece
+05pk8,6k1/5rp1/5nQp/1q1p1p2/pp1P1N2/3b1P2/PP1B2PP/K3R3 w - - 0 31,f4e6 f5f4 g6f7 g8f7,1650,crushing middlegame quietMove short trappedPiece
+06DqR,r5k1/2n5/5r1p/p1pP1N2/PpP2p1q/1P1Q4/3B1R1N/7K b - - 0 32,h4f2 h2g4 f6f5 g4f2,1947,advantage fork middlegame short trappedPiece
+06llD,8/5k2/p3Rp2/4pPp1/2P4p/rPK4P/6P1/8 b - - 7 52,a6a5 c3b2 a3a2 b2a2,1804,crushing endgame rookEndgame short trappedPiece
+06loL,r1b2rk1/4bppp/p2ppq2/1p6/4PP2/P2BB2P/1PPQN1P1/R6K b - - 5 19,f6b2 e3d4 b2a1 d4a1,1293,advantage middlegame short trappedPiece
+06mgf,3r4/5ppp/Qpk1n3/3p4/2pPb3/2P5/PP4PP/4R1K1 w - - 1 28,a2a4 e6c7 a6a7 d8a8 a7a8 c7a8,1478,advantage endgame long trappedPiece
+06tOY,r1b2rk1/pp4pp/n1p1ppn1/8/2P1q3/2B2NPP/PP2BP2/R2Q1RK1 b - - 0 13,e6e5 e2d3 e4d3 d1d3,1401,crushing master middlegame short trappedPiece
+071ju,r2qkbnr/1pp3pp/p1n5/3pp3/5B2/1QP1PP2/PP3P1P/RN2KB1R w KQkq - 0 9,b3b7 c6a5 b7a8 d8a8,1625,advantage opening short trappedPiece
+076jI,r4rk1/3pnpbp/bp4p1/1Np1P3/5B2/1B6/PPP2PPP/R2R2K1 w - - 2 17,d1d7 a6b5 d7e7 c5c4 b3c4 b5c4,1743,advantage long middlegame trappedPiece
+07MXx,1k1r3r/Npp1qpbp/p2pbnp1/8/3QPB2/5P2/PPP2P1P/1K1R1B1R w - - 2 14,f4e3 c7c5 a7c6 b7c6,1804,advantage middlegame short trappedPiece
+07YZu,8/4ppk1/3p2p1/3Pb3/5q2/5P1p/6PP/3R2QK w - - 0 40,d1f1 e5d4 g1d4 f4d4,1743,crushing endgame master short trappedPiece
+07e4t,1r1qkbnr/1b1p1ppp/p3p3/4P3/2p5/2NPB1Q1/PPP2PPP/R3K2R b KQk - 1 12,f8b4 g3g7 b4f8 g7h8,1234,advantage middlegame short trappedPiece
+08IGX,r2qk2r/1bppbppp/p1n2n2/1p6/3NP3/1B6/PPP2PPP/RNBQ1RK1 w kq - 1 9,b1c3 c6d4 d1d4 c7c5 d4d3 c5c4 b3c4 b5c4,1656,advantage fork opening trappedPiece veryLong
+08Lcw,4b3/1pb3p1/p1p1p2p/2PpP1k1/PP1Pp3/4P3/4B1PP/4B1K1 b - - 5 25,e8h5 h2h4 g5g6 g2g4 h5g4 e2g4,1539,bishopEndgame crushing endgame long trappedPiece
+08boB,r2q1r1k/ppp3bp/3p2p1/3Pp3/2Q1n3/2PBR2P/PP3PP1/R5K1 w - - 0 20,c4e4 f8f4 e3e2 f4e4,1674,crushing middlegame short trappedPiece
+08chX,r2q1rk1/ppp2ppp/2n5/3pP3/3PnB2/5P2/P1B2P1P/R2Q1RK1 b - - 0 15,e4c3 d1d3 c3e2 d3e2,1716,advantage middlegame short trappedPiece
+08eZR,r4rk1/ppq2ppp/3b2b1/8/3Np3/2P4P/PP2BQP1/R1B2RK1 w - - 2 18,c1e3 d6g3 f2g3 c7g3 e3f4 g3h4,1738,advantage long middlegame trappedPiece
+08fk2,r4rk1/1pp3p1/4R2p/1p2P3/8/7P/PP3PP1/R5K1 w - - 1 25,g2g3 g8f7 e6d6 c7d6,1835,crushing endgame rookEndgame short trappedPiece
+08oZy,r2r2k1/bb3pNp/p5n1/1p1p4/1P2n1qP/P2QPN2/1B3PP1/RB3RK1 w - - 1 20,f3e5 g6e5 b2e5 f7f6 g7f5 g4f5,2033,advantage long middlegame trappedPiece
+08ola,r7/1p2Np1k/p2p1Prn/4p1pR/1P4p1/P5R1/2P3PP/6K1 w - - 4 34,e7g6 h7g6 h5h6 g6h6,1659,advantage endgame master masterVsMaster short trappedPiece
+08qww,3k1b1r/2rb1Qp1/1pn1p2p/p2pP3/3p1P2/8/PPPB2PP/4RRK1 w - - 0 20,f4f5 d7e8 f7e6 e8f7 e6f7 c7f7,2017,advantage long middlegame trappedPiece
+098gt,r4rk1/p4pp1/b1p1p2p/q1ppPn1Q/N1P2P2/1P1P3N/P5PP/R4RK1 w - - 3 17,g2g4 g7g6 g4f5 g6h5,1599,crushing middlegame short trappedPiece
+09CfA,r2q1r1k/pppnn1p1/3p3p/1P1Qp3/8/P1N2N1P/5PP1/R1B1R1K1 w - - 1 17,d5b7 d7c5 b7a8 d8a8,1225,advantage middlegame short trappedPiece
+09IR3,r1b1k1nr/pppp1ppp/8/4P3/8/2Q5/P1P1KPPP/RNq2B1R b kq - 3 11,g8h6 b1d2 c1a1 c3a1,1583,advantage middlegame quietMove short trappedPiece
+09JhC,r4rk1/3p1ppp/pp6/1p1QP3/8/2P2KP1/1P5q/RN2R3 b - - 0 20,h2b2 a1a2 b2a2 d5a2,1766,advantage master middlegame short trappedPiece
+09SNn,6n1/4b2p/3p1k2/2pP4/1pP2BB1/1P3K1P/8/8 b - - 7 36,h7h6 g4e6 f6g7 e6g8,1752,crushing endgame short trappedPiece
+09b6c,rn1qk2r/ppp1p1bp/3p2p1/5b2/2PPQ3/5N2/PP3PPP/R1B1KB1R w KQkq - 1 9,e4d5 c7c6 d5f5 g6f5,1370,crushing opening short trappedPiece
+09m48,rn2k2r/1p2ppb1/p1p4p/4P2P/2P1Nqp1/P7/1P2Q1P1/1K1R2NR b kq - 1 18,g7e5 d1f1 f4f1 e2f1,2083,crushing middlegame short trappedPiece
+09pOa,5r2/pp2nr1k/6pp/8/3pBP2/P2Pq3/2Q1N2P/5R1K b - - 1 29,e7f5 f1f3 e3f3 e4f3,1701,advantage master middlegame short trappedPiece
+0A2t1,r6r/ppp1kpp1/2p1b2p/4Pn2/8/2N2N2/PPPR1PPP/3R2K1 b - - 1 14,a8d8 g2g4 d8d2 d1d2 f5d6 e5d6,1882,crushing long middlegame trappedPiece
+0AJz9,8/4k3/2B5/r2p4/3Pp3/4P1P1/5PK1/8 w - - 5 84,c6b7 e7d7 g3g4 d7c7 g2g3 c7b7,2033,crushing endgame long trappedPiece
+0AewS,r2q4/1Qpk1pp1/4rpbp/8/3P4/2K2N2/PP4PP/2R1R3 w - - 3 18,d4d5 e6b6 b7b6 c7b6,1753,advantage master middlegame short trappedPiece
+0AfWu,r3qr1k/b2N1p2/p1pp3p/6p1/1PP2R2/PQ2P1P1/6KP/4R3 w - - 4 28,d7f8 g5f4 b3c3 h8g8 e3f4 e8f8,1778,advantage long middlegame trappedPiece
+0Ak4g,rnb2rk1/ppb2ppp/2p2n2/3p4/3Pq3/1Q2BN2/PP1NBPPP/R3K2R b KQ - 1 11,e4g6 f3h4 g6g4 e2g4,1685,crushing middlegame short trappedPiece
+0AkeU,rnb2rk1/pp5p/1qpb1pp1/3p1p2/3P1P2/P1NBP1N1/1PP3PP/R2QK2R b KQ - 0 10,b6b2 c3a4 b2a1 d1a1,1538,advantage middlegame short trappedPiece
+0AlSg,5r2/2p1k2R/pp3b2/4p3/8/2P1P3/1nBBKP2/8 b - - 1 35,f8f7 h7f7 e7f7 c2b3 f7f8 d2c1 b2a4 b3a4,1657,attraction crushing endgame exposedKing trappedPiece veryLong
+0Aoti,r3kb1r/p4p2/2n5/2p1pQ1p/3pP2q/3P3P/PPPB1P1P/R3K2R b KQkq - 0 16,f8g7 d2g5 c6e7 g5h4 e7f5 e4f5,1325,advantage long middlegame trappedPiece
+0AxI1,2br1qk1/ppN1rpbp/2nN2p1/5p2/3P4/1PP3P1/P4PBP/R2Q1RK1 w - - 1 18,d6c8 e7c7 c8a7 c6a7,1629,advantage hangingPiece middlegame short trappedPiece
+0AyuM,r1bqk2r/ppp2ppp/2n5/2bpp3/6n1/3P1NP1/PPPNPPBP/R1BQ1RK1 w kq - 6 7,f3e1 c5f2 f1f2 g4e3 d2b3 e3d1,1860,crushing kingsideAttack long opening sacrifice trappedPiece
+0BCEU,r3k2r/pppb1ppp/8/n2P4/2P2p2/2Q2N2/PP1Nq2P/R5KR b kq - 1 16,e8g8 a1e1 e2e1 f3e1,1562,advantage middlegame short trappedPiece
+0BCVb,r4rk1/1p2bppp/p1b1p3/4P1P1/2PBR3/5N1q/P1B2P2/1R1Q2K1 w - - 1 27,e4f4 e7g5 f4e4 c6e4 c2e4 h3g4 g1f1 g4e4,1793,advantage fork middlegame trappedPiece veryLong
+0BEqK,4r3/4P3/6R1/4k2p/4P1p1/6P1/6K1/8 w - - 0 48,g6g7 e5f6 g7h7 f6g6 h7h5 g6h5,1964,crushing endgame long rookEndgame trappedPiece
+0BLCZ,1rr2bk1/5ppp/3p4/p2Q4/1q1B4/1P6/2P1RPPP/1K1R4 w - - 1 23,e2e4 b8b5 d5b5 b4b5,2030,crushing master masterVsMaster middlegame short superGM trappedPiece
+0BTgM,r1bqr1k1/p2nbpp1/4p2p/3p3n/P1PPP3/1Np2NB1/2B1QPPP/R3K2R b KQ - 1 15,d5e4 e2e4 d7f6 e4a8,1603,advantage middlegame short trappedPiece
+0Bm7B,r1b2rk1/pppp1ppp/8/4PR2/1PN5/2P2Q2/P4P1q/4RK2 b - - 0 21,d7d6 f5h5 h2h5 f3h5,1714,advantage middlegame short trappedPiece
+0BwIq,r2r2k1/1pbq1pp1/p3p2p/P2pPn1Q/1P3P2/2N1P2R/3B2PP/R5K1 w - - 0 21,g2g4 g7g6 h5g6 f7g6,1415,crushing middlegame short trappedPiece
+0Bwxu,r2qr1k1/pp1n1ppp/3p1b2/2pN1P2/8/3P1RQ1/PPP3PP/R1B4K b - - 4 15,d7e5 d5f6 d8f6 c1g5 f6g5 g3g5,1481,crushing kingsideAttack long middlegame pin trappedPiece
+0COOC,1r3rk1/pbQnqpbp/1p1p2p1/5P2/3Pn3/1N1B1N2/PP4PP/R1B2RK1 w - - 1 15,f5g6 f8c8 c7b7 b8b7,1725,advantage master middlegame short trappedPiece
+0COuY,r1b2qk1/pp4p1/7p/3pnp2/3Np2Q/P1P5/1PP2PPP/2KR3R w - - 4 18,h4g3 f5f4 g3h4 g7g5 h4h5 c8g4 h5g4 e5g4,1751,advantage fork middlegame trappedPiece veryLong
+0CPLS,2kr1b1r/ppp2pp1/2n1b3/3qp1Np/3P4/2P1B2P/PP2BPP1/R2QK2R b KQ - 2 11,d5g2 e2f3 g2g5 e3g5,1393,advantage middlegame short trappedPiece
+0Cgt8,8/8/p2k1p2/p4Pp1/3N2Pp/1PP4P/2b2K2/8 b - - 5 41,c2d1 f2e1 d1b3 d4b3,1704,crushing endgame short trappedPiece
+0Csn4,2r3k1/p2q1p1p/4b1p1/8/2P1QB2/1Pb2P2/P2pB1PP/3R2K1 w - - 6 31,e4c2 d7d4 g1f1 e6f5 d1d2 f5c2 d2d4 c3d4,2220,crushing fork middlegame trappedPiece veryLong
+0CtCi,1r6/pbR2B2/1p6/2p1k3/2P5/8/P1P3P1/6K1 w - - 3 30,g2g4 e5d6 c7b7 b8b7,1640,advantage endgame short trappedPiece
+0CyDe,8/pp6/6pb/1k3p2/7P/3R2P1/P2p1Nr1/5K2 b - - 1 49,g2h2 f1g1 h2f2 g1f2,1735,advantage endgame master short trappedPiece
+0D05g,4kr2/3n3p/2p3p1/p1p1p3/1qP1P3/RP1PN1P1/6KP/2Q5 b - - 1 36,d7b6 e3c2 b4c3 b3b4 a5b4 a3c3,1719,crushing discoveredAttack endgame long trappedPiece
+0D3Pa,r1b1k2r/pppp1ppp/1qn2n2/2b5/1PB1P3/2PPBQ2/P4PPP/RN2K1R1 w Qkq - 3 12,b4c5 b6b2 f3e2 b2a1,1400,advantage opening pin short trappedPiece
+0D6cN,6k1/2r2p2/bp2p1pP/p1bpPp2/5q2/P4N1R/5PP1/3RQ1K1 b - - 5 37,g8h7 h3h4 f4h4 f3h4,1541,crushing middlegame short trappedPiece
+0DXRX,rn1k3r/pp1bq2p/2p1pbBQ/8/8/2N5/PPP2PPP/R3K1NR w KQ - 1 14,g6h5 f6g5 h6g5 e7g5,1638,crushing opening short trappedPiece
+0DbQq,3r2k1/p2N1ppp/q1p1p3/2Pp4/3Pn3/P3P1PP/2Q2PK1/1R6 w - - 1 24,b1b8 d8b8 d7b8 a6b7 b8c6 b7c6,1725,advantage endgame long trappedPiece
+0Ddoc,3r1r1k/p1QP2pp/1p4b1/3R4/1P2p2q/P1N1Rp1P/5P2/5B1K w - - 1 40,c7a7 h4f2 d5d1 f2e3,1336,crushing fork middlegame short trappedPiece
+0DeEe,2rq1rk1/p2n1p1p/Q3pp2/1B6/1b4b1/2N5/PPPP1PPP/R1B1K2R w KQ - 4 13,e1g1 d7c5 a6a7 c8a8 a7a8 d8a8,1601,advantage long opening trappedPiece
+0DlNr,8/8/5p2/2K5/4Pk2/6Np/8/8 w - - 7 59,g3h1 f4f3 c5d4 f3g2 d4e3 g2h1 e3f2 h1h2,2110,crushing defensiveMove endgame knightEndgame trappedPiece veryLong zugzwang
+0DujF,3B1b2/5qkp/1p1p2p1/pP1Ppb2/P1PpB2Q/3P2PP/6K1/8 w - - 8 30,d8b6 f8e7 h4g4 f5g4,1733,crushing endgame short trappedPiece
+0DvcD,r4rk1/pp3ppp/2b1p3/2Q5/4pP2/2P3Pq/PP5P/RNB1K2R w KQ - 1 17,c1e3 h3g2 h1g1 g2b2 c5a3 b2a1,1637,advantage long middlegame pin trappedPiece
+0EGUR,2rq1rk1/pp3ppp/1bn1p3/8/4N3/2P5/PP2QPPP/R1B2RK1 b - - 0 14,d8h4 c1g5 h4e4 e2e4,1530,advantage middlegame short trappedPiece
+0EI8t,5rk1/2p3pp/Q4p2/1r1q4/1b6/1P5P/PB1P1PP1/R2R2K1 w - - 2 23,b2c3 f8a8 a6b5 d5b5,1865,advantage middlegame short trappedPiece
+0EJSn,r2q1rk1/pp2bppp/5n2/3Ppb2/8/2N1B1P1/PPP2PBP/R2Q1RK1 w - - 1 13,d1f3 f5g4 d5d6 g4f3 d6e7 d8e7,1745,advantage long middlegame trappedPiece
+0EJgJ,8/8/1p6/4p3/P2b1p1p/3R1P1P/2k1K1P1/8 w - - 0 40,d3a3 d4c3 a3a2 c2b3 e2d3 b3a2 d3c3 a2a3 a4a5 b6a5,2342,crushing defensiveMove endgame master quietMove trappedPiece veryLong
+0EXga,3r1r2/pbp2pkp/2p2p2/8/1b2P1N1/2N5/PPP2PPP/R3R1K1 w - - 2 15,e1e3 h7h5 e3g3 h5g4,1949,advantage middlegame short trappedPiece
+0EYRw,r1b1k1nr/ppQp1p1p/2n3p1/8/1b1qP3/2N5/PPP2PPP/R1B1KBNR w KQkq - 1 8,c1d2 b4d6 c7d6 d4d6,1869,advantage opening short trappedPiece
+0EwIB,4rrk1/Q1pq1pp1/p2p3p/1p1Pn3/5B2/1P5P/1PP2PP1/3RR1K1 w - - 3 19,a7a6 e8a8 a6b7 f8b8 b7b8 a8b8,1796,advantage clearance long middlegame trappedPiece
+0F0NJ,rnbqr1k1/ppp1ppbp/3p1np1/8/2B1P3/P1NP1N2/1PP2PPP/1RBQK2R b K - 0 7,b8d7 c4f7 g8f7 f3g5 f7g8 g5e6 c7c6 e6d8,1905,attraction crushing kingsideAttack opening sacrifice trappedPiece veryLong
+0F8o2,r4r2/2pb2k1/p2p2pb/1p1Pnp2/8/P1P3Q1/1PB2PPP/R3R1K1 w - - 0 23,a1d1 f5f4 g3h4 g6g5 h4h5 d7g4 h5g4 e5g4,1782,advantage fork middlegame trappedPiece veryLong
+0FBwc,1rbq1rk1/p4pbp/3p2pB/2p1nP1n/1p2P3/3P3P/PPPQN1B1/R2N1RK1 b - - 3 15,d8h4 h6g5 h4g5 d2g5,1694,crushing master middlegame short trappedPiece
+0FGVb,8/6p1/4pkp1/5p2/R6P/4KPP1/6r1/8 b - - 0 44,g2g3 e3f2 g3h3 f2g2 h3h4 a4h4,1722,crushing endgame long rookEndgame trappedPiece
+0FHrW,7r/pp1bnkpp/3Bpp2/8/3p4/2qB4/P4PPP/1R1Q2K1 b - - 5 25,d7c6 d6b4 c3d3 d1d3,2091,advantage middlegame short trappedPiece
+0FREF,r4rk1/5ppp/p1p1p1n1/2Q5/q3P3/5P2/3RN1PP/5R1K b - - 3 21,h7h6 e2c3 a4b3 f1b1 b3b1 c3b1,1861,advantage long middlegame trappedPiece
+0FzgS,4kb1r/p2b1ppp/1n6/q2np3/4P3/1QN5/PP3PPP/R1B1K1NR w KQk - 0 13,e4d5 d7a4 b3b6 a7b6,2017,advantage middlegame short trappedPiece
+0GXmh,r2q1rk1/1bp1bppp/p2p1n2/1p6/3QP3/1BN1B2P/PPP2PP1/R4RK1 w - - 2 12,a1d1 c7c5 d4d3 c5c4 b3c4 b5c4,1407,advantage fork long middlegame trappedPiece
+0GbnU,2r3k1/4bppn/4p3/n2pP3/5B1P/1qrPN1P1/2N2PB1/Q3R1K1 b - - 5 30,a5c6 e1b1 b3c2 e3c2,1517,advantage master middlegame short trappedPiece
+0H1vP,r4rk1/p3bppp/1qn1pn2/3p4/3P4/P1NQ4/1P1BNPPP/R4RK1 b - - 0 14,b6b2 f1b1 b2b6 b1b6,1540,advantage middlegame short trappedPiece
+0H5Oo,rn5k/p2b1pp1/1p2p3/3B4/5B2/1N2P3/qPK2PPP/3R2NR b - - 0 17,e6d5 d1a1 d7f5 c2c3 a2a1 b3a1,1557,advantage defensiveMove long middlegame trappedPiece
+0Hfon,rn1q1k1r/p1pbp3/1p1p1n1p/3P2pQ/2PP1p2/2NB2B1/PP3PPP/R4RK1 w - - 2 14,h5f3 d7g4 f3g4 f6g4,1409,crushing middlegame short trappedPiece
+0HktO,r1b2rk1/ppp2ppp/2n2n2/1N6/1q6/8/PPPBBPPP/R2Q1RK1 b - - 1 12,b4b2 d2c3 b2c3 b5c3,1432,crushing opening short trappedPiece
+0HtTd,2rb1k1r/2p1Bppp/p1Q1pq2/1p6/2p2P2/2N5/PP4PP/R3R1K1 b - - 0 19,f6e7 c6b7 c7c6 b7c8,2462,crushing middlegame short trappedPiece
+0I0ds,r2qkbnr/pp3ppp/2b1p3/3pN3/3P4/2N5/PPP2PPP/R1BQK2R b KQkq - 1 8,f7f6 d1h5 g7g6 e5g6 h7g6 h5h8,1240,advantage long opening trappedPiece
+0I0zn,8/p7/P7/2k4p/1p2Kp1r/5P1P/8/7R b - - 2 50,c5b5 e4f5 b4b3 f5g5 h4h3 h1h3,1517,crushing endgame long rookEndgame trappedPiece
+0I4Ga,r1bq1rk1/5ppp/3p1n2/ppp1b3/4P3/1BPPBQ2/PP3PPP/RN2R1K1 w - - 0 15,d3d4 c8g4 d4e5 g4f3,1647,advantage middlegame short trappedPiece
+0IEoj,r4rk1/pR3pp1/1n2b2p/3pP3/2p5/2Q3P1/q2NPPBP/1R4K1 b - - 1 22,a8d8 b1a1 d5d4 c3c1 a2a1 c1a1,1793,advantage long middlegame trappedPiece
+0IPDv,r1b1k2r/1p3ppp/pqn1pn2/2bp4/P7/2N1PN2/1PPB1PPP/R2QKB1R b KQkq - 1 11,b6b2 a1b1 b2a3 b1b3 a3b3 c2b3,1727,advantage long middlegame trappedPiece
+0IX7R,r5k1/p2p1r1p/1pb1p1p1/2p3B1/2q5/1P2QP2/P5PP/3R1RK1 b - - 0 22,c4c2 d1d2 c2f5 g2g4 f5f3 f1f3,1779,advantage long middlegame trappedPiece
+0If9B,2r2rk1/3bnpp1/4p2p/3pP3/p2P3N/2PQ2P1/1q2B1PP/R1R3K1 b - - 2 22,c8b8 c1b1 b2b3 b1b3,1674,advantage middlegame short trappedPiece
+0IfsA,8/7p/6pk/8/2b1p2B/4P1PP/5P2/6K1 w - - 0 39,g1g2 g6g5 g3g4 g5h4,1027,bishopEndgame crushing endgame short trappedPiece
+0Ig5C,3r2k1/1Q3pbp/p3pnp1/qp6/8/P1N1B2P/1P3PP1/2R3K1 b - - 1 21,h7h5 e3b6 a5b6 b7b6,1511,advantage fork middlegame short trappedPiece
+0Ii3l,rqb3r1/4kp1p/p2p4/1p2p1p1/1P2Pn2/3BNQ2/P1P2PPP/3RK2R w K - 4 21,g2g3 g5g4 f3f4 e5f4,1684,crushing middlegame short trappedPiece
+0InPz,rnbqkb1r/pp4pp/4p3/2ppP3/4n3/3B4/PPP2PPP/RNBQK1NR w KQkq - 1 7,f2f3 d8h4 g2g3 e4g3 h2g3 h4h1,1426,crushing long opening pin trappedPiece
+0Ivll,2r1nrk1/p5pp/2q1pP2/3b4/2p1N2P/6P1/P1Q1PPB1/2RR2K1 b - - 0 20,e8f6 e4f6 f8f6 e2e4,2106,crushing kingsideAttack master middlegame short trappedPiece
+0JDDi,2kr2nr/ppn2pp1/2pb1P2/3p3p/3P4/3BBQPq/PPP4P/RN2R1K1 b - - 0 17,c7e6 d3f5 h3f5 f3f5,1253,crushing opening short trappedPiece
+0JDno,r1b2r1k/pp2p1bp/5pp1/4P3/3q1P2/1P2NN2/1P2Q1PP/2R2RK1 b - - 1 19,d4f4 c1c4 f4h6 c4h4 h6h4 f3h4,2194,advantage long master middlegame trappedPiece
+0JQJQ,r4rk1/5p2/p2p2pp/1ppPbNq1/4Pn1P/2P1RQ2/PPB3P1/R5K1 b - - 0 24,g5h5 g2g4 g6f5 g4h5,2026,crushing middlegame short trappedPiece
+0Jli4,3qkbnr/2p2ppp/2p1p3/3p4/b2N4/2B1PQ2/3P1PPP/1N3RK1 b k - 1 13,f8d6 d4e6 f7e6 c3g7 g8e7 g7h8,1902,advantage discoveredAttack long middlegame trappedPiece
+0K3LZ,r1q3k1/p2b1r1p/1p3p1B/3pp1p1/2pPn2Q/2P2N2/PPB2PPP/4RRK1 w - - 0 24,h4h5 d7g4 h5f7 g8f7,1260,advantage middlegame short trappedPiece
+0K8w4,5q1k/pp3rp1/2p1R2p/2P2r1P/1P2QP2/4BK2/P7/8 b - - 2 38,h8h7 e6e8 f8e8 e4e8,1652,advantage endgame master pin short trappedPiece
+0KCE1,2bq1rk1/4bppp/2n1p3/2npP3/Qp6/2PP1NP1/1P3PBP/2B1RNK1 w - - 1 16,a4c6 c8d7 c6c5 e7c5,1783,crushing master opening short trappedPiece
+0KEyK,r4rk1/pp2bpp1/1qn1pn1p/1N1p1b2/P2P1B2/5NP1/1P2PPBP/R2Q1RK1 b - - 0 13,a7a6 f4c7 b6c7 b5c7,1631,advantage middlegame short trappedPiece
+0KH6Q,r4rk1/ppp2ppp/2pb4/5b2/8/1B3NP1/PPP2q2/R1BQR2K b - - 0 15,d6g3 c1e3 f2e1 f3e1,1895,advantage middlegame short trappedPiece
+0KS87,r1b2rk1/pp3pbp/4p1p1/3pPn2/3P1P2/2P3Pq/P1B1N2P/R1BQK2R w KQ - 1 15,e2g1 h3g2 d1d2 g2h1,1583,advantage opening pin short trappedPiece
+0KTxB,r3k1nr/ppp2pp1/1bp2q1p/4P3/3p1BQ1/7P/PPP2PP1/RN3RK1 b kq - 0 11,f6e6 g4g7 e8c8 g7h8,1199,crushing middlegame short trappedPiece
+0KU4f,r4r2/p3nk2/5p1Q/4pPp1/1p1pP3/P2P1R2/P5PP/6K1 w - - 8 29,a3b4 f8h8 h6h8 a8h8,1342,advantage endgame short trappedPiece
+0KVw4,r5k1/ppp2rp1/3b2p1/2p1p2p/2PnP1Pq/3PBP1P/PP1Q2KN/R4R2 b - - 2 18,a8f8 e3g5 h4g5 d2g5,1444,crushing middlegame short trappedPiece
+0KXWt,r4rk1/1p2ppbp/p1np1np1/q7/N3PP2/1P3B2/1P1B2PP/R2QK2R b KQ - 5 15,a5b5 f3e2 f6e4 e2b5,1598,advantage middlegame short trappedPiece
+0KyXd,7r/p1k2ppp/2p5/1rBp4/8/5PPB/P6P/R5K1 w - - 1 24,c5a7 c6c5 a2a4 b5a5 a7c5 a5c5,1849,advantage endgame long quietMove trappedPiece
+0LJNT,4r1k1/1pqn1pp1/p1p2n1p/3p1Q2/PP1P4/2P1PN1P/3N2P1/4R1K1 w - - 7 22,e3e4 g7g6 f5f6 d7f6,1878,crushing middlegame short trappedPiece
+0LJZR,8/4b1k1/2prp1p1/5p2/q2P4/3BP3/1Q2K1P1/2R5 b - - 3 46,g7f7 c1a1 a4a1 b2a1,1806,advantage endgame short trappedPiece
+0LQtz,r1bqk2r/1p2bp1p/p3p1p1/2ppP1BQ/7P/4P3/PPP2PP1/RN2K2R w KQkq - 0 11,h5h6 d8a5 b1d2 e7f8 g5f6 f8h6,1920,crushing long master middlegame trappedPiece
+0LS9j,2k1r2r/ppp2qp1/2nb4/5pBp/3P2b1/2P2NP1/P1P2QBP/R4RK1 w - - 2 17,f3h4 e8e2 h4f5 e2f2 f5d6 c7d6,1466,crushing long middlegame trappedPiece
+0LSEq,4rrk1/2q2pp1/p1pbp2p/1p1pN3/1P1PnP2/P3QPPP/1BP3K1/3R1R2 b - - 0 27,d6e5 d4e5 e4g3 g2g3,2070,advantage middlegame short trappedPiece
+0LTIP,2rr2k1/5ppp/2p2n2/1p2N3/p1pP4/P1P1B1qb/1P2R1P1/2QR2K1 b - - 1 24,h3g4 e3f2 g4e2 f2g3 e2d1 c1d1,1967,advantage long middlegame trappedPiece
+0LtGI,r1bqr1k1/pp1n1pbp/2pp3B/4p2p/2BPP3/2N2N2/PPPQ1PP1/R3K3 b Q - 1 12,d8f6 h6g5 f6g6 f3h4 e5d4 h4g6,1777,advantage long middlegame pin trappedPiece
+0LzrR,1r3rk1/pQpqbpp1/6p1/3pP3/3P4/4B3/PP3PPP/R4RK1 w - - 2 18,b7a7 b8a8 a7b7 f8b8 b7b8 a8b8,1539,advantage clearance long middlegame trappedPiece
+0M1NZ,r3k2r/1b1n2pp/4pp2/pQBqN3/3P4/1P3P2/1P4PP/R2R2K1 w kq - 0 21,e5c4 b7c6 c4e3 c6b5 e3d5 e6d5,1754,advantage long master middlegame trappedPiece
+0M6Zo,r1b2rk1/pp1ppp2/3b2pp/8/3B4/2P1Q1Pq/P3BP1P/3RR1K1 b - - 1 19,b7b6 e3e4 a8b8 e2g4 c8b7 g4h3 b7e4 e1e4,2297,advantage middlegame trappedPiece veryLong
+0MALl,2R5/2p2rp1/1pQp2k1/4p3/4Pp2/5P2/q7/4K3 b - - 12 57,a2a7 c8a8 a7a8 c6a8,1828,advantage endgame short trappedPiece
+0MIcZ,r4rk1/p1Q2pp1/1n2p1bp/8/3PP3/q4NP1/P2R1PBP/4R1K1 w - - 1 22,f3e5 f8c8 c7b7 a8b8 b7b8 c8b8,1883,advantage long middlegame trappedPiece
+0MP31,r4b1Q/1pqb1k2/p1pp1pp1/4p1p1/4P3/P1NP4/1PP2PPP/R3K2R w KQ - 0 17,h8h7 f8g7 h2h4 a8h8 h7h8 g7h8,1451,advantage clearance defensiveMove long middlegame trappedPiece
+0MPxD,1r2r1k1/1p1q1pbp/2pp2p1/Q2n4/3P4/4P2P/PP1N1PPB/2R1R1K1 w - - 0 19,e3e4 b8a8 a5a8 e8a8,1651,advantage middlegame short trappedPiece
+0MWFn,r1b2rk1/p1p2pbq/1p4p1/4p3/6P1/4PB2/PPPN4/R2Q1KR1 b - - 1 18,a8b8 g1h1 h7h1 f3h1,1108,advantage middlegame short trappedPiece
+0MeQk,r3k2r/pp1n1p2/2pbppp1/5q2/2PP4/P1Q1BP2/1P2N1PP/R3KR2 b Qkq - 3 17,h8h2 g2g4 f5g5 e3g5,1853,advantage master middlegame short trappedPiece
+0MeVD,r3k2r/pp1b1ppp/nq1p4/4p3/1PPNB3/P6P/2Q2PP1/2B2RK1 b kq - 0 15,b6d4 c1e3 d4e4 c2e4,2089,advantage middlegame short trappedPiece
+0MkVe,r1b2rk1/pp3ppp/2nb1n2/2pqp3/8/1PP2N1P/P2PBPP1/RNBQR1K1 b - - 0 9,f8e8 e2c4 d5c4 b3c4,1290,crushing opening short trappedPiece
+0MtOl,rn2k1r1/pp1q1p1p/2pp1bn1/6B1/4P2Q/2N2N2/PPP2PPP/R3K2R w KQq - 7 12,h4h7 g8h8 h7h8 f6h8,1665,advantage middlegame short trappedPiece
+0Mvvw,rnb2rk1/ppp3pp/4p3/5p2/3P4/2PB2R1/P1PKN1Pq/R4Q2 b - - 1 16,f5f4 g3h3 h2h3 g2h3,1674,crushing middlegame short trappedPiece
+0N5Xx,r2q1r2/3nb1k1/2p4p/p1Pp2pQ/P2P1p2/4PNBP/5PP1/RR4K1 w - - 0 27,e3f4 d7f6 h5h6 g7h6,1546,advantage middlegame short trappedPiece
+0N7R8,r3k2r/p3bppp/2p1pn2/3p2B1/8/2N2Q1P/PP2KPPq/R3R3 b kq - 9 17,e8g8 g5f4 h2f4 f3f4,1494,advantage middlegame short trappedPiece
+0N8mz,r4rk1/pp2pp1p/1qn1b1pb/3pP3/3P4/P1N2N1P/1P2BPP1/R2Q1RK1 b - - 2 14,b6b2 c3a4 b2a1 d1a1,1514,advantage middlegame short trappedPiece
+0NDFz,1k5r/pp2pp2/6p1/3Pp1q1/4Pb1r/2N2Q1B/PP3PP1/R4RK1 w - - 11 22,c3e2 h4h3 f3h3 h8h3,1197,crushing middlegame pin short trappedPiece
+0NDvC,2b2rk1/Rq1n1pp1/2pPpn1p/1pB1N3/8/1PP5/2P1QPPP/6K1 b - - 2 20,b7b8 e5c6 c8b7 c6b8,1743,advantage middlegame short trappedPiece
+0NEDW,8/p1pk4/2N1p1r1/1P1p4/P5pb/4P3/4K1Br/2B3R1 b - - 0 32,g6f6 c6e5 d7c8 e5g4 h2g2 g1g2,1251,crushing fork long middlegame trappedPiece
+0NIe1,r2qkb1r/pp3ppp/2n1pNb1/8/3p2P1/2PB1N1P/PP3P2/R1BQK2R b KQkq - 0 11,d8f6 c1g5 f6g5 f3g5,1755,crushing middlegame short trappedPiece
+0NN19,rnbqk1nr/pp3ppp/3bp3/3pN3/2pP1B2/2N1P3/PPP2PPP/R2QKB1R b KQkq - 3 6,f7f6 d1h5 g7g6 e5g6 h7g6 h5h8,1237,crushing long opening pin trappedPiece
+0NWPO,r1bq1rk1/ppp2pp1/1b1p1nnp/4p3/1PB1P3/P2P1Q1P/2P1NPPN/R1B2RK1 w - - 1 13,c1e3 g6h4 f3g3 f6h5 e3b6 h5g3,1595,advantage long middlegame trappedPiece
+0NiEI,r3k3/1bp1qpb1/ppn3p1/3pPpP1/3P1P2/2P1B3/PP1N4/R3K1NQ w Qq - 1 16,h1d5 c6a5 d5b7 a5b7,1866,advantage middlegame quietMove short trappedPiece
+0NpCm,r1bqk2r/pp1p1ppp/3n2n1/3P4/3Q1P2/2P2N2/P3B1PP/R1B1K2R w KQkq - 1 13,d4g7 d6f5 g7h8 g6h8,1588,advantage opening short trappedPiece
+0Nyzz,1r1q1rk1/1bn1b2p/pN3ppP/P3p3/1p1p3Q/3P2P1/1PPB1PB1/R3R1K1 w - - 6 22,g2h3 f6f5 h4e7 d8e7,1435,crushing master middlegame quietMove short trappedPiece
+0O9QB,8/8/8/3p4/P3p3/2K1P2k/7p/7N w - - 5 52,c3d4 h3g2 a4a5 g2h1 a5a6 h1g2 a6a7 h2h1q a7a8q h1d1,1379,advancedPawn advantage clearance endgame knightEndgame promotion trappedPiece veryLong
+0O9a2,2bq1r2/p2p1nkp/4p1p1/r1p1Pp2/1Q3P2/1BP4P/PP2N1P1/R4R1K w - - 0 27,b4c4 c8a6 c4a6 a5a6,1255,crushing middlegame short trappedPiece
+0OCyO,r5k1/1p2b1pp/p3Q3/2p5/PnN2r2/8/qPP2PPP/3R1RK1 b - - 0 18,f4f7 d1a1 a2a1 f1a1,2032,advantage middlegame short trappedPiece
+0OHWK,2rq1rk1/1p2ppbp/6p1/pQnP1b2/2P2B2/2N2N1P/PP3PP1/3R1RK1 w - - 1 19,f3e5 g7e5 f4e5 f5d7 b5c5 c8c5,1855,crushing long master masterVsMaster middlegame trappedPiece
+0ORjh,1r1r2k1/p2p1pp1/4p2p/2p1P1b1/2N5/1PPK4/P4RPP/7R b - - 0 22,f7f6 h2h4 g5h4 h1h4,1686,advantage endgame short trappedPiece
+0OU68,5rk1/1p1r2p1/p2p3p/2p2pB1/2PbP3/3P1P2/PPK3PP/1R2R3 w - - 0 18,g5h4 g7g5 h4g3 f5f4 e1h1 f4g3,1327,advantage endgame long trappedPiece
+0Ovuz,r6r/1pp1nkpp/p1n1b3/4P3/8/1Q6/PPPN2PP/2K3NR w - - 2 17,b3b7 a8a7 b7a7 c6a7,1993,advantage middlegame short trappedPiece
+0P4uZ,r1b1k2r/pp1nppbp/1qp2np1/3pN3/3P1B2/P1N1P3/1PP1BPPP/R2QK2R b KQkq - 0 8,b6b2 c3a4 b2a1 d1a1,1560,advantage opening short trappedPiece
+0P6gi,r1b1kbnr/pp3ppp/3pp1n1/2pP4/2P1P2q/2N1KN1P/PP4P1/R1BQ1B1R b kq - 3 10,h4f4 e3f2 f4f6 c1g5 f6g5 f3g5,1782,crushing defensiveMove long middlegame trappedPiece
+0PBwv,r3r1k1/pp3pbp/2ppbnp1/4q3/4P3/P1N1BB1P/1PP2PP1/R1QR2K1 b - - 3 14,d6d5 e3f4 e5c3 b2c3,1737,crushing middlegame short trappedPiece
+0PEFU,1r3rk1/pQpq1p2/4pb2/3p3p/3P1PpP/2P3B1/PP4P1/4RRK1 w - - 1 24,b7a7 b8a8 a7b7 f8b8 b7b8 a8b8,1576,clearance crushing long middlegame trappedPiece
+0PPsq,r3r1k1/ppq2p2/4b1p1/2R3Bn/N7/P1N3P1/1P2PPBP/5RK1 b - - 0 27,c7d7 f1d1 d7d1 c3d1,1585,advantage middlegame short trappedPiece
+0PdD5,r4rk1/p1p2ppp/1p1p4/2nP1PPq/2P2R2/2P3Q1/P5BP/4R1K1 b - - 4 23,a8e8 e1e8 f8e8 g2f3 e8e3 f3h5 e3g3 h2g3,2216,crushing master middlegame trappedPiece veryLong
+0Pfih,2r2rk1/1p3p1p/p2p2p1/8/4P3/1Nqn1R1P/P3QRPK/8 b - - 1 29,d3c1 f3c3 c1e2 c3c8 f8c8 f2e2,1608,advantage long middlegame trappedPiece
+0Pgue,r4rk1/3bppbp/pq1p1np1/1p6/3NPP2/P1NB4/1PP3PP/R1BQR2K b - - 0 14,b6d4 c1e3 d4c3 b2c3,1636,advantage middlegame short trappedPiece
+0PsUh,3q1r1k/2b3p1/7p/p1P5/Pr2Q3/4B3/5PPP/R4RK1 w - - 1 24,e4c6 f8f6 c6b5 b4b5,2030,crushing middlegame short trappedPiece
+0Pvnt,6rr/1kqn1Q2/1pn1p1p1/p2pP1b1/2pP4/2P2PB1/PP1NN1PP/2R2R1K w - - 5 25,c1c2 c6d8 f7g8 h8g8,1891,advantage middlegame short trappedPiece
+0Pvw6,rn2k1nr/pbpp1ppp/1p2p3/4P3/1B1P4/5N2/PqP2PPP/RN1QKB1R b KQkq - 0 8,b2a1 f1c4 b7d5 b4c3 a1b1 d1b1,1866,advantage long opening trappedPiece
+0Q32I,r1b3k1/pp5p/2p1p2r/3pPpp1/1bP2N1q/1P1BP1P1/PB1n1P1P/R2Q2KR b - - 0 17,h4g4 d3e2 g5f4 e2g4,1911,crushing middlegame short trappedPiece
+0Q9QR,r2q1k1r/p1p1bppp/2B1pn2/3p1b2/5P2/1P2P3/P1PP2PP/RNBQK2R w KQ - 1 9,c6a8 f5g4 d1g4 f6g4,1828,advantage middlegame short trappedPiece
+0QAQq,r6r/pk3pp1/1p3n1p/2p1pP2/1b2P3/2NRB3/PPP3PP/3R2K1 w - - 0 18,c3d5 c5c4 d5b4 c4d3,1901,advantage middlegame short trappedPiece
