@@ -281,6 +281,8 @@ export function pinsCreated(posBefore: Chess, move: NormalMove): Square[] {
 }
 
 export interface PinFound {
+  /** The ray piece holding the pin. */
+  pinner: Square;
   pinned: Square;
   /** The piece behind the pinned one (king for an absolute pin). */
   against: Square;
@@ -317,14 +319,14 @@ export function pinsHeld(board: Board, color: Color): PinFound[] {
       if (qsq === undefined) continue;
       const q = board.get(qsq)!;
       if (q.color === color) continue;
-      if (q.role === 'king') out.push({ pinned: psq, against: qsq, absolute: true });
+      if (q.role === 'king') out.push({ pinner: sq, pinned: psq, against: qsq, absolute: true });
       else if (
         PIECE_VALUES[q.role] > PIECE_VALUES[p.role] &&
         PIECE_VALUES[piece.role] <= PIECE_VALUES[q.role] &&
         // a pinned PAWN is only worth mentioning with a major piece behind it
         (p.role !== 'pawn' || PIECE_VALUES[q.role] >= 5)
       )
-        out.push({ pinned: psq, against: qsq, absolute: false });
+        out.push({ pinner: sq, pinned: psq, against: qsq, absolute: false });
     }
   }
   return out;
