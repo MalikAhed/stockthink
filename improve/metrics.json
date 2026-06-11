@@ -1,0 +1,176 @@
+[
+  {
+    "date": "2026-06-11",
+    "recall": {
+      "discoveredAttack": 0.625,
+      "fork": 0.615,
+      "hangingPiece": 1,
+      "mateIn1": 1,
+      "pin": 0.21,
+      "sacrifice": 0.75,
+      "skewer": 0,
+      "trappedPiece": 0.715
+    },
+    "missed": {
+      "discoveredAttack": [
+        "001XA",
+        "006fF",
+        "009zS",
+        "00AdI",
+        "00IYg",
+        "00Kia",
+        "00P81",
+        "00Uo9",
+        "00Y6y",
+        "00iQC"
+      ],
+      "fork": [
+        "0017R",
+        "006om",
+        "00761",
+        "008lc",
+        "00Hpe",
+        "00LZl",
+        "00MwU",
+        "00NHK",
+        "00OxK",
+        "00PUc"
+      ],
+      "pin": [
+        "001kG",
+        "003S3",
+        "005Bm",
+        "006pe",
+        "008LT",
+        "009BH",
+        "00GiQ",
+        "00H5n",
+        "00M1q",
+        "00NEO"
+      ],
+      "sacrifice": [
+        "001xO",
+        "007en",
+        "00CXr",
+        "00P81",
+        "00UI2",
+        "00WoW",
+        "00Wyh",
+        "00XGg",
+        "00eWz",
+        "00hSW"
+      ],
+      "skewer": [
+        "000qP",
+        "004Op",
+        "004mT",
+        "007tv",
+        "00AB1",
+        "00DZe",
+        "00ICz",
+        "00WZO",
+        "00baa",
+        "0100g"
+      ],
+      "trappedPiece": [
+        "01ctt",
+        "01rBE",
+        "02E9M",
+        "02Wga",
+        "02cdm",
+        "03Cdz",
+        "03NcI",
+        "06mgf",
+        "076jI",
+        "08IGX"
+      ]
+    }
+  },
+  {
+    "date": "2026-06-11",
+    "recall": {
+      "discoveredAttack": 0.625,
+      "fork": 0.615,
+      "hangingPiece": 1,
+      "mateIn1": 1,
+      "pin": 0.21,
+      "sacrifice": 0.75,
+      "skewer": 0,
+      "trappedPiece": 0.715
+    },
+    "missed": {
+      "discoveredAttack": [
+        "001XA",
+        "006fF",
+        "009zS",
+        "00AdI",
+        "00IYg",
+        "00Kia",
+        "00P81",
+        "00Uo9",
+        "00Y6y",
+        "00iQC"
+      ],
+      "fork": [
+        "0017R",
+        "006om",
+        "00761",
+        "008lc",
+        "00Hpe",
+        "00LZl",
+        "00MwU",
+        "00NHK",
+        "00OxK",
+        "00PUc"
+      ],
+      "pin": [
+        "001kG",
+        "003S3",
+        "005Bm",
+        "006pe",
+        "008LT",
+        "009BH",
+        "00GiQ",
+        "00H5n",
+        "00M1q",
+        "00NEO"
+      ],
+      "sacrifice": [
+        "001xO",
+        "007en",
+        "00CXr",
+        "00P81",
+        "00UI2",
+        "00WoW",
+        "00Wyh",
+        "00XGg",
+        "00eWz",
+        "00hSW"
+      ],
+      "skewer": [
+        "000qP",
+        "004Op",
+        "004mT",
+        "007tv",
+        "00AB1",
+        "00DZe",
+        "00ICz",
+        "00WZO",
+        "00baa",
+        "0100g"
+      ],
+      "trappedPiece": [
+        "01ctt",
+        "01rBE",
+        "02E9M",
+        "02Wga",
+        "02cdm",
+        "03Cdz",
+        "03NcI",
+        "06mgf",
+        "076jI",
+        "08IGX"
+      ]
+    }
+  }
+]
