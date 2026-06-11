@@ -440,6 +440,33 @@ table.counts { width: 100%; border-collapse: collapse; margin-top: 8px; font-siz
 .commentary-text { font-size: 14px; color: var(--text-on-bubble-2); line-height: 1.5; word-wrap: break-word; }
 .coach-more summary { cursor: pointer; color: var(--text-on-bubble-2); font-size: 12.5px; margin-top: 8px; }
 
+/* live "try a move" commentary */
+.live-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.live-tag {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #fff;
+  background: var(--green, #81b64c);
+  border-radius: var(--r-sm);
+  padding: 2px 7px;
+}
+#live-back {
+  margin-left: auto;
+  border: 1px solid rgba(0, 0, 0, 0.18);
+  background: transparent;
+  color: var(--text-on-bubble-2);
+  border-radius: var(--r-sm);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 8px;
+  cursor: pointer;
+}
+#live-back:hover { border-color: var(--green, #81b64c); color: var(--text-on-bubble); }
+.live-thinking { opacity: 0.75; animation: live-pulse 1.2s ease-in-out infinite; }
+@keyframes live-pulse { 50% { opacity: 0.35; } }
+
 /* move list */
 .moves-scroll { overflow-y: auto; flex: 1; min-height: 80px; border-top: 1px solid var(--border-subtle); padding-top: 4px; }
 .movelist { font-size: 13px; }

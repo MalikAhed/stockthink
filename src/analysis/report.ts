@@ -73,49 +73,61 @@ const PV_PLIES = 10;
 const cpForAcpl = (ev: EvalScore): number =>
   ev.mate !== undefined ? (ev.mate > 0 ? 1000 : -1000) : Math.max(-1000, Math.min(1000, ev.cp ?? 0));
 
+/**
+ * One ply + its before/after engine analyses → a fully classified MoveReport.
+ * Shared by the PGN review (buildReport) and the live "try a move" path —
+ * one pipeline, one set of rules.
+ */
+export function buildMoveReport(
+  ply: Ply,
+  before: PositionAnalysis,
+  after: PositionAnalysis | undefined,
+  book: Map<string, { name: string }>,
+): MoveReport {
+  const pos = Chess.fromSetup(parseFen(ply.fenBefore).unwrap()).unwrap();
+  const lines = before.lines.map(line => sanifyLine(pos, line.eval, line.pvUci));
+  // engine layer already normalizes evals to white POV
+  const evalBefore = before.lines[0].eval;
+  // terminal positions (mate/stalemate) have no lines — carry the eval over
+  const evalAfter = after?.lines.length ? after.lines[0].eval : evalBefore;
+  const bestUci = before.lines[0]?.pvUci[0] ?? null;
+  const winDrop = winPercentDrop(ply.color, evalBefore, evalAfter);
+  const played = parseUci(ply.uci) as NormalMove | undefined;
+  const facts =
+    played && pos.isLegal(played)
+      ? annotateMove(pos, played, {
+          evalBefore,
+          evalAfter,
+          winDrop,
+          bestUci,
+          lines: before.lines.map(l => ({ eval: l.eval, pvUci: l.pvUci })),
+          replyPv: after?.lines[0]?.pvUci,
+        })
+      : [];
+  const m: MoveReport = {
+    ...ply,
+    evalBefore,
+    evalAfter,
+    winPercentAfter: winPercent(evalAfter),
+    winDrop,
+    accuracy: moveAccuracy(winDrop),
+    bestUci,
+    bestSan: bestUci ? sanOf(pos, bestUci) : null,
+    wasBest: bestUci === ply.uci,
+    lines,
+    facts,
+    classification: 'good' as Classification,
+    openingName: book.get(ply.epdAfter)?.name ?? null,
+  };
+  m.classification = classifyMove(m, m.openingName !== null);
+  return m;
+}
+
 export function buildReport(game: ParsedGame, analyses: PositionAnalysis[]): GameReport {
   const book = openingBook();
-  const moves: MoveReport[] = game.plies.map((ply, i) => {
-    const pos = Chess.fromSetup(parseFen(ply.fenBefore).unwrap()).unwrap();
-    const before = analyses[i];
-    const after = analyses[i + 1];
-    const lines = before.lines.map(line => sanifyLine(pos, line.eval, line.pvUci));
-    // engine layer already normalizes evals to white POV
-    const evalBefore = before.lines[0].eval;
-    // terminal positions (mate/stalemate) have no lines — carry the eval over
-    const evalAfter = after?.lines.length ? after.lines[0].eval : evalBefore;
-    const bestUci = before.lines[0]?.pvUci[0] ?? null;
-    const winDrop = winPercentDrop(ply.color, evalBefore, evalAfter);
-    const played = parseUci(ply.uci) as NormalMove | undefined;
-    const facts =
-      played && pos.isLegal(played)
-        ? annotateMove(pos, played, {
-            evalBefore,
-            evalAfter,
-            winDrop,
-            bestUci,
-            lines: before.lines.map(l => ({ eval: l.eval, pvUci: l.pvUci })),
-            replyPv: after?.lines[0]?.pvUci,
-          })
-        : [];
-    return {
-      ...ply,
-      evalBefore,
-      evalAfter,
-      winPercentAfter: winPercent(evalAfter),
-      winDrop,
-      accuracy: moveAccuracy(winDrop),
-      bestUci,
-      bestSan: bestUci ? sanOf(pos, bestUci) : null,
-      wasBest: bestUci === ply.uci,
-      lines,
-      facts,
-      classification: 'good' as Classification,
-      openingName: book.get(ply.epdAfter)?.name ?? null,
-    };
-  });
-
-  for (const m of moves) m.classification = classifyMove(m, m.openingName !== null);
+  const moves: MoveReport[] = game.plies.map((ply, i) =>
+    buildMoveReport(ply, analyses[i], analyses[i + 1], book),
+  );
 
   return {
     headers: game.headers,

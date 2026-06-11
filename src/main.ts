@@ -8,11 +8,18 @@ import { Chessground } from 'chessground';
 import type { Api } from 'chessground/api';
 import type { DrawShape } from 'chessground/draw';
 import type { Key } from 'chessground/types';
+import { Chess, normalizeMove } from 'chessops/chess';
+import { chessgroundDests } from 'chessops/compat';
+import { parseFen } from 'chessops/fen';
+import { makeSan } from 'chessops/san';
+import type { NormalMove } from 'chessops/types';
+import { parseSquare } from 'chessops/util';
 import { analyzeGame, type AnnotatedMove, type AnnotatedReport, type Tier } from './analyze';
 import { winPercent } from './analysis/winprob';
 import type { VariationChip } from './compose/compose';
+import { disposeLive, liveMoveReport, seedLiveAnalysis } from './live';
 import { badgeSvg } from './ui/badges';
-import { formatEval, renderCoach } from './ui/coach';
+import { formatEval, renderCoach, renderCoachThinking } from './ui/coach';
 import { renderDeepReview } from './ui/deepreview';
 import { renderGraph } from './ui/graph';
 import { renderMoveList } from './ui/movelist';
@@ -28,6 +35,10 @@ let board: Api | null = null;
 let orientation: 'white' | 'black' = 'white';
 let previewTimer: ReturnType<typeof setInterval> | null = null;
 let aiComments: Map<number, string> = new Map();
+/** Live "try a move" line played by the user from the current ply. */
+let exploreLine: AnnotatedMove[] = [];
+let exploreThinking = false;
+let liveToken = 0; // stale-search guard: bumped whenever the user navigates
 
 /* ---------------------------------------------------------- screens --- */
 const screens = {
@@ -75,6 +86,8 @@ function initReview(): void {
   ply = 0;
   orientation = 'white';
   aiComments = new Map();
+  exploreLine = [];
+  exploreThinking = false;
   renderDeepReview($('#deep-review'), r, imported => {
     aiComments = imported;
     render();
@@ -82,12 +95,77 @@ function initReview(): void {
   board = Chessground($('#board'), {
     fen: r.initialFen,
     coordinates: true,
-    movable: { free: false, color: undefined },
-    draggable: { enabled: false },
-    selectable: { enabled: false },
+    movable: { free: false, color: undefined, events: { after: onUserMove } },
+    draggable: { enabled: true },
+    selectable: { enabled: true },
     drawable: { enabled: false, visible: true },
   });
   render();
+}
+
+/* -------------------------------------------------- live "try a move" --- */
+
+/** FEN currently shown on the board (game position or explored line). */
+function shownFen(): string {
+  const r = report!;
+  if (exploreLine.length) return exploreLine[exploreLine.length - 1].fenAfter;
+  return ply > 0 ? r.moves[ply - 1].fenAfter : r.initialFen;
+}
+
+/** Hand the report's already-computed analysis of `fen` to the live cache. */
+function seedFromReport(fen: string): void {
+  const r = report!;
+  const m = r.moves.find(mv => mv.fenBefore === fen);
+  if (!m) return;
+  seedLiveAnalysis(fen, {
+    fen,
+    lines: m.lines.map((l, i) => ({ multipv: i + 1, depth: 0, eval: l.eval, pvUci: l.uciPv })),
+    bestmoveUci: m.bestUci,
+    terminal: m.lines.length === 0,
+  });
+}
+
+/** User dropped a piece: run the move through the normal analysis pipeline. */
+function onUserMove(orig: Key, dest: Key): void {
+  if (!report || exploreThinking) return;
+  stopPreview();
+  const fenBefore = shownFen();
+  const pos = Chess.fromSetup(parseFen(fenBefore).unwrap()).unwrap();
+  const from = parseSquare(orig);
+  const to = parseSquare(dest);
+  if (from === undefined || to === undefined) return render();
+  let move: NormalMove = { from, to };
+  if (pos.board.get(from)?.role === 'pawn' && (to >= 56 || to < 8))
+    move = { ...move, promotion: 'queen' }; // auto-queen
+  move = normalizeMove(pos, move) as NormalMove;
+  if (!pos.isLegal(move)) return render();
+
+  const san = makeSan(pos, move);
+  const token = ++liveToken;
+  exploreThinking = true;
+  render();
+  renderCoachThinking($('#coach'), san);
+
+  seedFromReport(fenBefore);
+  const plyIndex = ply + exploreLine.length + 1;
+  void liveMoveReport(fenBefore, move, plyIndex)
+    .then(m => {
+      if (token !== liveToken) return; // user navigated away meanwhile
+      exploreThinking = false;
+      if (m) exploreLine.push(m);
+      render();
+    })
+    .catch(() => {
+      if (token !== liveToken) return;
+      exploreThinking = false;
+      render();
+    });
+}
+
+function exitExplore(): void {
+  liveToken++;
+  exploreLine = [];
+  exploreThinking = false;
 }
 
 /** Squares to highlight for a move (castling shown as the king's hop). */
@@ -110,7 +188,7 @@ function stopPreview(): void {
 function playChip(chip: VariationChip): void {
   if (!board) return;
   stopPreview();
-  board.set({ fen: chip.fen, lastMove: undefined });
+  board.set({ fen: chip.fen, lastMove: undefined, movable: { color: undefined } });
   board.setAutoShapes([]);
   let i = 0;
   previewTimer = setInterval(() => {
@@ -127,7 +205,8 @@ function render(): void {
   const r = report!;
   if (!r.moves.length || !board) return;
   stopPreview();
-  const m = ply > 0 ? r.moves[ply - 1] : null;
+  const live = exploreLine.length > 0;
+  const m = live ? exploreLine[exploreLine.length - 1] : ply > 0 ? r.moves[ply - 1] : null;
 
   // board + best-move arrow (when the played move lost ≥5 win%) + badge
   const shapes: DrawShape[] = [];
@@ -143,7 +222,18 @@ function render(): void {
       });
     shapes.push({ orig: to, customSvg: { html: badgeSvg(m.classification), center: 'orig' } });
   }
-  board.set({ fen: m ? m.fenAfter : r.initialFen, lastMove, orientation });
+
+  // the user may move a piece from any shown position (live commentary)
+  const fen = m ? m.fenAfter : r.initialFen;
+  const pos = Chess.fromSetup(parseFen(fen).unwrap()).unwrap();
+  const movableColor = exploreThinking || pos.isEnd() ? undefined : pos.turn;
+  board.set({
+    fen,
+    lastMove,
+    orientation,
+    turnColor: pos.turn,
+    movable: { free: false, color: movableColor, dests: chessgroundDests(pos) },
+  });
   board.setAutoShapes(shapes);
 
   // eval bar
@@ -152,9 +242,22 @@ function render(): void {
   ($('#eval-bar .white-fill') as HTMLElement).style.height = `${win}%`;
   $('#eval-bar .eval-label').textContent = formatEval(ev);
 
-  // panels
+  // panels (move list & graph stay anchored to the game while exploring)
   renderSummary($('#summary'), r);
-  renderCoach($('#coach'), r, m, playChip, m ? (aiComments.get(m.ply) ?? null) : null);
+  renderCoach(
+    $('#coach'),
+    r,
+    m,
+    playChip,
+    m && !live ? (aiComments.get(m.ply) ?? null) : null,
+    live,
+  );
+  $('#coach')
+    .querySelector('#live-back')
+    ?.addEventListener('click', () => {
+      exitExplore();
+      render();
+    });
   renderGraph($('#graph'), r.moves, ply, seek);
   renderMoveList($('#moves'), r.moves, ply, seek);
   renderPlayerBars();
@@ -184,6 +287,7 @@ function renderPlayerBars(): void {
 
 function seek(p: number): void {
   if (!report) return;
+  exitExplore();
   ply = Math.max(0, Math.min(report.moves.length, p));
   render();
 }
@@ -200,6 +304,8 @@ $('#btn-flip').addEventListener('click', () => {
 });
 $('#btn-new').addEventListener('click', () => {
   report = null;
+  exitExplore();
+  disposeLive();
   show('input');
 });
 
@@ -208,7 +314,13 @@ document.addEventListener('keydown', e => {
   if (e.target instanceof HTMLTextAreaElement) return;
   switch (e.key) {
     case 'ArrowLeft':
-      seek(ply - 1);
+      if (exploreLine.length) {
+        // step back through the explored line before leaving it
+        liveToken++;
+        exploreThinking = false;
+        exploreLine.pop();
+        render();
+      } else seek(ply - 1);
       break;
     case 'ArrowRight':
       seek(ply + 1);
