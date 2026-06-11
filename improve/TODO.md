@@ -15,17 +15,6 @@ the same treatment, top-down, one item per session unit:
 
 Take items top-down. Move finished items to Done (bottom) with date + commit.
 
-## P0 — Infrastructure (needed to prove anything below)
-
-- [ ] **I1 · Puzzle fixtures** — run + debug `scripts/puzzles/fetch-fixtures.mjs`
-  → commit `test/fixtures/puzzles/<theme>.csv` (fork, pin, skewer,
-  discoveredAttack, hangingPiece, trappedPiece, mateIn1, mateIn2, backRankMate,
-  sacrifice; ≥100 rows each). `Moves[0]` is the opponent's setup move; the
-  tactic is `Moves[1]`.
-- [ ] **I2 · Recall harness** — `test/recall.test.ts`: apply setup move, play
-  solution move, assert the mapped detector fires; append results to
-  `improve/metrics.json`; update TRACKER snapshot.
-
 ## Concepts — from zero (chessprogramming.org reading list)
 
 - [ ] **R1 · Hanging piece** — https://www.chessprogramming.org/Hanging_Piece
@@ -71,4 +60,5 @@ Take items top-down. Move finished items to Done (bottom) with date + commit.
 _(items land here with the open question attached)_
 
 ## Done
-_(move items here: `- [x] ID · concept — YYYY-MM-DD · commit <hash>`)_
+- [x] I1 · Puzzle fixtures — 2026-06-11 (HF /filter FTS index never builds → use /rows scan; Themes arrives as an array)
+- [x] I2 · Recall harness — 2026-06-11 (test/recall.test.ts; metrics → improve/metrics.json; floors ratchet up)

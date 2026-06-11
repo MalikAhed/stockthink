@@ -37,10 +37,13 @@ trappedPiece→traps_piece · mateIn1→delivers_mate/mate_threat · sacrifice�
 
 | Date | gate coverage | fork | pin | skewer | discAtk | hanging | trapped | mateIn1 | sac |
 |---|---|---|---|---|---|---|---|---|---|
-| 2026-06-11 | 93–100% | — | — | — | — | — | — | — | — |
+| 2026-06-11 | 93–100% | 62% | 21% | 0% | 63% | 100% | 72% | 100% | 75% |
 
 ## Daily log (append ONE entry per session, 1–3 lines, newest on top)
 
+- **2026-06-11b** · 2 units · I1 fixtures (HF /rows scan, 10×200 puzzles) + I2
+  recall harness. Baseline: hanging/mateIn1 100%, sac 75%, trapped 72%, discAtk
+  63%, fork 62%, pin 21%, skewer 0%. Next: R-list; pin+skewer are the gaps.
 - **2026-06-11** · setup · Built the workshop (README/TODO/TRACKER), audited
   reading list vs V2 (9 concepts already done), merged backlogs, wrote puzzle
   fetch script. Next: I1 fixtures → I2 recall harness.
