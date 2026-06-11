@@ -2,8 +2,12 @@
  * Opening book: lichess-org/chess-openings (CC0), baked to an EPD-keyed map
  * by scripts/build-openings.mjs. EPD matching is transposition-safe.
  */
-import type { OpeningInfo } from './classify';
 import rawOpenings from './openings.json';
+
+export interface OpeningInfo {
+  eco: string;
+  name: string;
+}
 
 let cache: Map<string, OpeningInfo> | undefined;
 

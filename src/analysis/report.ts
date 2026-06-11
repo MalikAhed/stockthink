@@ -1,18 +1,17 @@
 /**
- * Game report assembly: parsed game + engine analyses → per-move records
- * (classification, accuracy, SAN engine lines) and per-player summaries
- * (lichess game accuracy, ACPL, estimated Elo, classification counts).
+ * Slim game report: parsed game + engine analyses → per-move evals, win%,
+ * accuracy, ACPL. Classification & commentary were removed pending the
+ * analysis-system redesign (see docs/ — research-first rebuild).
  */
 import type { PositionAnalysis } from '../engine/engine';
-import {
-  type Classification,
-  type ClassifyOptions,
-  classifyMoves,
-  type MoveJudgment,
-  type OpeningInfo,
-} from './classify';
 import type { ParsedGame, Ply } from './pgn';
-import { type EvalScore, gameAccuracy, winPercent } from './winprob';
+import {
+  type EvalScore,
+  gameAccuracy,
+  moveAccuracy,
+  winPercent,
+  winPercentDrop,
+} from './winprob';
 import { Chess } from 'chessops/chess';
 import { parseFen } from 'chessops/fen';
 import { makeSan } from 'chessops/san';
@@ -25,9 +24,18 @@ export interface EngineLineReport {
   uciPv: string[];
 }
 
-export interface MoveReport extends Ply, MoveJudgment {
-  /** Engine best move in SAN (from the position before the move). */
+export interface MoveReport extends Ply {
+  /** White-POV eval before/after the move. */
+  evalBefore: EvalScore;
+  evalAfter: EvalScore;
+  winPercentAfter: number;
+  /** Mover-POV win% lost by this move (0 if it gained). */
+  winDrop: number;
+  accuracy: number;
+  /** Engine best move from the position before the move. */
+  bestUci: string | null;
   bestSan: string | null;
+  wasBest: boolean;
   /** Top engine lines (MultiPV) from the position before the move. */
   lines: EngineLineReport[];
 }
@@ -38,15 +46,12 @@ export interface PlayerSummary {
   acpl: number;
   /** Chesskit formula: 3100·e^(−0.01·acpl). */
   estimatedElo: number;
-  counts: Record<Classification, number>;
 }
 
 export interface GameReport {
   headers: Record<string, string>;
   moves: MoveReport[];
   players: { white: PlayerSummary; black: PlayerSummary };
-  /** Deepest matched book opening, if any. */
-  opening?: OpeningInfo;
 }
 
 const PV_PLIES = 10;
@@ -55,75 +60,65 @@ const PV_PLIES = 10;
 const cpForAcpl = (ev: EvalScore): number =>
   ev.mate !== undefined ? (ev.mate > 0 ? 1000 : -1000) : Math.max(-1000, Math.min(1000, ev.cp ?? 0));
 
-const emptyCounts = (): Record<Classification, number> => ({
-  brilliant: 0,
-  great: 0,
-  best: 0,
-  excellent: 0,
-  good: 0,
-  book: 0,
-  forced: 0,
-  inaccuracy: 0,
-  mistake: 0,
-  miss: 0,
-  blunder: 0,
-});
-
-export function buildReport(
-  game: ParsedGame,
-  analyses: PositionAnalysis[],
-  opts: ClassifyOptions = {},
-): GameReport {
-  const judgments = classifyMoves(game, analyses, opts);
-
+export function buildReport(game: ParsedGame, analyses: PositionAnalysis[]): GameReport {
   const moves: MoveReport[] = game.plies.map((ply, i) => {
     const pos = Chess.fromSetup(parseFen(ply.fenBefore).unwrap()).unwrap();
-    const lines = analyses[i].lines.map(line => sanifyLine(pos, line.eval, line.pvUci));
-    const j = judgments[i];
-    const bestSan = j.bestUci ? sanOf(pos, j.bestUci) : null;
-    return { ...ply, ...j, bestSan, lines };
+    const before = analyses[i];
+    const after = analyses[i + 1];
+    const lines = before.lines.map(line => sanifyLine(pos, line.eval, line.pvUci));
+    // engine layer already normalizes evals to white POV
+    const evalBefore = before.lines[0].eval;
+    // terminal positions (mate/stalemate) have no lines — carry the eval over
+    const evalAfter = after?.lines.length ? after.lines[0].eval : evalBefore;
+    const bestUci = before.lines[0]?.pvUci[0] ?? null;
+    const winDrop = winPercentDrop(ply.color, evalBefore, evalAfter);
+    return {
+      ...ply,
+      evalBefore,
+      evalAfter,
+      winPercentAfter: winPercent(evalAfter),
+      winDrop,
+      accuracy: moveAccuracy(winDrop),
+      bestUci,
+      bestSan: bestUci ? sanOf(pos, bestUci) : null,
+      wasBest: bestUci === ply.uci,
+      lines,
+    };
   });
 
   return {
     headers: game.headers,
     moves,
     players: {
-      white: summarize('white', game, judgments),
-      black: summarize('black', game, judgments),
+      white: summarize('white', moves),
+      black: summarize('black', moves),
     },
-    opening: [...judgments].reverse().find(j => j.opening)?.opening,
   };
 }
 
-function summarize(
-  color: 'white' | 'black',
-  game: ParsedGame,
-  judgments: MoveJudgment[],
-): PlayerSummary {
-  const counts = emptyCounts();
+function summarize(color: 'white' | 'black', moves: MoveReport[]): PlayerSummary {
   const accuracies: number[] = [];
   const winPercents: number[] = [];
   let cpLossSum = 0;
   let cpLossMoves = 0;
 
-  for (let i = 0; i < judgments.length; i++) {
-    if (game.plies[i].color !== color) continue;
-    const j = judgments[i];
-    counts[j.classification]++;
-    accuracies.push(j.accuracy);
+  for (const m of moves) {
+    if (m.color !== color) continue;
+    accuracies.push(m.accuracy);
     // player-POV win% before this move (for volatility windows)
-    const before = winPercent(j.evalBefore);
+    const before = winPercent(m.evalBefore);
     winPercents.push(color === 'white' ? before : 100 - before);
     // ACPL from mover-POV cp drop, mate ≈ ±1000
-    const cpBefore = cpForAcpl(j.evalBefore);
-    const cpAfter = cpForAcpl(j.evalAfter);
-    const drop = color === 'white' ? cpBefore - cpAfter : cpAfter - cpBefore;
+    const drop =
+      color === 'white'
+        ? cpForAcpl(m.evalBefore) - cpForAcpl(m.evalAfter)
+        : cpForAcpl(m.evalAfter) - cpForAcpl(m.evalBefore);
     cpLossSum += Math.min(1000, Math.max(0, drop));
     cpLossMoves++;
   }
 
   // final position win% closes the last volatility window
-  const last = judgments[judgments.length - 1];
+  const last = moves[moves.length - 1];
   if (last) winPercents.push(color === 'white' ? last.winPercentAfter : 100 - last.winPercentAfter);
 
   const acpl = cpLossMoves ? cpLossSum / cpLossMoves : 0;
@@ -131,7 +126,6 @@ function summarize(
     accuracy: Math.round(gameAccuracy(accuracies, winPercents) * 10) / 10,
     acpl: Math.round(acpl),
     estimatedElo: Math.round(3100 * Math.exp(-0.01 * acpl)),
-    counts,
   };
 }
 
