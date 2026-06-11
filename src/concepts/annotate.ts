@@ -28,8 +28,9 @@ import {
   trapsPieces,
   winsTempo,
 } from './detectors';
+import { between } from 'chessops/attacks';
 import type { Fact, PieceOn, SanMove } from './facts';
-import { sortFacts } from './facts';
+import { factPriority, sortFacts } from './facts';
 import type { PinFound } from './primitives';
 import {
   effectiveDefenders,
@@ -182,6 +183,126 @@ function pinSignificance(
   return { keep: false };
 }
 
+/**
+ * "They cannot all be saved" is checked against the engine's best defense:
+ * after the opponent's PV reply, the fork stands if a non-king target is
+ * still winnable on the spot (legal-move SEE), or the PV itself harvests one
+ * next move. Capturing the forker also confirms it — the forker was safe, so
+ * best play choosing to take it means material is conceded either way.
+ * With no PV to check against, the geometric fork is taken at face value.
+ */
+function forkConfirmed(
+  after: Chess,
+  mover: 'white' | 'black',
+  forker: Square,
+  targets: Square[],
+  pv: string[] | undefined,
+): boolean {
+  if (!pv?.length) return true;
+  const reply = parseUci(pv[0]) as NormalMove | undefined;
+  if (!reply || !after.isLegal(reply)) return true;
+  if (reply.to === forker) return true;
+  const probe = play(after, reply);
+  const next = pv[1] ? (parseUci(pv[1]) as NormalMove | undefined) : undefined;
+  if (next && probe.isLegal(next) && targets.includes(next.to)) {
+    const victim = probe.board.get(next.to);
+    if (victim && victim.color !== mover) return true;
+  }
+  for (const t of targets) {
+    const p = probe.board.get(t);
+    if (!p || p.color === mover || p.role === 'king') continue;
+    if (seeSquare(probe, t) > 0) return true;
+  }
+  return false;
+}
+
+/**
+ * A tempo claim needs the engine's defense to actually react — move the
+ * attacked piece, capture or block the attacker, or reinforce the target.
+ * An "attack" best play simply ignores, winning nothing, was never forcing.
+ */
+function tempoConfirmed(
+  after: Chess,
+  mover: 'white' | 'black',
+  attacker: Square,
+  target: Square,
+  pv: string[] | undefined,
+): boolean {
+  if (!pv?.length) return true;
+  const reply = parseUci(pv[0]) as NormalMove | undefined;
+  if (!reply || !after.isLegal(reply)) return true;
+  if (reply.from === target || reply.to === attacker) return true;
+  if (between(attacker, target).has(reply.to)) return true;
+  const probe = play(after, reply);
+  const t = probe.board.get(target);
+  if (!t || t.color === mover) return false;
+  const defBefore = attackersTo(after.board, target, opposite(mover), after.board.occupied).size();
+  const defAfter = attackersTo(probe.board, target, opposite(mover), probe.board.occupied).size();
+  if (defAfter > defBefore) return true; // they spent the move reinforcing it
+  return seeSquare(probe, target) > 0; // ignored a real threat — it just wins
+}
+
+/**
+ * Quiet-move reason finder: when a decent move produced no concrete fact of
+ * its own, look one move deeper into the engine's line — the opponent's best
+ * reply, then the mover's follow-up — and if that follow-up carries a strong
+ * idea (mate threat / winning a piece / fork / significant pin) that was NOT
+ * already available before the move, the two moves are explained as one plan.
+ */
+function preparedIdea(before: Chess, move: NormalMove, ctx: AnnotateContext): Fact | null {
+  const mover = before.turn;
+  const playedUci = makeUci(move);
+  // continuation of the played move: its own MultiPV line if the engine had
+  // one, else the best line from the after-position
+  const own = ctx.lines.find(l => l.pvUci[0] === playedUci)?.pvUci.slice(1);
+  const pv = own ?? ctx.replyPv;
+  if (!pv || pv.length < 2) return null;
+  const after = play(before, move);
+  const reply = parseUci(pv[0]) as NormalMove | undefined;
+  if (!reply || !after.isLegal(reply)) return null;
+  const probe = play(after, reply);
+  const follow = parseUci(pv[1]) as NormalMove | undefined;
+  if (!follow || !probe.isLegal(follow) || probe.turn !== mover) return null;
+  if (follow.to === reply.to) return null; // a recapture is not a plan
+  const san = sanMove(probe, follow);
+  const afterFollow = play(probe, follow);
+  const availableBefore = (test: (pos: Chess, m: NormalMove) => boolean): boolean =>
+    before.isLegal(follow) && test(before, follow);
+
+  if (createsMateThreat(probe, follow) && !availableBefore((p, m) => createsMateThreat(p, m) !== null))
+    return { kind: 'prepares', move: san, idea: { what: 'mate_threat' } };
+
+  const victim = probe.board.get(follow.to);
+  if (
+    victim &&
+    victim.color !== mover &&
+    victim.role !== 'pawn' &&
+    capturesFreePiece(probe, follow) &&
+    seeSquare(before, follow.to) === 0 // was not simply winnable already
+  )
+    return {
+      kind: 'prepares',
+      move: san,
+      idea: { what: 'wins_piece', piece: { role: victim.role, square: makeSquare(follow.to) } },
+    };
+
+  const forks = createsFork(probe, follow);
+  if (forks.length && !availableBefore((p, m) => createsFork(p, m).length > 0))
+    return {
+      kind: 'prepares',
+      move: san,
+      idea: { what: 'fork', targets: forks.map(sq => pieceOn(afterFollow, sq)) },
+    };
+
+  const pins = pinsCreatedEx(probe, follow).filter(
+    p => pinSignificance(afterFollow, mover, p, pv.slice(2)).keep,
+  );
+  if (pins.length && !availableBefore((p, m) => pinsCreatedEx(p, m).length > 0))
+    return { kind: 'prepares', move: san, idea: { what: 'pin', piece: pieceOn(afterFollow, pins[0].pinned) } };
+
+  return null;
+}
+
 export function annotateMove(before: Chess, move: NormalMove, ctx: AnnotateContext): Fact[] {
   const mover = before.turn;
   const after = play(before, move);
@@ -217,7 +338,7 @@ export function annotateMove(before: Chess, move: NormalMove, ctx: AnnotateConte
     });
 
   const forkTargets = createsFork(before, move);
-  if (forkTargets.length)
+  if (forkTargets.length && forkConfirmed(after, mover, move.to, forkTargets, ctx.replyPv))
     facts.push({
       kind: 'creates_fork',
       forker: pieceOn(after, move.to),
@@ -254,7 +375,8 @@ export function annotateMove(before: Chess, move: NormalMove, ctx: AnnotateConte
   if (isSacrifice(before, move)) facts.push({ kind: 'sacrifice', piece: movedRole });
 
   const tempoTarget = winsTempo(before, move);
-  if (tempoTarget !== null) facts.push({ kind: 'wins_tempo', target: pieceOn(after, tempoTarget) });
+  if (tempoTarget !== null && tempoConfirmed(after, mover, move.to, tempoTarget, ctx.replyPv))
+    facts.push({ kind: 'wins_tempo', target: pieceOn(after, tempoTarget) });
 
   const defended = defendsHangingPieces(before, move);
   if (defended.length) facts.push({ kind: 'defends_piece', piece: pieceOn(after, defended[0]) });
@@ -287,12 +409,20 @@ export function annotateMove(before: Chess, move: NormalMove, ctx: AnnotateConte
     const replyForks = createsFork(after, replyMove);
     if (replyForks.length) {
       const afterReply = play(after, replyMove);
-      facts.push({
-        kind: 'allows_fork',
-        forkMove: sanMove(after, replyMove),
-        targets: replyForks.map(sq => pieceOn(afterReply, sq)),
-      });
+      // confirmed against the mover's own best defense in the same line
+      if (forkConfirmed(afterReply, opposite(mover), replyMove.to, replyForks, ctx.replyPv?.slice(1)))
+        facts.push({
+          kind: 'allows_fork',
+          forkMove: sanMove(after, replyMove),
+          targets: replyForks.map(sq => pieceOn(afterReply, sq)),
+        });
     }
+  }
+
+  /* ---- quiet good move: explain it together with the engine's plan ------ */
+  if (ctx.winDrop < 5 && !facts.some(f => factPriority(f) <= 20)) {
+    const prep = preparedIdea(before, move, ctx);
+    if (prep) facts.push(prep);
   }
 
   // generic refutation walk — only when nothing concrete explained the drop
@@ -322,9 +452,12 @@ export function annotateMove(before: Chess, move: NormalMove, ctx: AnnotateConte
           victim: { role: bestVictim.role, square: makeSquare(best.to) },
         });
 
-      const missedForks = createsFork(before, best);
       const afterBest = play(before, best);
-      if (missedForks.length)
+      const missedForks = createsFork(before, best);
+      if (
+        missedForks.length &&
+        forkConfirmed(afterBest, mover, best.to, missedForks, ctx.lines[0]?.pvUci.slice(1))
+      )
         facts.push({
           kind: 'missed_fork',
           move: bestSan,

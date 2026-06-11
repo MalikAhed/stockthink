@@ -114,6 +114,17 @@ export function renderFact(f: Fact): string | null {
       return `A genuine ${f.piece} sacrifice — material is given up for the attack.`;
     case 'defends_piece':
       return `This protects the ${pieceAt(f.piece)}, which was under attack.`;
+    case 'prepares':
+      switch (f.idea.what) {
+        case 'mate_threat':
+          return `A preparing move — it sets up ${f.move.san} next, threatening checkmate.`;
+        case 'wins_piece':
+          return `This prepares ${f.move.san}, winning the ${pieceAt(f.idea.piece)}.`;
+        case 'fork':
+          return `This prepares ${f.move.san}, forking ${listTargets(f.idea.targets)}.`;
+        case 'pin':
+          return `This prepares ${f.move.san}, pinning the ${pieceAt(f.idea.piece)}.`;
+      }
     case 'positional':
       return renderPositional(f.fact);
     case 'regression':
