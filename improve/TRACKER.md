@@ -2,7 +2,10 @@
 
 ## Coverage snapshot (edit rows in place when status changes)
 
-✅ implemented · 🟡 partial · ❌ missing. Full detail: `../docs/knowledge/concept-taxonomy.md`.
+✅ code exists — but **UNAUDITED**: treat as unproven until its R-item in
+TODO.md is done (read source → audit → fix → tests), then mark it 🔒 audited.
+🟡 partial · ❌ missing · 🔒 audited & proven.
+Full detail: `../docs/knowledge/concept-taxonomy.md`.
 
 | Concept | Status | Concept | Status |
 |---|---|---|---|
