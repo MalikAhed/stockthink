@@ -6,7 +6,7 @@ import type { Classification } from '../analysis/classify';
 
 /** URL of the official chess.com badge image for a classification. */
 export const badgeUrl = (cls: Classification): string =>
-  `${import.meta.env.BASE_URL}badges/${cls}.png`;
+  `${import.meta.env.BASE_URL}badges/${cls}.svg`;
 
 export const CLASS_COLORS: Record<Classification, string> = {
   brilliant: '#26c2a3',
