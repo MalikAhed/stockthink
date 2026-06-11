@@ -19,6 +19,8 @@ import { parseUci } from 'chessops/util';
 import type { NormalMove } from 'chessops/types';
 import { annotateMove } from '../concepts/annotate';
 import type { Fact } from '../concepts/facts';
+import { classifyMove, type Classification } from './classify';
+import { openingBook } from './openings';
 
 export interface EngineLineReport {
   /** White-POV eval of this line. */
@@ -43,6 +45,9 @@ export interface MoveReport extends Ply {
   lines: EngineLineReport[];
   /** Stage-2 typed facts (concept annotator), priority-sorted. */
   facts: Fact[];
+  classification: Classification;
+  /** Opening name when this move is still in book. */
+  openingName: string | null;
 }
 
 export interface PlayerSummary {
@@ -66,6 +71,7 @@ const cpForAcpl = (ev: EvalScore): number =>
   ev.mate !== undefined ? (ev.mate > 0 ? 1000 : -1000) : Math.max(-1000, Math.min(1000, ev.cp ?? 0));
 
 export function buildReport(game: ParsedGame, analyses: PositionAnalysis[]): GameReport {
+  const book = openingBook();
   const moves: MoveReport[] = game.plies.map((ply, i) => {
     const pos = Chess.fromSetup(parseFen(ply.fenBefore).unwrap()).unwrap();
     const before = analyses[i];
@@ -101,8 +107,12 @@ export function buildReport(game: ParsedGame, analyses: PositionAnalysis[]): Gam
       wasBest: bestUci === ply.uci,
       lines,
       facts,
+      classification: 'good' as Classification,
+      openingName: book.get(ply.epdAfter)?.name ?? null,
     };
   });
+
+  for (const m of moves) m.classification = classifyMove(m, m.openingName !== null);
 
   return {
     headers: game.headers,
