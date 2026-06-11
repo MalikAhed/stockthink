@@ -171,6 +171,31 @@ describe('annotateMove — what the move achieves', () => {
     });
   });
 
+  it('an insignificant relative pin (nothing wins it, engine ignores it) is NOT reported', () => {
+    // Re1 lines up knight e5 + queen e8, but the queen guards the knight and
+    // the engine line never touches the pin — geometry, not a reason
+    const p = pos('4q1k1/8/8/4n3/8/8/8/3R2K1 w - - 0 1');
+    const facts = annotateMove(p, mv('d1e1'), ctx({ replyPv: ['g8f8', 'g1f2'] }));
+    expect(byKind(facts, 'creates_pin')).toBeUndefined();
+  });
+
+  it('a relative pin the engine piles on is kept and cites the exploiting move', () => {
+    // same pin, but the engine follow-up Bg3 adds a second attacker on e5
+    const p = pos('4q1k1/8/8/4n3/8/8/5B2/3R2K1 w - - 0 1');
+    const facts = annotateMove(p, mv('d1e1'), ctx({ replyPv: ['g8f8', 'f2g3'] }));
+    expect(byKind(facts, 'creates_pin')).toMatchObject({
+      pinned: { role: 'knight', square: 'e5' },
+      exploit: { san: 'Bg3' },
+    });
+  });
+
+  it('a pin that wins the pinned piece outright is kept without engine help', () => {
+    // dxe5 wins the knight: the queen behind cannot profitably recapture
+    const p = pos('4q1k1/8/8/4n3/3P4/8/8/3R2K1 w - - 0 1');
+    const facts = annotateMove(p, mv('d1e1'), ctx());
+    expect(byKind(facts, 'creates_pin')).toBeTruthy();
+  });
+
   it('mate threat carries the rendered mating move', () => {
     const p = pos('6k1/5ppp/8/8/8/8/5PPP/2R3K1 w - - 0 1');
     expect(byKind(annotateMove(p, mv('c1d1'), ctx()), 'mate_threat')).toMatchObject({

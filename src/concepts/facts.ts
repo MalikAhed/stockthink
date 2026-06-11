@@ -28,7 +28,13 @@ export type Fact =
   | { kind: 'wins_free_piece'; victim: PieceOn }
   | { kind: 'captures_higher'; victim: PieceOn; attacker: Role }
   | { kind: 'creates_fork'; forker: PieceOn; targets: PieceOn[] }
-  | { kind: 'creates_pin'; pinned: PieceOn; against: PieceOn }
+  | {
+      kind: 'creates_pin';
+      pinned: PieceOn;
+      against: PieceOn;
+      /** Engine-confirmed follow-up that exploits the pin, if any. */
+      exploit?: SanMove;
+    }
   | { kind: 'discovered_check' }
   | { kind: 'traps_piece'; piece: PieceOn }
   | { kind: 'mate_threat'; mateMove: SanMove }

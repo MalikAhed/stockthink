@@ -91,10 +91,13 @@ export function renderFact(f: Fact): string | null {
       return `A favorable exchange: the ${f.attacker} takes the ${pieceAt(f.victim)}.`;
     case 'creates_fork':
       return `The ${pieceAt(f.forker)} forks ${listTargets(f.targets)} — they cannot all be saved.`;
-    case 'creates_pin':
-      return f.against.role === 'king'
-        ? `This pins the ${pieceAt(f.pinned)} against the king — it cannot move without losing everything behind it.`
-        : `This pins the ${pieceAt(f.pinned)} against the ${pieceAt(f.against)} — moving it would cost even more material.`;
+    case 'creates_pin': {
+      const base =
+        f.against.role === 'king'
+          ? `This pins the ${pieceAt(f.pinned)} against the king — it cannot move without losing everything behind it.`
+          : `This pins the ${pieceAt(f.pinned)} against the ${pieceAt(f.against)} — moving it would cost even more material.`;
+      return f.exploit ? `${base} ${f.exploit.san} comes next to cash in on it.` : base;
+    }
     case 'discovered_check':
       return 'A discovered check — the moved piece steps aside and unmasks an attack on the king.';
     case 'traps_piece':

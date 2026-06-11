@@ -14,7 +14,7 @@ import type { NormalMove, Role, Square } from 'chessops/types';
 import { makeSquare, makeUci, opposite, parseUci } from 'chessops/util';
 import type { EvalScore } from '../analysis/winprob';
 import { winPercent } from '../analysis/winprob';
-import { PIECE_VALUES } from './board';
+import { attackersTo, PIECE_VALUES } from './board';
 import {
   blocksCheck,
   capturesFreePiece,
@@ -30,7 +30,15 @@ import {
 } from './detectors';
 import type { Fact, PieceOn, SanMove } from './facts';
 import { sortFacts } from './facts';
-import { givesDiscoveredCheck, materialDiff, pinsCreatedEx } from './primitives';
+import type { PinFound } from './primitives';
+import {
+  effectiveDefenders,
+  givesDiscoveredCheck,
+  materialDiff,
+  pinsCreatedEx,
+  pinsHeld,
+  seeSquare,
+} from './primitives';
 import { positionalPurposes, positionalRegressions } from './positional';
 
 export interface EngineLineInput {
@@ -103,6 +111,77 @@ function cheapestCapture(pos: Chess, square: Square): NormalMove | null {
   return best;
 }
 
+/**
+ * A pin is only worth talking about when it bites — a new pin relation alone
+ * is geometry, not a reason. Confirmed when either the board proves it
+ * (capturing the pinned piece wins material right now, or it is attacked more
+ * than effectively defended), the engine's own continuation shows the mover
+ * exploiting it within their next two moves (taking the pinned piece, piling
+ * another attacker on it, or winning something it was defending — the
+ * confirming move is returned so prose can cite it), or it is a quiet
+ * absolute pin of a real piece by a pinner the opponent cannot win.
+ *
+ * `pv` is a line from `after` (opponent to move first), so the mover's
+ * follow-ups sit at odd indices. If the opponent's reply dissolves the pin,
+ * the walk stops — a pin the engine immediately lets go of proved nothing.
+ */
+function pinSignificance(
+  after: Chess,
+  mover: 'white' | 'black',
+  pin: PinFound,
+  pv: string[] | undefined,
+): { keep: boolean; exploit?: SanMove } {
+  // capturing the pinned piece wins material right now (legal-move SEE,
+  // so the pin itself is what disarms the defenders)
+  const ghost = after.clone();
+  ghost.turn = mover;
+  ghost.epSquare = undefined;
+  if (seeSquare(ghost, pin.pinned) > 0) return { keep: true };
+
+  // under real pressure: attacked more times than effectively defended
+  const attackerCount = attackersTo(after.board, pin.pinned, mover, after.board.occupied).size();
+  if (attackerCount > effectiveDefenders(after.board, pin.pinned).length) return { keep: true };
+
+  // engine intent: does the continuation use the pin?
+  const probe = after.clone();
+  for (let i = 0; i < Math.min(pv?.length ?? 0, 4); i++) {
+    const m = parseUci(pv![i]) as NormalMove | undefined;
+    if (!m || !probe.isLegal(m)) break;
+    if (probe.turn !== mover) {
+      probe.play(m);
+      // the opponent may break the pin (move it, block, take the pinner)
+      const held = pinsHeld(probe.board, mover).some(
+        p => p.pinned === pin.pinned && p.against === pin.against,
+      );
+      if (!held) break;
+      continue;
+    }
+    const victim = probe.board.get(m.to);
+    const paralysisCapture =
+      victim !== undefined &&
+      victim.color !== mover &&
+      attackersTo(probe.board, m.to, opposite(mover), probe.board.occupied).has(pin.pinned);
+    if (m.to === pin.pinned || m.to === pin.against || paralysisCapture)
+      return { keep: true, exploit: sanMove(probe, m) };
+    const exploitSan = sanMove(probe, m);
+    probe.play(m);
+    // piling on: the moved piece now adds an attacker to the pinned square
+    if (attackersTo(probe.board, pin.pinned, mover, probe.board.occupied).has(m.to))
+      return { keep: true, exploit: exploitSan };
+  }
+
+  // a quiet absolute pin still restrains, but only of a real piece and only
+  // when the opponent cannot simply win the pinning piece
+  if (
+    pin.absolute &&
+    after.board.get(pin.pinned)!.role !== 'pawn' &&
+    seeSquare(after, pin.pinner) === 0
+  )
+    return { keep: true };
+
+  return { keep: false };
+}
+
 export function annotateMove(before: Chess, move: NormalMove, ctx: AnnotateContext): Fact[] {
   const mover = before.turn;
   const after = play(before, move);
@@ -146,10 +225,13 @@ export function annotateMove(before: Chess, move: NormalMove, ctx: AnnotateConte
     });
 
   for (const pin of pinsCreatedEx(before, move)) {
+    const sig = pinSignificance(after, mover, pin, ctx.replyPv);
+    if (!sig.keep) continue;
     facts.push({
       kind: 'creates_pin',
       pinned: pieceOn(after, pin.pinned),
       against: pieceOn(after, pin.against),
+      exploit: sig.exploit,
     });
   }
 
@@ -249,7 +331,11 @@ export function annotateMove(before: Chess, move: NormalMove, ctx: AnnotateConte
           targets: missedForks.map(sq => pieceOn(afterBest, sq)),
         });
 
-      const missedPins = pinsCreatedEx(before, best);
+      // same significance bar as creates_pin — the best line's continuation
+      // (pvUci[0] is the best move itself) confirms the missed pin mattered
+      const missedPins = pinsCreatedEx(before, best).filter(
+        p => pinSignificance(afterBest, mover, p, ctx.lines[0]?.pvUci.slice(1)).keep,
+      );
       if (missedPins.length)
         facts.push({ kind: 'missed_pin', move: bestSan, pinned: pieceOn(afterBest, missedPins[0].pinned) });
 
