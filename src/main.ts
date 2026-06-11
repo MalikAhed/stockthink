@@ -13,6 +13,7 @@ import { winPercent } from './analysis/winprob';
 import type { VariationChip } from './compose/compose';
 import { badgeSvg } from './ui/badges';
 import { formatEval, renderCoach } from './ui/coach';
+import { renderDeepReview } from './ui/deepreview';
 import { renderGraph } from './ui/graph';
 import { renderMoveList } from './ui/movelist';
 import { renderSummary } from './ui/summary';
@@ -26,6 +27,7 @@ let ply = 0; // 0 = initial position, n = after move n
 let board: Api | null = null;
 let orientation: 'white' | 'black' = 'white';
 let previewTimer: ReturnType<typeof setInterval> | null = null;
+let aiComments: Map<number, string> = new Map();
 
 /* ---------------------------------------------------------- screens --- */
 const screens = {
@@ -72,6 +74,11 @@ function initReview(): void {
   show('review');
   ply = 0;
   orientation = 'white';
+  aiComments = new Map();
+  renderDeepReview($('#deep-review'), r, imported => {
+    aiComments = imported;
+    render();
+  });
   board = Chessground($('#board'), {
     fen: r.initialFen,
     coordinates: true,
@@ -147,7 +154,7 @@ function render(): void {
 
   // panels
   renderSummary($('#summary'), r);
-  renderCoach($('#coach'), r, m, playChip);
+  renderCoach($('#coach'), r, m, playChip, m ? (aiComments.get(m.ply) ?? null) : null);
   renderGraph($('#graph'), r.moves, ply, seek);
   renderMoveList($('#moves'), r.moves, ply, seek);
   renderPlayerBars();

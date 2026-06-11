@@ -39,6 +39,7 @@ export function renderCoach(
   report: AnnotatedReport,
   move: AnnotatedMove | null,
   onChip: (chip: VariationChip) => void,
+  aiComment: string | null = null,
 ): void {
   if (!move) {
     const opening = report.opening ? `${esc(report.opening)}. ` : '';
@@ -69,13 +70,16 @@ export function renderCoach(
           <span class="verdict-label"><span class="san">${esc(move.san)}</span> is <span class="verdict-class" style="color:${CLASS_COLORS[c]}">${headline(c)}</span></span>
           <span class="score-chip">${formatEval(move.evalAfter)}</span>
         </div>
-        <div class="commentary-text">${esc(comment.text)}</div>
+        <div class="commentary-text">${esc(aiComment ?? comment.text)}</div>
         ${chipsHtml ? `<div class="chips-row">${chipsHtml}</div>` : ''}
         ${
-          comment.more
-            ? `<details class="coach-more"><summary>Explain more</summary>
+          aiComment
+            ? `<details class="coach-more"><summary>Quick take</summary>
+               <div class="commentary-text">${esc(comment.text)}</div></details>`
+            : comment.more
+              ? `<details class="coach-more"><summary>Explain more</summary>
                <div class="commentary-text">${esc(comment.more)}</div></details>`
-            : ''
+              : ''
         }
       </div>
     </div>`;
