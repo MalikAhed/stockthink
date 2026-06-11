@@ -34,12 +34,26 @@ const headline = (c: AnnotatedMove['classification']): string => {
   }
 };
 
+/** "Thinking…" bubble while the live engine checks the user's own move. */
+export function renderCoachThinking(el: HTMLElement, san: string): void {
+  el.innerHTML = `
+    <div id="commentary-card">
+      <div class="bubble">
+        <div class="verdict-row">
+          <span class="verdict-label">You played <span class="san">${esc(san)}</span></span>
+        </div>
+        <div class="commentary-text live-thinking">Checking your move…</div>
+      </div>
+    </div>`;
+}
+
 export function renderCoach(
   el: HTMLElement,
   report: AnnotatedReport,
   move: AnnotatedMove | null,
   onChip: (chip: VariationChip) => void,
   aiComment: string | null = null,
+  live = false,
 ): void {
   if (!move) {
     const opening = report.opening ? `${esc(report.opening)}. ` : '';
@@ -47,7 +61,7 @@ export function renderCoach(
       <div id="commentary-card">
         <div class="bubble">
           <div class="verdict-row"><span class="verdict-label">Game Review</span></div>
-          <div class="commentary-text">${opening}Use ← → (or click a move) to step through the game.</div>
+          <div class="commentary-text">${opening}Use ← → (or click a move) to step through the game — or move a piece to try your own idea.</div>
         </div>
       </div>`;
     return;
@@ -65,6 +79,7 @@ export function renderCoach(
   el.innerHTML = `
     <div id="commentary-card">
       <div class="bubble">
+        ${live ? '<div class="live-row"><span class="live-tag">Your move</span><button id="live-back" title="Return to the game">↩ Back to review</button></div>' : ''}
         <div class="verdict-row">
           ${badgeHtml(c)}
           <span class="verdict-label"><span class="san">${esc(move.san)}</span> is <span class="verdict-class" style="color:${CLASS_COLORS[c]}">${headline(c)}</span></span>
