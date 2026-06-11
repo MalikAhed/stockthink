@@ -22,6 +22,8 @@ import {
   materialDiff,
   mateThreat,
   pinsCreated,
+  pinsCreatedEx,
+  pinsHeld,
   seeCapture,
   whyCapturable,
 } from '../src/concepts/primitives';
@@ -145,5 +147,33 @@ describe('T10 material diff', () => {
   it('K+R vs K is +5 for white', () => {
     const p = pos('k7/8/8/8/8/8/8/K2R4 w - - 0 1');
     expect(materialDiff(p.board, 'white')).toBe(5);
+  });
+});
+
+describe('pinsHeld / pinsCreatedEx (relative pins)', () => {
+  it('rook pinning a knight to the queen is a relative pin', () => {
+    const p = pos('3q2k1/8/8/3n4/8/8/8/3R2K1 w - - 0 1');
+    const pins = pinsHeld(p.board, 'white');
+    expect(pins).toEqual([{ pinned: sq('d5'), against: sq('d8'), absolute: false }]);
+  });
+  it('equal-value piece behind is NOT a relative pin', () => {
+    const p = pos('3b2k1/8/8/3n4/8/8/8/3R2K1 w - - 0 1');
+    expect(pinsHeld(p.board, 'white')).toEqual([]);
+  });
+  it('king behind is reported as an absolute pin', () => {
+    const p = pos('3k4/8/8/3n4/8/8/8/3R2K1 w - - 0 1');
+    expect(pinsHeld(p.board, 'white')).toEqual([
+      { pinned: sq('d5'), against: sq('d8'), absolute: true },
+    ]);
+  });
+  it('a rook shift that lines up knight+queen creates the relative pin', () => {
+    const p = pos('4q1k1/8/8/4n3/8/8/8/3R2K1 w - - 0 1');
+    expect(pinsCreatedEx(p, mv('d1e1'))).toEqual([
+      { pinned: sq('e5'), against: sq('e8'), absolute: false },
+    ]);
+  });
+  it('a move that changes nothing creates no pin', () => {
+    const p = pos('4q1k1/8/8/4n3/8/8/8/3R2K1 w - - 0 1');
+    expect(pinsCreatedEx(p, mv('d1d2'))).toEqual([]);
   });
 });

@@ -30,7 +30,7 @@ import {
 } from './detectors';
 import type { Fact, PieceOn, SanMove } from './facts';
 import { sortFacts } from './facts';
-import { givesDiscoveredCheck, materialDiff, pinsCreated } from './primitives';
+import { givesDiscoveredCheck, materialDiff, pinsCreatedEx } from './primitives';
 import { positionalPurposes, positionalRegressions } from './positional';
 
 export interface EngineLineInput {
@@ -145,12 +145,11 @@ export function annotateMove(before: Chess, move: NormalMove, ctx: AnnotateConte
       targets: forkTargets.map(sq => pieceOn(after, sq)),
     });
 
-  for (const pinned of pinsCreated(before, move)) {
-    const kingSq = after.board.kingOf(after.turn)!;
+  for (const pin of pinsCreatedEx(before, move)) {
     facts.push({
       kind: 'creates_pin',
-      pinned: pieceOn(after, pinned),
-      against: pieceOn(after, kingSq),
+      pinned: pieceOn(after, pin.pinned),
+      against: pieceOn(after, pin.against),
     });
   }
 
@@ -250,9 +249,9 @@ export function annotateMove(before: Chess, move: NormalMove, ctx: AnnotateConte
           targets: missedForks.map(sq => pieceOn(afterBest, sq)),
         });
 
-      const missedPins = pinsCreated(before, best);
+      const missedPins = pinsCreatedEx(before, best);
       if (missedPins.length)
-        facts.push({ kind: 'missed_pin', move: bestSan, pinned: pieceOn(afterBest, missedPins[0]) });
+        facts.push({ kind: 'missed_pin', move: bestSan, pinned: pieceOn(afterBest, missedPins[0].pinned) });
 
       const missedTraps = trapsPieces(before, best);
       if (missedTraps.length)

@@ -280,6 +280,65 @@ export function pinsCreated(posBefore: Chess, move: NormalMove): Square[] {
   return out;
 }
 
+export interface PinFound {
+  pinned: Square;
+  /** The piece behind the pinned one (king for an absolute pin). */
+  against: Square;
+  absolute: boolean;
+}
+
+/**
+ * All pin relations held by `color`'s ray pieces on `board`: enemy piece P
+ * attacked along a ray with a more valuable enemy piece Q directly behind it
+ * (only P between attacker and Q). King behind = absolute pin; otherwise a
+ * relative pin — both Q and the attacker must outvalue P, so capturing the
+ * unmasked P is profitable and moving P loses material.
+ */
+export function pinsHeld(board: Board, color: Color): PinFound[] {
+  const out: PinFound[] = [];
+  for (const sq of board[color]) {
+    const piece = board.get(sq)!;
+    if (!RAY_ROLES.includes(piece.role)) continue;
+    for (const psq of attacks(piece, sq, board.occupied)) {
+      const p = board.get(psq);
+      if (!p || p.color === color || p.role === 'king') continue;
+      // Q = first occupied square behind P, continuing past P away from sq.
+      const behind = ray(sq, psq)
+        .intersect(board.occupied)
+        .without(sq)
+        .without(psq);
+      let qsq: Square | undefined;
+      for (const c of behind) {
+        if (!between(sq, c).has(psq)) continue; // wrong side: between attacker and P
+        if (between(psq, c).intersect(board.occupied).nonEmpty()) continue; // not adjacent on ray
+        qsq = c;
+        break;
+      }
+      if (qsq === undefined) continue;
+      const q = board.get(qsq)!;
+      if (q.color === color) continue;
+      if (q.role === 'king') out.push({ pinned: psq, against: qsq, absolute: true });
+      else if (
+        PIECE_VALUES[q.role] > PIECE_VALUES[p.role] &&
+        PIECE_VALUES[piece.role] <= PIECE_VALUES[q.role] &&
+        // a pinned PAWN is only worth mentioning with a major piece behind it
+        (p.role !== 'pawn' || PIECE_VALUES[q.role] >= 5)
+      )
+        out.push({ pinned: psq, against: qsq, absolute: false });
+    }
+  }
+  return out;
+}
+
+/** Pin relations (absolute or relative) newly created by `move`. */
+export function pinsCreatedEx(posBefore: Chess, move: NormalMove): PinFound[] {
+  const us = posBefore.turn;
+  const b = posBefore.clone();
+  b.play(move);
+  const beforeKeys = new Set(pinsHeld(posBefore.board, us).map(p => `${p.pinned}-${p.against}`));
+  return pinsHeld(b.board, us).filter(p => !beforeKeys.has(`${p.pinned}-${p.against}`));
+}
+
 /** `pos` must be a checkmate position. Back-rank mate pattern test. */
 export function isBackRankMate(pos: Chess): boolean {
   if (!pos.isCheckmate()) return false;
