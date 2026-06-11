@@ -38,6 +38,17 @@ Take items top-down. Move finished items to Done (bottom) with date + commit.
   primitive proves 100% line-recall; remaining work is D4 wiring: fact kind +
   template + annotate hookup.
 
+## Precision (stop over-triggering — facts must be the REASON, not coincidence)
+
+- [ ] **P1 · Extend PV intent-confirmation to other facts** — `pinSignificance`
+  (annotate.ts, shipped 2026-06-11) gates `creates_pin` on engine follow-up /
+  SEE / pressure. Apply the same pattern to other geometry-triggered facts that
+  can fire incidentally: `wins_tempo`, `traps_piece`, `creates_fork` (forker
+  safety is checked, but is the fork the engine's plan?), `defends_piece`.
+- [ ] **P2 · Two-move concept pairing** — when a move has no strong fact of its
+  own, look at the mover's next move in the engine PV and explain the pair as
+  one plan ("prepares X"), instead of saying something weak about move one.
+
 ## Phrasing & composer (after a concept's detector is solid, make it SPEAK well)
 
 - [ ] **C1 · Recapture phrasing** — "A straightforward recapture." / "Takes back."
