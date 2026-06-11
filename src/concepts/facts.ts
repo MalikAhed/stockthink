@@ -43,6 +43,17 @@ export type Fact =
   | { kind: 'trade'; piece: Role }
   | { kind: 'sacrifice'; piece: Role }
   | { kind: 'defends_piece'; piece: PieceOn }
+  /* quiet move explained by the engine's own follow-up (one move deeper) */
+  | {
+      kind: 'prepares';
+      /** The mover's follow-up in the engine line (after the best reply). */
+      move: SanMove;
+      idea:
+        | { what: 'mate_threat' }
+        | { what: 'wins_piece'; piece: PieceOn }
+        | { what: 'fork'; targets: PieceOn[] }
+        | { what: 'pin'; piece: PieceOn };
+    }
   | { kind: 'positional'; fact: PositionalFact }
   /* what the played move concedes (bad) */
   | { kind: 'hangs_piece'; piece: PieceOn; capture: SanMove }
@@ -91,6 +102,7 @@ const PRIORITY: Record<FactKind, number> = {
   sacrifice: 18,
   wins_tempo: 19,
   defends_piece: 20,
+  prepares: 20.5,
   blocks_check: 21,
   trade: 22,
   regression: 23,

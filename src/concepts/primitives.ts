@@ -202,8 +202,11 @@ export function forkTargets(board: Board, square: Square): Square[] {
   const piece = board.get(square);
   if (!piece || piece.role === 'king') return [];
   if (isInBadSpot(board, square)) return []; // the 'forker' can simply be captured
+  // an absolutely pinned forker only truly attacks along its pin ray
+  const pinned = pinRay(board, square);
   const targets: Square[] = [];
   for (const tsq of attacks(piece, square, board.occupied)) {
+    if (pinned && !pinned.has(tsq)) continue;
     const t = board.get(tsq);
     if (!t || t.color === piece.color || t.role === 'pawn') continue;
     if (PIECE_VALUES[t.role] > PIECE_VALUES[piece.role]) targets.push(tsq);

@@ -77,6 +77,11 @@ describe('trapsPieces', () => {
   it('…c6 leaves the bishop an escape via b6', () => {
     expect(trapsPieces(pos(fen), mv('c7c6'))).toEqual([]);
   });
+  it('an ALREADY trapped piece is not re-announced by an unrelated move', () => {
+    // bishop a7 was boxed in last move; …c6 did not trap it
+    const stale = 'r3k3/B1p5/1p6/8/8/8/8/4K3 b - - 0 1';
+    expect(trapsPieces(pos(stale), mv('c7c6'))).toEqual([]);
+  });
 });
 
 describe('captures', () => {
@@ -153,6 +158,15 @@ describe('winsTempo', () => {
   it('Nf3 attacking only a pawn gains nothing', () => {
     const p = pos('rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 1');
     expect(winsTempo(p, mv('g1f3'))).toBeNull();
+  });
+  it('an absolutely pinned attacker threatens nothing off its pin ray', () => {
+    // Ne4 "attacks" the queen on g5, but the knight is pinned to the king by Re8
+    const p = pos('4r1k1/8/8/6q1/8/3P4/3N4/4K3 w - - 0 1');
+    expect(winsTempo(p, mv('d2e4'))).toBeNull();
+  });
+  it('the same knight unpinned does win the tempo', () => {
+    const p = pos('6k1/8/8/6q1/8/3P4/3N4/4K3 w - - 0 1');
+    expect(winsTempo(p, mv('d2e4'))).toBe(sq('g5'));
   });
 });
 

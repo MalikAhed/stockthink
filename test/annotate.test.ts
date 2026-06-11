@@ -196,6 +196,38 @@ describe('annotateMove — what the move achieves', () => {
     expect(byKind(facts, 'creates_pin')).toBeTruthy();
   });
 
+  it('a fork the engine defense refutes with a counter-check is NOT reported', () => {
+    // Qd4 "forks" the loose knights on b6 and g7, but …Ra1+ wins the tempo
+    // back — with the king in check nothing can be harvested
+    const p = pos('r3k3/6n1/1n6/8/8/8/8/3Q3K w - - 0 1');
+    const facts = annotateMove(p, mv('d1d4'), ctx({ replyPv: ['a8a1'] }));
+    expect(byKind(facts, 'creates_fork')).toBeUndefined();
+  });
+
+  it('the same fork is kept when the best defense only saves one knight', () => {
+    const p = pos('r3k3/6n1/1n6/8/8/8/8/3Q3K w - - 0 1');
+    const facts = annotateMove(p, mv('d1d4'), ctx({ replyPv: ['b6d7'] }));
+    expect(byKind(facts, 'creates_fork')).toBeTruthy();
+  });
+
+  it('a quiet move is explained by the engine follow-up it enables (prepares)', () => {
+    // Nb2 looks pointless but clears the d-file: the engine line continues
+    // …Ke7 Qd4, forking both knights — explain the two moves as one plan
+    const p = pos('4k3/6n1/1n6/8/8/3N4/8/3Q3K w - - 0 1');
+    const facts = annotateMove(p, mv('d3b2'), ctx({ replyPv: ['e8e7', 'd1d4'] }));
+    expect(byKind(facts, 'prepares')).toMatchObject({
+      move: { san: 'Qd4' },
+      idea: { what: 'fork' },
+    });
+  });
+
+  it('no prepares fact when the follow-up was already available before the move', () => {
+    // here Qd4 was playable immediately — the quiet king move prepared nothing
+    const p = pos('4k3/6n1/1n6/8/8/8/8/3Q3K w - - 0 1');
+    const facts = annotateMove(p, mv('h1h2'), ctx({ replyPv: ['e8e7', 'd1d4'] }));
+    expect(byKind(facts, 'prepares')).toBeUndefined();
+  });
+
   it('mate threat carries the rendered mating move', () => {
     const p = pos('6k1/5ppp/8/8/8/8/5PPP/2R3K1 w - - 0 1');
     expect(byKind(annotateMove(p, mv('c1d1'), ctx()), 'mate_threat')).toMatchObject({

@@ -13,7 +13,7 @@ import type { NormalMove, Square } from 'chessops/types';
 import { opposite } from 'chessops/util';
 import { attacks } from 'chessops/attacks';
 import { attackersTo, isInBadSpot, PIECE_VALUES } from './board';
-import { forkTargets, isTrapped, mateThreat, seeCapture, seeSquare } from './primitives';
+import { forkTargets, isTrapped, mateThreat, pinRay, seeCapture, seeSquare } from './primitives';
 
 const after = (before: Chess, move: NormalMove): Chess => {
   const b = before.clone();
@@ -95,15 +95,23 @@ export function forkingMoves(pos: Chess): NormalMove[] {
 
 /* ----------------------------------------------------------- trapped ----- */
 
-/** Opponent pieces trapped after `move` (no safe escape, can't trade out). */
+/** Opponent pieces NEWLY trapped by `move` (no safe escape, can't trade out).
+ *  A piece that was already trapped before the move is old news, not a reason
+ *  for this move — it must not be re-announced every ply. */
 export function trapsPieces(before: Chess, move: NormalMove): Square[] {
   const b = after(before, move); // opponent to move: isTrapped's requirement
   const them = b.turn;
+  // the same board with the opponent to move, before our move was played
+  const ghost = before.clone();
+  ghost.turn = them;
+  ghost.epSquare = undefined;
   const out: Square[] = [];
   for (const sq of b.board[them]) {
     const piece = b.board.get(sq)!;
     if (piece.role === 'pawn' || piece.role === 'king') continue;
-    if (isTrapped(b, sq)) out.push(sq);
+    if (!isTrapped(b, sq)) continue;
+    if (ghost.board.get(sq)?.role === piece.role && isTrapped(ghost, sq)) continue;
+    out.push(sq);
   }
   return out;
 }
@@ -194,7 +202,10 @@ export function winsTempo(before: Chess, move: NormalMove): Square | null {
   if (!piece || piece.role === 'king') return null;
   if (isInBadSpot(b.board, move.to)) return null; // attacker itself is loose
   if (b.isCheck()) return null; // checks are their own story
+  // an absolutely pinned attacker only threatens along its pin ray
+  const pinned = pinRay(b.board, move.to);
   for (const tsq of attacks(piece, move.to, b.board.occupied)) {
+    if (pinned && !pinned.has(tsq)) continue;
     const t = b.board.get(tsq);
     if (!t || t.color === piece.color || t.role === 'king' || t.role === 'pawn') continue;
     if (PIECE_VALUES[t.role] > PIECE_VALUES[piece.role]) return tsq;
