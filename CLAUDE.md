@@ -35,20 +35,24 @@ analyze.ts → analysis/report.ts:buildReport()
 ## The improvement loop (how this project gets better)
 
 The engine improves through **small bounded daily sessions**, not big rewrites.
-User says "improve analysis" → run the `/improve-analysis` skill
-(`.claude/skills/improve-analysis/SKILL.md`). It has hard limits (default 3,
-max 5 work units, gate must pass, journal + commit, stop).
+The UI/UX is considered done — daily work touches explanations only.
+User says "improve analysis" → run the `/improve-analysis` skill, which simply
+executes **`improve/README.md`** — the self-contained workshop protocol
+(hard limits: default 3 / max 5 work units, gate must pass, one commit per
+item, TRACKER updated, push = deploy, stop).
 
-Knowledge & state live in three places — keep them in sync with code changes:
+The workshop (`improve/`) is the daily working set — keep it to 3 files:
 
 | File | Role |
 |---|---|
-| `docs/knowledge/concept-taxonomy.md` | master concept matrix: chess.com × lichess themes × our facts; the source of "what's missing" |
-| `docs/knowledge/chesscom-templates.md` | verbatim chess.com phrases + trigger conditions (append-only style corpus) |
-| `docs/knowledge/sources.md` | data sources (lichess puzzle DB = ground truth) |
-| `docs/improve/BACKLOG.md` | prioritized queue the loop executes top-down |
-| `docs/improve/METRICS.md` (+ metrics.json) | per-detector recall + gate coverage over time |
-| `docs/improve/journal/YYYY-MM-DD.md` | one entry per session: done/insights/next |
+| `improve/README.md` | the session protocol (start here every day) |
+| `improve/TODO.md` | prioritized queue, executed top-down; `[hard]` items = strongest model only |
+| `improve/TRACKER.md` | concept coverage snapshot + recall table + 1–3-line daily log |
+
+Reference shelf (consulted only when an item needs it, never read wholesale):
+`docs/knowledge/concept-taxonomy.md` (full concept matrix) ·
+`docs/knowledge/chesscom-templates.md` (verbatim target phrasing, append-only) ·
+`docs/knowledge/sources.md` (lichess puzzle DB = ground truth).
 
 Ground truth = lichess puzzle fixtures (`scripts/puzzles/fetch-fixtures.mjs` →
 `test/fixtures/puzzles/<theme>.csv` → `test/recall.test.ts`). Puzzle CSV
@@ -60,7 +64,8 @@ semantics: `Moves[0]` is the opponent's setup move; the tactic to detect is
 ```
 stockthink/
 ├── CLAUDE.md                ← you are here
-├── .claude/skills/improve-analysis/  ← the daily-loop protocol
+├── improve/                 ← DAILY WORKSHOP: README (protocol) + TODO + TRACKER
+├── .claude/skills/improve-analysis/  ← thin pointer to improve/README.md
 ├── index.html               ← summary/coach/deep-review divs
 ├── src/
 │   ├── main.ts              ← app shell + chip playback + badge overlay
@@ -78,9 +83,8 @@ stockthink/
 ├── scripts/                 ← build-openings.mjs, puzzles/fetch-fixtures.mjs
 ├── public/engine/           ← Stockfish 18 Lite WASM (7.3 MB, committed)
 ├── public/badges/           ← chess.com classification badges
-└── docs/
+└── docs/                    ← REFERENCE SHELF (not read daily)
     ├── knowledge/           ← taxonomy, template library, sources (see table above)
-    ├── improve/             ← BACKLOG, METRICS, journal/
     ├── specs/               ← ANALYSIS-SYSTEM-V2.md, WHY-EXPLANATION-ENGINE-SPEC.md
     ├── research/            ← digested papers + openchess-insights reference (.py)
     └── prototype/           ← stockthink-trial.html (design reference)
