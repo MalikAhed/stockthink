@@ -4,12 +4,9 @@
  */
 import type { AnnotatedMove } from '../analyze';
 import { winPercent } from '../analysis/winprob';
-import { CLASS_COLORS } from './badges';
 
 const W = 600;
 const H = 110;
-
-const MARKED = new Set(['brilliant', 'great', 'mistake', 'miss', 'blunder']);
 
 export function renderGraph(
   el: HTMLElement,
@@ -25,11 +22,12 @@ export function renderGraph(
   const y = (w: number) => H - (w / 100) * H;
   const pts = wins.map((w, i) => `${x(i).toFixed(1)},${y(w).toFixed(1)}`);
 
+  // big-swing markers (≥20 win% lost) until classification returns
   const dots = moves
     .map((m, i) =>
-      MARKED.has(m.classification)
+      m.winDrop >= 20
         ? `<circle cx="${x(i + 1).toFixed(1)}" cy="${y(wins[i + 1]).toFixed(1)}" r="4"` +
-          ` fill="${CLASS_COLORS[m.classification]}" stroke="#262421" stroke-width="1.5"/>`
+          ` fill="#fa412d" stroke="#262421" stroke-width="1.5"/>`
         : '',
     )
     .join('');

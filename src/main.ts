@@ -9,14 +9,16 @@ import type { Api } from 'chessground/api';
 import type { DrawShape } from 'chessground/draw';
 import type { Key } from 'chessground/types';
 import { analyzeGame, type AnnotatedMove, type AnnotatedReport, type Tier } from './analyze';
-import { formatEval } from './analysis/commentary';
-import { winPercent } from './analysis/winprob';
-import { renderAiPanel } from './ui/aipanel';
-import { badgeSvg } from './ui/badges';
-import { renderCoach } from './ui/coach';
+import { type EvalScore, winPercent } from './analysis/winprob';
 import { renderGraph } from './ui/graph';
 import { renderMoveList } from './ui/movelist';
-import { renderSummary } from './ui/summary';
+
+/** "+1.3" / "−0.5" / "M5" for the eval-bar chip. */
+function formatEval(ev: EvalScore): string {
+  if (ev.mate !== undefined) return `M${Math.abs(ev.mate)}`;
+  const pawns = (ev.cp ?? 0) / 100;
+  return `${pawns > 0 ? '+' : pawns < 0 ? '−' : ''}${Math.abs(pawns).toFixed(1)}`;
+}
 
 const $ = <T extends HTMLElement = HTMLElement>(sel: string): T =>
   document.querySelector(sel) as T;
@@ -26,8 +28,6 @@ let report: AnnotatedReport | null = null;
 let ply = 0; // 0 = initial position, n = after move n
 let board: Api | null = null;
 let orientation: 'white' | 'black' = 'white';
-
-const BAD = new Set(['inaccuracy', 'mistake', 'miss', 'blunder']);
 
 /* ---------------------------------------------------------- screens --- */
 const screens = {
@@ -82,11 +82,6 @@ function initReview(): void {
     selectable: { enabled: false },
     drawable: { enabled: false, visible: true },
   });
-  renderSummary($('#summary'), r);
-  renderAiPanel($('#ai-tools'), {
-    getReport: () => report,
-    onCommentaryUpdated: () => render(),
-  });
   render();
 }
 
@@ -104,14 +99,13 @@ function render(): void {
   if (!r.moves.length || !board) return;
   const m = ply > 0 ? r.moves[ply - 1] : null;
 
-  // board + badge + best-move arrow
+  // board + best-move arrow (when the played move lost ≥5 win%)
   const shapes: DrawShape[] = [];
   let lastMove: Key[] | undefined;
   if (m) {
     const [from, to] = displaySquares(m);
     lastMove = [from, to];
-    shapes.push({ orig: to, customSvg: { html: badgeSvg(m.classification), center: 'orig' } });
-    if (BAD.has(m.classification) && m.bestUci && !m.wasBest)
+    if (m.winDrop >= 5 && m.bestUci && !m.wasBest)
       shapes.push({
         orig: m.bestUci.slice(0, 2) as Key,
         dest: m.bestUci.slice(2, 4) as Key,
@@ -130,7 +124,6 @@ function render(): void {
   // panels
   renderGraph($('#graph'), r.moves, ply, seek);
   renderMoveList($('#moves'), r.moves, ply, seek);
-  renderCoach($('#coach'), r, m);
   renderPlayerBars();
 }
 
