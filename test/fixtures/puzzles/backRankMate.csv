@@ -1,0 +1,201 @@
+PuzzleId,FEN,Moves,Rating,Themes
+00HAM,R2q1r1k/1p3Qpp/1n6/3P2pP/2PP2P1/1P6/2K5/5R2 b - - 0 29,d8a8 f7f8 a8f8 f1f8,582,backRankMate endgame mate mateIn2 short
+00cJo,2r3k1/5ppp/8/8/1P2p3/3bQpP1/1q1P1K1P/R1R5 b - - 1 30,c8c1 a1a8 c1c8 a8c8,998,backRankMate endgame mate mateIn2 short
+0192c,2r3k1/1Q3ppp/2pB4/2Pp1b1n/3p3K/P4P2/4q1PP/R3R3 b - - 3 24,e2g2 b7c8 f5c8 e1e8,909,backRankMate mate mateIn2 middlegame sacrifice short
+01GBu,5r1k/3p2bp/p4pp1/qp1br3/4P3/1Q4B1/PP2RPPP/4R1K1 w - - 0 23,e4d5 a5e1 e2e1 e5e1,1273,backRankMate mate mateIn2 middlegame short xRayAttack
+01XIa,2r3k1/p1r2ppp/qp3b2/3Q4/5PN1/P5P1/1P5P/3RR1K1 b - - 2 27,c7c2 d5d8 c8d8 d1d8 f6d8 e1e8,1898,backRankMate long mate mateIn3 middlegame sacrifice
+01czg,4kr2/p3n3/2p4Q/2PpP1N1/2pB1p2/q1P5/1r3PPP/1R4K1 w - - 0 29,b1b2 a3a1 b2b1 a1b1,732,backRankMate fork mate mateIn2 middlegame short
+01pl8,3r4/pR1N2p1/2p2p1k/4p2p/2B1Pn1N/1P6/P1P2PPP/3R2K1 w - - 4 31,d7f6 d8d1 c4f1 f4e2 g1h1 d1f1,1099,backRankMate deflection hangingPiece long mate mateIn3 middlegame pin
+02HAo,Q6B/2r1kp2/2Pp4/p6p/P3n1pq/8/1P3PPP/R5K1 w - - 5 28,a1e1 h4f2 g1h1 f2e1,783,backRankMate endgame fork mate mateIn2 short
+02MgK,2r3k1/q5pp/4Qp2/8/1Ppb4/5PPP/7K/4BB2 b - - 0 39,g8h8 e6c8,930,backRankMate endgame hangingPiece mate mateIn1 oneMove
+02ahl,2k5/ppp2Bpp/8/8/5b2/1KP5/PP3r1P/3R4 b - - 0 22,f2h2 f7e6 c8b8 d1d8,949,backRankMate endgame mate mateIn2 short
+02zar,r1bk1r2/pppp2pp/8/2PNnq2/5Q2/8/PPP3PP/R1B1R1K1 w - - 1 17,f4e5 f5f2 g1h1 f2f1 e1f1 f8f1,1272,backRankMate long mate mateIn3 middlegame sacrifice
+033rG,5r1k/1p3qbp/6p1/2P5/1P1Q4/8/6PP/3R1NK1 w - - 1 29,d4d6 f7f2 g1h1 f2f1 d1f1 f8f1,1296,backRankMate deflection endgame long mate mateIn3
+037Me,r5k1/pp3pbp/1qpp4/3p1N2/2P1rQ2/8/PP3RPP/1RB4K w - - 1 21,f4g5 e4e1 f2f1 e1f1,715,backRankMate mate mateIn2 middlegame short
+03HnL,2r1Q2k/2rP2pp/1q3p2/8/1p6/1B4PP/P4bK1/2RR4 b - - 1 38,c8e8 d7e8q,907,advancedPawn backRankMate mate mateIn1 middlegame oneMove promotion
+03XcA,Q7/pp1k1p1p/8/8/1b2q3/1bN5/1P3PPP/RN2K2R w KQ - 1 20,e1f1 b3c4 c3e2 e4e2 f1g1 e2d1,1564,backRankMate long mate mateIn3 middlegame
+03fGe,3r2k1/2p3p1/2p1pn2/3q3p/2Q1pP2/6PP/PPP5/1K2R1B1 w - - 2 28,c4c3 d5d1 e1d1 d8d1,768,backRankMate endgame mate mateIn2 sacrifice short
+03goR,2r3k1/R4pbp/6p1/8/1B6/8/P4rPP/5RK1 w - - 0 23,f1f2 c8c1 b4e1 c1e1 f2f1 g7d4 g1h1 e1f1,1279,backRankMate deflection endgame fork mate mateIn4 veryLong
+03wAm,4r1k1/1Q4pp/p1p5/P2p4/3qB3/6P1/5R1P/6K1 b - - 0 40,d4e4 b7f7 g8h8 f7f8 e8f8 f2f8,1047,backRankMate endgame long mate mateIn3 sacrifice
+03xmY,1RQ2bk1/7p/3p1rp1/2p5/P1P1p3/8/q4PPP/1R4K1 w - - 2 35,c8c6 a2f2 g1h1 f2f1 b1f1 f6f1,1091,backRankMate endgame long mate mateIn3 sacrifice
+042sd,2r3k1/pb3ppp/4pn2/2n4q/8/B4NP1/P1Q1PPBP/3R2K1 b - - 0 18,c5e4 c2c8 b7c8 d1d8 f6e8 d8e8,1237,backRankMate fork long master masterVsMaster mate mateIn3 middlegame sacrifice
+048VI,4r3/1Q3ppp/p2p1n2/3r1k2/P4B2/8/1PP2PPP/4R1K1 w - - 13 23,e1e8 d5d1 e8e1 d1e1,571,backRankMate endgame mate mateIn2 short
+04wxn,5rk1/1p1R1Qpp/2p5/p3p1B1/4P2P/6qB/1PP5/4b2K b - - 0 27,f8f7 d7d8 f7f8 h3e6 g8h8 d8f8,1043,backRankMate deflection endgame long master masterVsMaster mate mateIn3
+04x6j,2r3k1/5ppp/Q3b3/2p1P3/prP5/1P2q3/P4NPP/3R1RK1 b - - 3 25,a4b3 a6c8 e6c8 d1d8,1002,backRankMate mate mateIn2 middlegame sacrifice short
+04x8i,2k2b1r/pppr2p1/5p1p/3n4/2B5/2BP2P1/PPP4P/2K1RR2 b - - 1 19,d5c3 e1e8 d7d8 c4e6 c8b8 e8d8,1145,backRankMate deflection long mate mateIn3 middlegame
+05Kjq,6k1/R1p2ppp/3b1n2/4pN2/7P/6P1/P1r2PK1/8 b - - 0 28,f6e4 a7a8 d6f8 f5e7 g8h8 a8f8,1086,backRankMate deflection endgame long mate mateIn3 pin
+05UHr,5rbk/p5b1/1p3NQp/4p3/2PnP3/3P4/PP4PP/5RK1 w - - 1 26,f6g8 d4e2 g1h1 f8f1,1059,backRankMate deflection endgame mate mateIn2 short
+05c4u,2k4r/ppp2Qpp/4p3/8/1bP5/1PN3P1/P3KPq1/3R4 b - - 0 18,b4c3 f7d7 c8b8 d7d8 h8d8 d1d8,1029,backRankMate endgame long mate mateIn3 sacrifice
+05lmw,r5k1/1R5p/5p2/8/1p6/P4N2/1Pn2PPP/6K1 w - - 0 24,a3b4 a8a1 f3e1 a1e1,656,backRankMate endgame mate mateIn2 short
+05nsE,r4rk1/ppn3p1/1np1p1B1/4p3/2PP1q2/1P4R1/PB4PP/R2Q2K1 w - - 4 24,d1h5 f4f2 g1h1 f2f1 a1f1 f8f1,1265,backRankMate fork long mate mateIn3 middlegame sacrifice
+05oox,6k1/5pp1/1BQ4p/P2p2q1/8/3b1P2/6PP/6K1 w - - 1 34,b6c7 g5e3 g1h1 e3e1,1195,backRankMate endgame mate mateIn2 short
+0660Y,3r3k/3P2pp/4Q1p1/1pp5/3p1q2/pP1P3P/P1P3B1/6K1 b - - 0 30,f4c7 e6e8 d8e8 d7e8q,1066,advancedPawn backRankMate endgame mate mateIn2 promotion short
+067sz,5qk1/pp4p1/6Q1/6N1/1bPp4/3n4/PP4PP/R3r1K1 w - - 3 27,a1e1 f8f2 g1h1 f2e1,1272,backRankMate endgame fork mate mateIn2 short
+069i5,8/6pk/2pBp2p/3PPq2/3P4/8/Q3b1PP/1R5K w - - 2 38,a2e2 f5b1 e2d1 b1d1,662,backRankMate endgame hangingPiece mate mateIn2 short
+06Aiy,r3k2r/pp1qpp1p/2n1b1pB/2p5/6P1/2nP1N1P/PQP2PB1/R3K2R b KQkq - 1 14,c3d5 b2h8,773,backRankMate hangingPiece mate mateIn1 middlegame oneMove
+06TaJ,1R6/R6p/8/2pB4/3b4/2k5/Pr1r2PP/7K w - - 3 34,b8b2 d2d1,951,backRankMate endgame mate mateIn1 oneMove
+06X5t,5rk1/p4q1p/1p4p1/4Q3/8/P1P1P3/1P4PP/R5K1 w - - 1 23,e5e4 f7f2 g1h1 f2f1 a1f1 f8f1,1164,backRankMate endgame long mate mateIn3 sacrifice
+06q6Y,7Q/p2P4/5rk1/5q1p/8/2P5/P4PPP/3R2K1 w - - 2 34,d7d8q f5f2 g1h1 f2f1 d1f1 f6f1,785,backRankMate endgame long mate mateIn3 sacrifice
+07K4K,6k1/5ppp/2b5/1r1p2Pn/p7/K2P1P2/7P/2R1R3 b - - 1 30,c6d7 c1c8 d7c8 e1e8,1112,backRankMate endgame mate mateIn2 sacrifice short
+07KDd,1k6/pp6/6n1/PP2p1p1/2R1PpP1/B4P2/4K1Br/3r4 b - - 1 32,d1a1 a3d6 b8a8 c4c8,909,backRankMate endgame mate mateIn2 short
+07MTp,5rk1/ppp2p1p/6n1/3r1RQ1/8/4p2B/Pq4PP/4R1K1 w - - 0 23,f5d5 b2f2 g1h1 f2e1,997,backRankMate fork mate mateIn2 middlegame short
+07Sg1,1R3nk1/5ppp/2N5/8/2P1P3/r1N2P1b/5r2/3B3K b - - 0 27,a3c3 c6e7 g8h8 b8f8,904,backRankMate deflection mate mateIn2 middlegame short
+07YH3,7k/p4p1p/4rp2/4q3/2Q5/1P6/P4PPP/3R1K2 w - - 5 28,c4d4 e5e2 f1g1 e2e1 d1e1 e6e1,1143,backRankMate endgame long mate mateIn3 sacrifice
+07ZWX,6k1/pp4p1/2p5/5r2/4n2Q/8/PPq2PPP/4R1K1 w - - 0 24,h4e4 c2f2 g1h1 f2f1 e1f1 f5f1,1098,backRankMate endgame long mate mateIn3 sacrifice
+07lUP,6k1/p4pp1/1p2p2p/3nB3/2qPP3/1Q6/P4PPP/1Rr3K1 w - - 3 26,b1c1 c4c1 b3d1 c1d1,646,backRankMate endgame mate mateIn2 short
+07tSd,2r2rk1/p5pp/b3p3/2P1B3/3PQ3/1R6/P2q2PP/4R1K1 w - - 3 25,b3g3 d2f2 g1h1 f2f1 e1f1 f8f1,1690,backRankMate long master mate mateIn3 middlegame sacrifice
+08xqh,4rrk1/pppbQp1p/5npB/3P4/8/2N3R1/P1q2PPP/1R4K1 w - - 2 20,e7f6 c2b1 c3b1 e8e1,1316,backRankMate mate mateIn2 middlegame sacrifice short
+08zLJ,r5k1/3bQ1pp/3pp3/p1p5/4P3/2NP3P/1q4P1/5R1K b - - 1 24,b2c3 e7f7 g8h8 f7f8 a8f8 f1f8,1193,backRankMate endgame fork long mate mateIn3 sacrifice
+095ue,r7/7k/6qp/p2Q4/N7/P7/1B2n1PP/7K w - - 5 37,d5a8 g6b1 b2c1 b1c1,1051,backRankMate endgame mate mateIn2 short
+097wk,2r3k1/p3Qp1p/1p2p1p1/4P3/q4P2/6P1/PP5P/1K1R4 w - - 8 30,e7d7 a4c2 b1a1 c2c1 d1c1 c8c1,1647,backRankMate endgame long mate mateIn3 sacrifice
+09OQD,1k4rr/pp1R1p2/2p5/4p1p1/2P1Pn2/1P3PP1/P2Q2Bq/3R1K2 b - - 6 30,h2g3 d2d6 b8a8 d7d8 g8d8 d6d8 h8d8 d1d8,1753,backRankMate mate mateIn4 middlegame sacrifice veryLong
+09c4J,N2k4/pp2r1p1/5p1p/1q3b2/3P1Q2/1B6/5PPP/5RK1 w - - 3 22,d4d5 b5f1 g1f1 f5d3 f1g1 e7e1,1471,attraction backRankMate long mate mateIn3 middlegame sacrifice
+09cDW,5rk1/RP4pp/1q2b3/3pP3/3Pp3/2p5/4B1PP/Q5K1 w - - 0 25,e2d1 b6d4 g1h1 f8f1,1068,backRankMate endgame mate mateIn2 short
+09eIx,r3r2k/ppp2ppp/5b2/3q4/4n3/1PN1Q2P/1P3PP1/R1B1R1K1 b - - 8 20,e4c3 e3e8 a8e8 e1e8,565,backRankMate mate mateIn2 middlegame short
+09xRv,6k1/6pp/Q3pp2/3p3q/2pP1P2/2P2NP1/Pr6/4R1K1 b - - 2 33,h5f3 a6e6 g8h8 e6c8,1397,backRankMate endgame mate mateIn2 short
+09xw7,5r1k/p5pp/1p1bQ3/8/2P4q/8/PB4PP/2R3K1 w - - 0 24,e6d6 h4f2 g1h1 f2f1 c1f1 f8f1,1161,backRankMate endgame fork long mate mateIn3 sacrifice
+0A0RG,1br2n1k/1pq3pp/pN3p2/5N2/3P4/3Q4/PP3PPP/R5K1 w - - 4 23,d3g3 c7c1 a1c1 c8c1,877,backRankMate mate mateIn2 middlegame sacrifice short
+0AG9S,6k1/4Qp1p/6p1/8/8/2Pq4/PP1r1PPP/1K5R w - - 1 26,b1a1 d2d1 h1d1 d3d1,711,backRankMate endgame mate mateIn2 short
+0AIOd,2r3k1/2p3pp/1q1p4/8/2b2Q2/7P/1P3RP1/7K b - - 3 39,d6d5 f4f7 g8h8 f7f8 c8f8 f2f8,1090,backRankMate endgame long mate mateIn3 sacrifice
+0AJJM,r1r5/3k4/2q1p1p1/2Bp3p/p2b4/Q3RP2/PPP3PP/1K2R3 w - - 0 24,c5d4 c6c2 b1a1 c2c1 e1c1 c8c1,772,backRankMate long mate mateIn3 middlegame sacrifice
+0AaxQ,1rR4k/6pp/2p1Q3/1r2p1q1/1P2P3/2P5/N1KN4/8 b - - 3 33,b8c8 e6c8 g5d8 c8d8,833,backRankMate endgame mate mateIn2 short
+0AyGx,3q2k1/1p4pp/p1b5/2p5/4p3/2PrP3/PP1N1QPP/5RK1 b - - 5 22,d3d2 f2f7 g8h8 f7f8 d8f8 f1f8,1102,backRankMate endgame long mate mateIn3
+0B5A9,6k1/p5pp/8/1p6/5R2/1P1p2P1/P3r1BP/3n1K2 b - - 4 33,e2a2 g2d5 g8h8 f4f8,942,backRankMate endgame mate mateIn2 short
+0BMZK,4r2k/1p4pp/1p3b2/1r6/3P1P2/5K2/6PP/2R1R3 b - - 7 33,e8e1 c1c8 f6d8 c8d8 e1e8 d8e8,1154,backRankMate endgame long mate mateIn3
+0BdPC,r5k1/1p3ppp/p7/8/3q4/8/P1P1QPPP/4R1K1 b - - 1 26,g8f8 e2e7 f8g8 e7e8 a8e8 e1e8,1140,backRankMate endgame long mate mateIn3 sacrifice
+0Bir2,2k5/pp5p/6p1/2N5/1P5q/P7/6PP/2R4K b - - 1 43,c8b8 c5d7 b8a8 c1c8,803,backRankMate endgame mate mateIn2 short
+0BpYB,6k1/5ppp/p1q5/1p3Q2/6P1/P1P1RR1K/1P1r3P/3r4 b - - 0 31,d2d8 f5f7 g8h8 f7f8 d8f8 f3f8,1162,backRankMate endgame long mate mateIn3 sacrifice
+0ByMa,6k1/p4rpp/8/3p4/P1pP2Bn/1rP4P/6P1/2B1R2K b - - 0 37,b3c3 e1e8 f7f8 g4e6 g8h8 e8f8,1008,backRankMate deflection endgame long mate mateIn3
+0C587,3rr1k1/Rpp2ppp/8/3qp3/1B6/2P4b/5QP1/5R1K b - - 3 23,e8e6 f2f7 g8h8 f7f8 d8f8 f1f8,880,backRankMate long mate mateIn3 middlegame sacrifice
+0CBpH,5r1k/p3b1pp/2Q2n2/8/8/2N2BB1/P1pq1PPP/2R3K1 w - - 2 23,c3e2 d2d1 c1d1 c2d1q,1292,advancedPawn backRankMate mate mateIn2 middlegame promotion short
+0CWTj,3R3k/6pp/p1q3r1/4rp2/1Q2bR2/P3P3/6PP/6K1 b - - 1 34,e5e8 b4f8 e8f8 d8f8,1345,backRankMate mate mateIn2 middlegame sacrifice short xRayAttack
+0CfjW,rn3rk1/pp2R1p1/7p/2q5/8/2P5/P1P2PPP/R1BQ2K1 w - - 1 19,e7b7 c5f2 g1h1 f2f1 d1f1 f8f1,877,backRankMate long mate mateIn3 middlegame
+0Cfxd,r5k1/p1p2rp1/1p2pq2/4p1Q1/3P4/6R1/PPP3PP/R5K1 w - - 0 21,d4e5 f6f2 g1h1 f2f1 a1f1 f7f1,1231,backRankMate endgame long mate mateIn3 sacrifice
+0Ch44,3rr3/p5pk/1ppBR2p/2P2p2/1P1P4/1Q6/3q1PPP/1R4K1 w - - 1 26,b1e1 d2e1 e6e1 e8e1,1027,backRankMate mate mateIn2 middlegame short xRayAttack
+0ClEz,RB3bk1/p2r1ppp/1p6/8/1P6/6P1/5P1P/6K1 b - - 5 30,f8b4 b8d6 d7d8 a8d8,1205,backRankMate discoveredAttack discoveredCheck endgame mate mateIn2 short
+0Clgm,1r2q1k1/pb4pp/1p6/5Q2/3P2P1/2P5/P5P1/5RK1 b - - 2 27,e8c6 f5f7 g8h8 f7f8 b8f8 f1f8,1142,backRankMate endgame long mate mateIn3 sacrifice
+0CzFy,1r4k1/p1r2ppp/2R1p3/4q3/8/4PQ2/P5PP/5RK1 b - - 0 21,c7c6 f3f7 g8h8 f7f8 b8f8 f1f8,993,backRankMate endgame long mate mateIn3 sacrifice
+0D0ig,Qn3rk1/p1p1b1pp/1p2R3/8/2P5/N7/PP1q1PPP/R5K1 w - - 1 17,e6e7 d2f2 g1h1 f2f1 a1f1 f8f1,874,backRankMate long mate mateIn3 middlegame sacrifice
+0D37q,3r1k1N/ppp3pp/4Bq1n/2b1n2Q/8/2P5/P4PPP/RNB1R1K1 w - - 5 15,c1h6 f6f2 g1h1 f2e1,1153,backRankMate fork mate mateIn2 middlegame short
+0D41B,4r1k1/pp3ppp/8/2P5/qbQP4/4p1rP/1B4P1/2R2R1K b - - 1 27,e3e2 c4f7 g8h8 f7f8 e8f8 f1f8,1175,backRankMate long mate mateIn3 middlegame sacrifice
+0DG5n,4rr2/ppk3p1/4bqQ1/4R1N1/8/8/P4PPP/3R2K1 w - - 1 23,e5e6 f6f2 g1h1 f2f1 d1f1 f8f1,1156,backRankMate long mate mateIn3 middlegame sacrifice
+0DTOh,3r1rk1/3R1p2/p2nN1pq/3p3p/P7/5Q2/1P3PPP/2R3K1 w - - 1 29,e6d8 h6c1 f3d1 c1d1,727,backRankMate hangingPiece mate mateIn2 middlegame short
+0DcQ8,r2r2k1/1R3p1p/pN2p1p1/3p4/P2qn3/7Q/5PPP/4R1K1 w - - 4 30,b6a8 d4f2 g1h1 f2e1,996,backRankMate fork mate mateIn2 middlegame short
+0Dobg,8/p3Q2p/5rpk/8/2Pq4/8/P4PPP/4RBK1 w - - 2 28,c4c5 d4f2 g1h1 f2f1 e1f1 f6f1,1038,backRankMate deflection endgame long mate mateIn3
+0E5dY,2r2k2/3q1ppp/8/5N2/1pb5/4Q3/1P3PPP/4R1K1 b - - 8 26,d7f5 e3e7 f8g8 e7e8 c8e8 e1e8,1104,backRankMate endgame long mate mateIn3 sacrifice
+0EIfL,4r2k/7p/6B1/1N1Q4/5r2/1P2q3/2P2nPP/1R3R1K w - - 1 34,f1f2 e3e1 b1e1 e8e1 f2f1 e1f1,1388,backRankMate long mate mateIn3 middlegame sacrifice
+0EKnO,r4r1k/1n1b3B/1p2pq1b/pP1p3Q/P2P4/7R/5PPP/N1R3K1 w - - 4 29,h5h6 f6f2 g1h1 f2f1 c1f1 f8f1,860,backRankMate long mate mateIn3 middlegame sacrifice
+0EeWb,2r5/p2b2kp/1p2p1p1/2Np4/3P4/5P2/PP2R1PP/7K w - - 0 29,c5d7 c8c1 e2e1 c1e1,534,backRankMate endgame mate mateIn2 short
+0Eorj,4r2k/1pQ2pp1/p3qn1p/8/8/1P5N/5PPP/2R2K1R w - - 3 27,c7b7 e6e2 f1g1 e2e1 c1e1 e8e1,1044,backRankMate long mate mateIn3 middlegame sacrifice
+0Eq1D,5r2/6pk/6pp/5q2/4r3/8/P3Q1PP/4R1K1 w - - 8 33,e2e4 f5f2 g1h1 f2f1 e1f1 f8f1,1167,backRankMate endgame long mate mateIn3 sacrifice
+0Exwl,4r1k1/pp3pbp/1q2r1p1/8/3n1B2/1P3N2/P1Q2PPP/2R1R1K1 w - - 5 22,f3d4 e6e1 c1e1 e8e1,998,backRankMate mate mateIn2 middlegame short
+0F2y1,4r1k1/3n4/p2p2N1/1p1P4/7p/P1r2B2/1bQ3PP/7K w - - 0 36,c2b2 e8e1,843,backRankMate endgame mate mateIn1 oneMove
+0FAkv,rnb2r1k/ppRpNQpp/1b5n/4P1N1/8/8/Pq1BK1PP/5B1R b - - 0 15,h6f7 g5f7 f8f7 c7c8 b6d8 c8d8 f7f8 d8f8,1358,backRankMate mate mateIn4 middlegame veryLong
+0FMvm,1r2r1k1/1P4p1/p1QPq2p/8/5p2/PR6/P4PPP/1R4K1 w - - 1 30,g1f1 e6e2 f1g1 e2e1 b1e1 e8e1,1178,backRankMate endgame long mate mateIn3 sacrifice
+0Fzts,r4r1k/6pp/8/2n5/p1Q5/P3R3/1q3PPP/4R1K1 w - - 0 27,c4c5 b2f2 g1h1 f2f1 e1f1 f8f1,1161,backRankMate endgame long mate mateIn3 sacrifice
+0G909,5r1k/pp2r1pp/4p3/8/4p2Q/2P1R3/Pq3PPP/4R1K1 w - - 0 23,h4e7 b2f2 g1h1 f2f1 e1f1 f8f1,1022,backRankMate endgame long mate mateIn3 sacrifice
+0GNSY,2r5/2r4k/p2p1b1p/3PpPpP/1p2P1R1/8/PP2qQ2/K5R1 w - - 0 36,f2e2 c7c1 g1c1 c8c1,632,backRankMate endgame mate mateIn2 short
+0GRNc,5rk1/p5p1/1p5p/3p1q2/3P4/P1P5/6PP/R3Q1K1 w - - 0 26,e1e5 f5f2 g1h1 f2f1 a1f1 f8f1,1063,backRankMate endgame long mate mateIn3 sacrifice
+0GYwD,2rk4/8/3p2q1/3Q4/pp1P4/5N2/PPP2P2/1K2R3 w - - 1 35,f3e5 g6c2 b1a1 c2c1 e1c1 c8c1,869,backRankMate endgame long mate mateIn3 sacrifice
+0Ge46,3r2k1/p4ppp/1p6/2pq4/3pQ3/3P2P1/PPP2P1P/4RK2 b - - 2 24,g8f8 e4e7 f8g8 e7e8 d8e8 e1e8,1125,backRankMate endgame long mate mateIn3 sacrifice
+0Gjgq,7k/3R2p1/3p1b1p/1NpP1r2/8/1PN5/2P3PP/6K1 w - - 0 25,b5d6 f6d4 g1h1 f5f1,1109,backRankMate endgame fork mate mateIn2 short
+0H27F,3r2k1/5ppp/p3p3/8/4N3/8/QP1p1qPP/2R4K w - - 0 37,c1d1 f2e1 d1e1 d2e1q,1271,advancedPawn backRankMate endgame mate mateIn2 promotion short
+0HAOv,r1b1r1k1/ppp2ppp/2n5/3p4/2qN4/P1P2P2/1BPQ2PP/2KRR3 b - - 1 16,c6d4 e1e8,1309,backRankMate hangingPiece mate mateIn1 middlegame oneMove
+0HARr,r2r2k1/5pp1/2pQ3p/pp6/4P3/PqP5/1P1R1PPP/3R2K1 w - - 2 25,d6c6 b3d1 d2d1 d8d1,1144,backRankMate endgame mate mateIn2 short xRayAttack
+0HBtD,8/pp5k/4Rrp1/3p1p1p/7Q/8/q5PP/7K w - - 0 33,h4f6 a2b1 e6e1 b1e1,1195,backRankMate endgame mate mateIn2 short
+0HRtA,6k1/5ppp/1q1r2b1/6P1/4RQ2/1BP4P/PP4PK/8 b - - 0 29,g6e4 f4f7 g8h8 f7e8,859,backRankMate endgame mate mateIn2 short
+0HTsP,B2k4/p1pn1q1p/3p1n2/8/6b1/3P4/PPP2KPP/RNB1R3 w - - 1 17,b1c3 f6e4 f2g1 f7f2 g1h1 f2e1,1310,backRankMate discoveredCheck doubleCheck fork long mate mateIn3 middlegame
+0HeCr,3r1r1k/1p4pp/p2pNq2/1P6/PBn5/7Q/6PP/4R2K w - - 2 26,e6d8 f6f1 e1f1 f8f1,1028,backRankMate mate mateIn2 middlegame sacrifice short
+0Hxu5,r1bkr3/1p1p2pp/p7/5p2/2Q2b2/7P/PPPn2P1/1K1RR3 w - - 3 30,d1d2 e8e1 d2d1 e1d1,1175,backRankMate hangingPiece mate mateIn2 middlegame short
+0IR10,3r1rk1/pp1b1qp1/2p3Rp/3p3Q/8/1P2P3/PBPP2PP/R5K1 w - - 1 21,h5h6 f7f2 g1h1 f2f1 a1f1 f8f1,1266,backRankMate long mate mateIn3 middlegame sacrifice
+0IWmj,1r4k1/6pp/2p5/P2pN3/8/2P4P/qB3QPK/8 b - - 2 35,b8b2 f2f7 g8h8 f7e8,887,backRankMate endgame mate mateIn2 short
+0Iv3N,3rr1k1/5ppp/p4n2/1pQ5/8/BP2P3/P3pPPP/q3R1K1 w - - 0 22,e1a1 d8d1 a1d1 e2d1q,976,advancedPawn backRankMate endgame mate mateIn2 promotion short
+0J02L,5r1k/1p2QBqp/2b5/2P5/1P2p3/P3P3/5PPP/R2R2K1 w - - 3 30,d1d8 g7a1 d8d1 a1d1,1145,backRankMate hangingPiece mate mateIn2 middlegame short
+0JCfS,r4r1k/4nq1p/bp4p1/p1ppR3/3P4/2P4Q/PPB2PPP/4R1K1 w - - 1 23,e5e7 f7f2 g1h1 f2f1 e1f1 f8f1,1198,backRankMate fork long mate mateIn3 middlegame sacrifice
+0JM3A,4r1k1/p5p1/7p/1pRpq3/8/3bBr2/P4PPP/R2Q2K1 w - - 0 26,d1f3 e5a1 c5c1 a1c1 e3c1 e8e1,1266,backRankMate hangingPiece long mate mateIn3 middlegame
+0JOrA,1r3k1r/p4ppp/2nQ4/8/3P4/2N2q2/PPP4P/4R1Kb b - - 0 18,f8g8 d6b8 c6b8 e1e8,1320,backRankMate mate mateIn2 middlegame sacrifice short
+0JR2z,2k1r3/prp3pp/1b6/3R2p1/8/7Q/PP2q1PP/3R3K b - - 6 28,c8b8 d5d8 e8d8 d1d8,684,backRankMate mate mateIn2 middlegame short
+0JdqX,3r2kn/1b6/p2qpppP/1p4Q1/2p1P3/P4P1N/BPP5/2KN2R1 w - - 0 28,g5f6 d6d2 c1b1 d2d1 g1d1 d8d1,1121,backRankMate deflection long mate mateIn3 middlegame
+0KKDy,6k1/6pp/p1N5/1p2p3/1P2r3/P2n2P1/7P/5R1K b - - 2 34,e4e3 c6e7 g8h8 f1f8,859,backRankMate endgame mate mateIn2 short
+0KOSd,4r2k/6pp/4R3/8/2QP4/1pP2P2/qP4PP/6K1 b - - 0 29,e8e6 c4c8 e6e8 c8e8,1156,backRankMate endgame fork mate mateIn2 short
+0KU9e,r5k1/pp1Q2pp/2p3p1/3pq3/8/P1P3P1/1P4PP/5RK1 b - - 1 22,a8e8 d7f7 g8h8 f7f8 e8f8 f1f8,1058,backRankMate endgame long mate mateIn3 sacrifice
+0KYmZ,R1r3k1/4rppp/1p3q2/3p3P/Q1pPn1b1/2P1PN2/1B3PP1/4K2R b K - 3 21,e7c7 a4e8 c8e8 a8e8,1402,backRankMate mate mateIn2 middlegame sacrifice short xRayAttack
+0KZZz,5rk1/7p/Q1p1pqp1/3p4/NpP1P3/1P6/P5PP/R5K1 w - - 1 23,a1d1 f6f2 g1h1 f2f1 d1f1 f8f1,1133,backRankMate endgame long mate mateIn3 sacrifice
+0KoHS,3r2k1/1pQ2ppp/8/2B2R2/1P5q/8/r3n1PP/1R5K b - - 5 31,a2d2 c7f7 g8h8 f7f8 d8f8 f5f8,1111,backRankMate long mate mateIn3 middlegame sacrifice
+0KubU,8/4r1pp/5pkn/p1B5/8/1Q6/PP1q1PPP/2R2K2 w - - 15 32,c1d1 d2e2 f1g1 e2e1 d1e1 e7e1,1345,backRankMate endgame long mate mateIn3 sacrifice
+0L4Ea,6k1/6p1/7p/8/2RN4/qp2P3/5PPP/1R4K1 w - - 0 42,b1b3 a3a1 b3b1 a1b1 c4c1 b1c1,859,backRankMate endgame long mate mateIn3
+0L5bw,5bk1/5pp1/3p1qnp/1RpP4/2P5/1P1BQ3/5PPP/6K1 w - - 3 28,d3g6 f6a1 g6b1 a1b1 e3c1 b1c1,947,backRankMate endgame long mate mateIn3
+0LFwt,4R3/3Q3p/3p1rpk/3B4/4N2q/3P4/PPP2n2/2K5 w - - 5 35,e4f6 h4g5 c1b1 g5g1 e8e1 g1e1,1964,backRankMate endgame fork long mate mateIn3
+0LXoM,3r1rk1/1p5p/p5p1/3NR3/8/6Q1/PPq2PPP/R5K1 w - - 1 23,g3b3 c2f2 g1h1 f2f1 a1f1 f8f1,1064,backRankMate long mate mateIn3 middlegame sacrifice
+0Lcg6,4r1k1/p4p1p/5bpB/3p1b2/Q7/5B2/Pq3PPP/2R3K1 w - - 0 22,f3d5 b2c1 h6c1 e8e1,973,backRankMate mate mateIn2 middlegame sacrifice short
+0LybU,Rr4k1/5ppp/4p3/3p4/2qPn2Q/4P1PP/R4P1K/2r5 b - - 2 29,c1b1 h4d8 b8d8 a8d8,1328,backRankMate mate mateIn2 middlegame sacrifice short xRayAttack
+0M4Pu,1B2B2k/3RP1pp/8/8/1q6/8/4Q1PP/1q5K w - - 0 38,e2d1 b4e1 d1e1 b1e1,1154,backRankMate endgame mate mateIn2 short xRayAttack
+0M4qd,5Qk1/pp3ppp/2p5/3pN3/3P4/8/P2q1PPP/4R1K1 b - - 0 20,g8f8 e5d7 f8g8 e1e8,823,backRankMate endgame mate mateIn2 short
+0MS2N,2r3k1/p4ppp/1p2p1n1/q3N3/3Q4/P7/2r2PPP/3RR1K1 b - - 0 31,g6e5 d4d8 c8d8 d1d8,1045,backRankMate mate mateIn2 middlegame sacrifice short
+0MSHh,r4rk1/5Rpp/8/p3q3/P7/1Q5P/6P1/5R1K b - - 4 32,f8f7 b3f7 g8h8 f7f8 a8f8 f1f8,947,backRankMate endgame long mate mateIn3
+0MoMa,2k3r1/ppp5/1q2pp2/8/P2Q4/1P3P2/2P1N1rp/3R1R1K b - - 4 29,g2e2 d4d7 c8b8 d7d8 g8d8 d1d8,1207,backRankMate endgame long mate mateIn3 sacrifice
+0Mvwc,rn2Q1k1/ppp2ppp/8/2b5/2P3b1/3P1qP1/P2B1P1P/R3R1K1 b - - 1 18,c5f8 e8f8 g8f8 d2b4 c7c5 b4c5 f8g8 e1e8,1918,attraction backRankMate mate mateIn4 middlegame sacrifice veryLong
+0N4qs,2k2r2/3p4/1qpQp2p/1p1p4/6B1/1P6/2R2rPP/2R3K1 w - - 0 33,c2f2 b6f2 g1h1 f2f1 c1f1 f8f1,1018,backRankMate endgame long mate mateIn3
+0NH0F,5rk1/ppp3pp/4p3/4P3/3n4/2P5/PP4PP/R1B2K2 w - - 1 19,f1g1 d4e2 g1h1 f8f1,1112,backRankMate endgame mate mateIn2 short
+0NWlR,r7/p1p4p/1b3pk1/4pq2/4Q3/8/PPP2PPP/4R1K1 w - - 10 27,e4a8 f5f2 g1h1 f2e1,908,backRankMate endgame fork mate mateIn2 short
+0NaiT,5k2/ppp2ppp/8/2N5/8/5P1P/r7/4R2K b - - 1 33,b7b6 c5d7 f8g8 e1e8,914,backRankMate endgame mate mateIn2 short
+0Ne1X,5rk1/5pp1/2R1p2p/q2n4/3PQ3/4PN1P/5PPB/r1R3K1 w - - 1 25,f3e5 a5e1 c1e1 a1e1,1573,backRankMate mate mateIn2 middlegame sacrifice short xRayAttack
+0NfBI,8/2p4k/1p1p1bq1/pP1Pp3/P1P4p/5QB1/5PP1/6K1 w - - 0 38,g3h2 g6b1 f3d1 b1d1,738,backRankMate endgame mate mateIn2 short
+0NiXl,5rk1/p4p1p/q3r1p1/2P5/7Q/2N5/PP3PRP/R1B2K2 w - - 1 22,f1g1 e6e1,754,backRankMate mate mateIn1 middlegame oneMove
+0Nox8,1r2k2r/4ppb1/6p1/p1pqP2p/P6P/2B5/1P1Q2P1/2KR3R b k - 1 24,d5a2 d2d7 e8f8 d7d8 b8d8 d1d8,1160,backRankMate long mate mateIn3 middlegame sacrifice
+0O4Ik,1r4k1/5ppp/8/2pPr3/1bBqP3/5P1P/1RQR2PK/8 b - - 0 35,b4d2 b2b8 e5e8 b8e8,819,backRankMate hangingPiece mate mateIn2 middlegame short
+0O8Zd,Q6r/2ppkppp/p7/1pb1P3/4n2q/8/PPP2PPP/RNB2RK1 w - - 1 13,a8h8 c5f2 f1f2 h4f2 g1h1 f2e1,1206,backRankMate long mate mateIn3 middlegame
+0OA31,2r3kr/4Rppp/Q7/7P/2pP1K2/4NPB1/P2q2bP/8 b - - 4 30,g2h3 a6c8 h3c8 e7e8,834,backRankMate master mate mateIn2 middlegame sacrifice short
+0OJXS,4r1k1/ppq1r2p/2p2npQ/3p4/3P1b1P/3B4/PPP1NP2/1K2R1R1 w - - 2 22,e2f4 e7e1 g1e1 e8e1,640,backRankMate mate mateIn2 middlegame short
+0OZQa,3r4/Qb3kpp/1p6/1qn5/4P3/8/P4PPP/3R2K1 w - - 0 27,d1d8 b5b1 d8d1 b1d1,738,backRankMate endgame mate mateIn2 short
+0P0KT,r4rk1/ppQ2Rpp/2n5/1q6/8/8/P5PP/5R1K b - - 0 21,f8f7 c7f7 g8h8 f7f8 a8f8 f1f8,935,backRankMate endgame long mate mateIn3
+0PGoz,k1r5/pp1R1p2/8/4Q3/6p1/P1P5/KPP2P2/5q2 b - - 4 32,f1f2 e5c7 c8c7 d7d8 c7c8 d8c8,1891,backRankMate endgame long mate mateIn3 sacrifice
+0PL8a,3r2k1/1pp3pp/2p5/p1r5/3P4/5Q2/q1P5/2K1NR2 b - - 0 28,c5d5 f3f7 g8h8 f7f8 d8f8 f1f8,1174,backRankMate endgame long mate mateIn3 sacrifice
+0PLfl,2r3k1/p4ppp/1p2p3/3pQb2/1P1N3P/P7/1q3PP1/4R1K1 b - - 0 24,c8c1 e5b8 c1c8 b8c8,896,backRankMate endgame mate mateIn2 short
+0PT3g,7k/5Qpp/8/2p5/8/4q3/PPKr3P/5R2 w - - 8 33,c2b1 e3d3 b1a1 d2d1 f1d1 d3d1,1232,backRankMate endgame long mate mateIn3
+0PvJA,5r1k/p2Bn1pp/1p1QP3/8/5r1q/2P5/PP4PP/R3R2K w - - 4 31,d7c6 h4e1 a1e1 f4f1 e1f1 f8f1,1245,backRankMate long mate mateIn3 middlegame sacrifice
+0PvJQ,3Qn1k1/pp3rpp/8/3p4/P7/1P1q1P2/1B2r1PP/R3R1K1 w - - 1 27,b2a3 d3e3 g1h1 e2e1 a1e1 e3e1,1325,backRankMate long mate mateIn3 middlegame
+0Pxkq,5r2/ppp3pk/1b2n2p/4N3/3PN2q/PQP5/1P1B2PP/4R2K w - - 0 23,b3e6 h4e1 d2e1 f8f1,1067,backRankMate mate mateIn2 middlegame sacrifice short
+0Q2HD,5rk1/p3RRpp/1p6/4P3/4b3/P5PB/1r5P/6K1 b - - 0 28,f8f7 e7e8 f7f8 h3e6 g8h8 e8f8,1480,backRankMate deflection endgame long master mate mateIn3
+0QDvy,5rk1/Qp4pp/4b3/1p1p4/1P1B4/4P3/2q2PPP/R5K1 w - - 6 26,a7b7 c2f2 g1h1 f2f1 a1f1 f8f1,985,backRankMate endgame long mate mateIn3 sacrifice
+0QF52,r1r3k1/1p4pp/1p2Qp2/8/2PR4/P1q5/5PPP/3R2K1 b - - 1 28,g8h8 e6c8 a8c8 d4d8 c8d8 d1d8,1430,backRankMate endgame long mate mateIn3 sacrifice
+0QPvf,2Q4k/p5pp/2p5/3q4/8/7P/5rP1/1R5K b - - 2 32,d5g8 b1b8 f2f1 h1h2 g8c8 b8c8 f1f8 c8f8,1463,backRankMate endgame mate mateIn4 quietMove veryLong
+0QQ7X,5r2/Q1pkp2p/1pr1pqp1/2P5/4R3/3P4/P1P2PPP/1R4K1 w - - 1 22,c5b6 f6f2 g1h1 f2f1 b1f1 f8f1,998,backRankMate endgame long mate mateIn3 sacrifice
+0Qa53,4r1k1/5pp1/7p/2Q1PB2/8/8/P1pr1PPP/2q1R1K1 w - - 0 28,e1c1 d2d1 c1d1 c2d1q,998,advancedPawn backRankMate endgame mate mateIn2 promotion short
+0QlD8,r1bkr3/pp1n3p/4Bnpb/8/3Q4/8/PPP2PPP/1K4NR w - - 8 22,e6d7 e8e1 d4d1 e1d1,987,backRankMate mate mateIn2 middlegame short
+0QuZf,2r3k1/5ppp/3P4/8/4P3/1Q3R1P/p2q2P1/2r2BK1 b - - 0 32,a2a1q b3f7 g8h8 f7f8 c8f8 f3f8,835,backRankMate long mate mateIn3 middlegame sacrifice
+0R8u2,6k1/6p1/1p5p/p4Q2/4P3/2Pq4/PP1r4/1K2R3 w - - 1 40,b1a1 d2d1 e1d1 d3d1,827,backRankMate endgame mate mateIn2 short
+0RHWa,5rk1/pb5p/1p6/1QppN3/4nr1q/2P5/PP2B1PP/R4RK1 w - - 0 27,b5d7 f4f1 e2f1 h4f2 g1h1 f2f1 a1f1 f8f1,1406,backRankMate deflection mate mateIn4 middlegame veryLong
+0RP8N,4rk2/2R1Rppp/r1p5/1pP5/pP6/P5BP/n4PP1/6K1 b - - 0 30,e8e7 c7c8 e7e8 g3d6 f8g8 c8e8,1514,backRankMate deflection endgame long mate mateIn3
+0RRVg,r4rk1/p5pp/4R3/3p4/2Q5/P7/5qPP/3R3K w - - 0 25,c4d5 f2f1 d1f1 f8f1,730,backRankMate endgame mate mateIn2 sacrifice short
+0RRbG,5rk1/1b3qpp/p7/1p1p4/3N2Q1/PP6/1P4PP/R3r2K w - - 0 22,a1e1 f7f1 e1f1 f8f1,686,backRankMate endgame mate mateIn2 sacrifice short
+0RrTi,r4k1r/1pR1nppp/1p2p3/3pP3/1Q6/8/1B3PPP/1q2N1K1 b - - 9 21,a8e8 b4e7 e8e7 c7c8 e7e8 b2a3 b1b4 a3b4 f8g8 c8e8,1733,backRankMate mate mateIn5 middlegame sacrifice veryLong
+0Rv7W,1k4r1/pp3p2/2p3r1/4Q2p/1Pq5/7P/P4PP1/3RR2K b - - 0 28,b8a8 e5e8 g8e8 e1e8,951,backRankMate endgame mate mateIn2 sacrifice short
+0S7q2,6k1/2pq1ppp/2r5/4P3/1p1P2P1/2B2Q2/4RPPK/8 b - - 0 34,c6c3 f3a8 d7c8 a8c8,1126,backRankMate endgame mate mateIn2 short
+0SIoN,8/1p3pkp/p5p1/P7/1P1P1N2/1rr2N2/5PPP/2R3K1 w - - 0 38,c1c3 b3b1 c3c1 b1c1 f3e1 c1e1,840,backRankMate endgame long mate mateIn3
+0SJP3,r3r3/4Rpkp/p3pq2/1pp5/2P5/P3PQ2/5PPP/R5K1 w - - 0 22,e7e8 f6a1 f3d1 a1d1,998,backRankMate endgame hangingPiece mate mateIn2 short
+0SSxS,2R3k1/pp3ppp/1q3rn1/5N2/8/1P6/1P3PPP/5RK1 b - - 0 24,g6f8 f5e7 g8h8 c8f8,961,backRankMate deflection endgame mate mateIn2 short
+0ScDr,4rrk1/1p1R1p1p/p5n1/P6q/3BQp2/8/5PPP/3R2K1 w - - 2 36,e4b7 h5d1,867,backRankMate hangingPiece master mate mateIn1 middlegame oneMove
+0SeQP,3r1rk1/7p/p3Rpp1/3R1n2/P1P3q1/2Q5/1B3PPP/6K1 w - - 1 28,e6f6 g4d1 d5d1 d8d1 c3e1 d1e1,1690,backRankMate long mate mateIn3 middlegame sacrifice xRayAttack
+0SmFo,4kr2/1p2b1pp/p3P3/8/8/PP3Q2/1q3PPP/3R2K1 w - - 1 36,f3b7 b2f2 g1h1 f2f1 d1f1 f8f1,975,backRankMate endgame long mate mateIn3 sacrifice
+0SwIc,2r2bk1/pp3ppp/1q6/3p1Q2/4n3/2P5/P5PP/2R2R1K b - - 2 25,b6h6 f5f7 g8h8 f7f8 c8f8 f1f8,1090,backRankMate deflection long mate mateIn3 middlegame
+0T4Bw,5r1k/6pp/1p1p4/pPpQp1q1/P1P5/R2P4/5rPP/5R1K w - - 2 30,f1f2 g5c1 f2f1 f8f1,934,backRankMate endgame fork mate mateIn2 short
+0TCAd,2r1r1k1/3Q1p1p/p2p2p1/3P2B1/1p3P2/3N4/Pbq3PP/K3R2R w - - 0 25,d3b2 e8e1 h1e1 c2c1 e1c1 c8c1,1220,backRankMate long mate mateIn3 middlegame sacrifice
+0TQuM,5rk1/6pp/2p5/1p1pPN2/1P1Pq3/P7/4Q3/2K2R2 b - - 0 37,e4e2 f5e7 g8h8 f1f8,965,backRankMate deflection discoveredAttack endgame mate mateIn2 short
+0U5KZ,3r2k1/1pR2ppp/4p3/4P3/1p6/1P6/1P3PPP/1qb1Q1K1 w - - 0 29,e1c1 d8d1 c1d1 b1d1,1167,backRankMate endgame fork mate mateIn2 short xRayAttack
+0U5QL,5rk1/pr3ppp/3Q4/8/6n1/P3BqP1/1P3P1P/R3R1K1 b - - 0 21,b7b2 d6f8 g8f8 e3c5 f8g8 e1e8,1454,attraction backRankMate long mate mateIn3 middlegame sacrifice
+0UGS3,3Q1bk1/7p/3P1pp1/4q3/2r5/1P6/P2R1PPP/R5K1 w - - 0 31,b3c4 e5a1 d2d1 a1d1,884,backRankMate endgame hangingPiece mate mateIn2 short
+0Uoty,r4rk1/pp4p1/1q1PR2p/8/3Q4/8/PP3PPP/R5K1 w - - 1 20,d4d5 b6f2 g1h1 f2f1 a1f1 f8f1,798,backRankMate endgame long mate mateIn3 sacrifice
+0UpPL,5rk1/p5pp/2p2q2/Q1p5/2P1R3/1BN5/PP1r1PPP/R5K1 w - - 0 26,c3d1 d2d1 a1d1 f6f2 g1h1 f2f1 d1f1 f8f1,1431,backRankMate mate mateIn4 middlegame sacrifice veryLong
+0UvZr,1k6/2p3pp/1pQ5/2n5/q7/8/5PPP/2R3K1 w - - 0 35,c1c5 a4d1,1105,backRankMate endgame mate mateIn1 oneMove
+0V38B,8/6pk/1R4p1/pQR3p1/4P3/P4P2/3rn1PP/r4BK1 w - - 3 33,g1h1 a1f1,917,backRankMate hangingPiece master mate mateIn1 middlegame oneMove
+0VwT4,4brk1/7p/p2Qp1p1/3p4/3q4/7R/PPP1B1PP/6K1 w - - 1 29,g1h1 d4d1 e2d1 f8f1,1453,backRankMate endgame mate mateIn2 sacrifice short
+0WFkl,6k1/p4r1p/1p2pqp1/2p1p3/8/1P1PQ3/P1P3PP/4R1K1 w - - 0 25,e3e5 f6f2 g1h1 f2f1 e1f1 f7f1,1183,backRankMate endgame long mate mateIn3 sacrifice
+0WGr6,1r2k1nr/5pbp/3Q2p1/p1p5/1q2P3/1P3PN1/P1P3PP/2KR3R b k - 0 17,g8e7 d6d7 e8f8 d7d8 b8d8 d1d8,1170,backRankMate long mate mateIn3 middlegame sacrifice
+0WHa6,4r1k1/1p3ppp/2p5/2P5/8/3r2P1/5K1P/R3R3 b - - 1 28,e8e1 a1a8 d3d8 a8d8 e1e8 d8e8,1128,backRankMate endgame long mate mateIn3 rookEndgame
+0WRIs,4r1k1/1Qp2ppp/8/8/8/P7/2q2PPP/1R2K2R w - - 3 23,e1f1 c2e2 f1g1 e2e1 b1e1 e8e1,1211,backRankMate endgame long mate mateIn3 sacrifice
+0WSc9,2r3k1/4Q1pp/pq2p3/1p6/2rPp3/2P5/P5PP/R4RK1 b - - 1 24,c4c3 e7f7 g8h8 f7f8 c8f8 f1f8,1232,backRankMate endgame long mate mateIn3 sacrifice
+0WU5O,r4rk1/3b2pp/2pp1p2/p1p1qP2/4P2N/1P1PQ1RR/P5PP/7K w - - 0 29,e3h6 e5a1 h6c1 a1c1,849,backRankMate mate mateIn2 middlegame short
+0WXhY,r5k1/pp5p/2prpbp1/2R5/4P3/5P2/PPP3PP/2K2B1R w - - 0 22,e4e5 f6g5 f3f4 g5f4 c1b1 d6d1,1157,backRankMate endgame long mate mateIn3
+0WYLz,2r3k1/5ppp/2p1b3/p2pq3/N3B3/1P1QP1P1/P4P1P/3R2K1 b - - 0 23,d5e4 d3d8 c8d8 d1d8,607,backRankMate endgame mate mateIn2 sacrifice short
+0WYN9,4r1k1/pQpq3p/8/6p1/1P6/P3P1B1/3r1PPP/R5K1 w - - 1 27,a1c1 d2d1 c1d1 d7d1,592,backRankMate endgame mate mateIn2 short
