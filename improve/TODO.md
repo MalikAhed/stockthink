@@ -19,6 +19,26 @@ the same treatment, top-down, one item per session unit:
 
 Take items top-down. Move finished items to Done (bottom) with date + commit.
 
+## SPOTLIGHT DEPTH — user directive 2026-06-12 (take these FIRST, top-down)
+
+> The Spotlight (src/ui/walkthrough.ts, focus-mode walkthrough of the best
+> line, 3 confident moves max) shipped 2026-06-12 with basic board-verified
+> captions (capture/check/mate/castle/promo). The mission now: explain WHY
+> Stockfish's move is right by READING the 3-move PV — real proof, never
+> vibes. All claims must stay board/engine-verified (R4). These items MAY
+> touch src/ui/walkthrough.ts (exception to the no-UI rule — captions only,
+> never layout).
+
+
+- [ ] **W2 · Step-level WHY captions** — at each Spotlight step, run the
+  board-only detectors (fork/pin/hanging/mate-threat from concepts/) on the
+  position AFTER the step's move and append the strongest finding to the
+  caption ("…forking king and queen", "…now the rook has no escape").
+  Strict precision: only facts provable on the board at that step.
+- [ ] **W3 · Spotlight voice pass** — once W1/W2 land, read the captions on
+  the two gate games end-to-end and polish register (friendly, no jargon,
+  no SAN soup beyond the move itself); feed GM-book phrasing when mined.
+
 ## TONIGHT — user directive 2026-06-12 (take these FIRST, top-down)
 
 - [ ] **U2 · Deeper why-bad explanations** — _(partial: `ignores_threat` fact
@@ -96,6 +116,7 @@ Take items top-down. Move finished items to Done (bottom) with date + commit.
 _(items land here with the open question attached)_
 
 ## Done
+- [x] W1 · Best-line outcome proof — 2026-06-12 (lineOutcome(): PV walk → forced mate / material win banked at quiet points; Spotlight intros now carry the verified WHY; residual: surface as a prose fact later)
 - [x] C6 · Praise pools — 2026-06-12 (6 variants × best/excellent/good, rotated by ply, deterministic)
 - [x] P3 · Lost-position mate framing — 2026-06-12 ("The game could not be saved either way — …")
 - [x] C1 · Recapture/capture suggestion phrasing — 2026-06-12 (subsumed by C8 'captures' idea)

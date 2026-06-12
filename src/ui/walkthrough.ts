@@ -46,6 +46,88 @@ const ROLE_NAME: Record<Role, string> = {
 const SQUARE = (sq: number): string =>
   'abcdefgh'[sq & 7] + String((sq >> 3) + 1);
 
+const PIECE_VALUE: Record<Role, number> = {
+  pawn: 1,
+  knight: 3,
+  bishop: 3,
+  rook: 5,
+  queen: 9,
+  king: 0,
+};
+
+/** What the line concretely achieves for its first mover — the WHY proof. */
+export interface LineOutcome {
+  kind: 'mate' | 'material';
+  /** Full moves by the first mover until mate. */
+  mateIn?: number;
+  /** Biggest single victim along the winning sequence. */
+  pieceWon?: Role;
+}
+
+/**
+ * Walk up to `maxPlies` of the PV and report the machine-verified outcome:
+ * forced mate, or a net material win measured at a QUIET point (so a PV cut
+ * mid-exchange never miscounts). Null = nothing concrete to promise.
+ */
+export function lineOutcome(
+  fen: string,
+  uciPv: string[],
+  maxPlies = MAX_PLIES,
+): LineOutcome | null {
+  const setup = parseFen(fen);
+  if (setup.isErr) return null;
+  let pos: Chess;
+  try {
+    pos = Chess.fromSetup(setup.unwrap()).unwrap();
+  } catch {
+    return null;
+  }
+
+  let net = 0; // first-mover POV, pawns
+  let netAtQuiet = 0;
+  let bestVictim: Role | null = null;
+  let bestVictimAtQuiet: Role | null = null;
+
+  for (let i = 0; i < Math.min(uciPv.length, maxPlies); i++) {
+    const move = parseUci(uciPv[i]) as NormalMove | undefined;
+    if (!move || !pos.isLegal(move)) break;
+    const mover = i % 2 === 0 ? 1 : -1;
+    const victim = pos.board.get(move.to);
+    const isEp =
+      pos.board.get(move.from)?.role === 'pawn' && (move.from & 7) !== (move.to & 7) && !victim;
+    const captured = victim?.role ?? (isEp ? 'pawn' : undefined);
+    if (captured) {
+      net += mover * PIECE_VALUE[captured];
+      if (mover === 1 && (!bestVictim || PIECE_VALUE[captured] > PIECE_VALUE[bestVictim]))
+        bestVictim = captured;
+    }
+    if (move.promotion) net += mover * (PIECE_VALUE[move.promotion] - 1);
+    pos.play(move);
+    if (pos.isCheckmate())
+      // mate delivered by whoever just moved — only the first mover's counts
+      return mover === 1 ? { kind: 'mate', mateIn: Math.floor(i / 2) + 1 } : null;
+    if (!captured && !pos.isCheck()) {
+      // quiet point: the exchange (if any) has settled — bank the count
+      netAtQuiet = net;
+      bestVictimAtQuiet = bestVictim;
+    }
+  }
+
+  if (netAtQuiet >= 3 && bestVictimAtQuiet && bestVictimAtQuiet !== 'pawn')
+    return { kind: 'material', pieceWon: bestVictimAtQuiet };
+  if (netAtQuiet >= 1 && bestVictimAtQuiet)
+    return { kind: 'material', pieceWon: 'pawn' };
+  return null;
+}
+
+/** Outcome → the WHY clause for the intro caption. */
+const outcomeClause = (o: LineOutcome): string =>
+  o.kind === 'mate'
+    ? o.mateIn === 1
+      ? 'it forces checkmate on the spot'
+      : 'it forces checkmate'
+    : `it wins ${o.pieceWon === 'pawn' ? 'a pawn' : `a ${ROLE_NAME[o.pieceWon ?? 'knight']}`}`;
+
 /** Friendly lead-ins so consecutive steps don't read like a metronome. */
 const YOUR_LEADS = ['You play', 'Now', 'Then comes', 'And now'];
 const OPP_LEADS = [
@@ -122,6 +204,26 @@ export function buildWalkthrough(
   const firstUci = chip.uciPv[0];
   const firstSan = chip.sanPv[0] ?? '';
 
+  // WHY proof: what the line concretely achieves (mate / material), verified
+  // by walking the PV itself — never promised on vibes.
+  const outcome = lineOutcome(chip.fen, chip.uciPv);
+  let intro: string;
+  if (chip.kind === 'best') {
+    const opener = playedSan
+      ? `Instead of ${playedSan}, this was the moment for ${firstSan}`
+      : `The strongest idea here was ${firstSan}`;
+    intro = outcome
+      ? `${opener} — ${outcomeClause(outcome)}. Step through to see how.`
+      : `${opener}. Step through it at your own pace.`;
+  } else {
+    const punish = outcome
+      ? outcome.kind === 'mate'
+        ? `${firstSan} leads to checkmate`
+        : `${firstSan} wins your ${outcome.pieceWon === 'pawn' ? 'pawn' : ROLE_NAME[outcome.pieceWon ?? 'knight']}`
+      : `the reply ${firstSan} punishes it`;
+    intro = `So what was wrong with ${playedSan ?? 'that move'}? Watch — ${punish}.`;
+  }
+
   steps.push({
     fen: chip.fen,
     arrow: firstUci
@@ -131,12 +233,7 @@ export function buildWalkthrough(
           brush: youAreFirstMover ? 'green' : 'yellow',
         }
       : undefined,
-    caption:
-      chip.kind === 'best'
-        ? playedSan
-          ? `Instead of ${playedSan}, this was the moment for ${firstSan}. Step through it at your own pace.`
-          : `The strongest idea here was ${firstSan}. Step through it at your own pace.`
-        : `So what was wrong with ${playedSan ?? 'that move'}? Watch how the reply punishes it.`,
+    caption: intro,
     side: 'intro',
   });
 
