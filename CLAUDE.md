@@ -1,7 +1,7 @@
 # StockThink — Session Context for Claude
 
 ## What this project is
-Zero-budget client-side chess Game Review app deployed at https://malikahed.github.io/stockthink/. No API keys, no server, no payment methods ever. Runs fully in the browser via Stockfish 18 WASM + chessops + chessground. Stack: Vite 5 + **TypeScript** (the engine is TS — the only Python in the repo is a research reference), vitest, `~/bin/gh` (NOT on PATH) for deploys.
+Zero-budget client-side chess Game Review app deployed at https://malikahed.github.io/stockthink/. No API keys, no server, no payment methods ever. Runs fully in the browser via Stockfish 18 WASM + chessops + chessground. Stack: Vite 5 + **TypeScript**, vitest, `~/bin/gh` (NOT on PATH) for deploys.
 
 ## The five hard rules (never regress these)
 R1 no eval numbers in prose · R2 no PV dumps in prose (chips instead) ·
@@ -26,7 +26,8 @@ analyze.ts → analysis/report.ts:buildReport()
 
 - `concepts/facts.ts` — typed `Fact` union (56 kinds) + priority sort. Adding a
   concept = detector + fact kind + priority + template + wiring in annotate.ts.
-- `src/llm/` — Mode B: factsheet/verify/exchange (paste-a-prompt Claude flow).
+- `src/llm/` — Mode B: factsheet/verify/exchange + providers (3 transports:
+  paste-exchange, user's own API key, local WebLLM) — all R4-verified.
 - `src/ui/` — badges, coach bubble + variation chips, summary, movelist, graph.
 - **Quality gate**: `npx vitest run test/gate.e2e.test.ts` — real WASM engine
   over Opera Game + Blackburne Shilling; prints every comment; asserts zero
@@ -75,7 +76,7 @@ stockthink/
 │   ├── concepts/            ← deterministic facts (board/primitives/detectors/
 │   │                          positional/facts/annotate) — THE HEART
 │   ├── compose/             ← templates + compose (Mode A prose)
-│   ├── llm/                 ← Mode B: factsheet/verify/exchange
+│   ├── llm/                 ← Mode B: factsheet/verify/exchange/providers
 │   └── ui/                  ← badges, coach, summary, movelist, graph, deepreview
 ├── test/                    ← vitest; helpers/transport.ts = real-engine harness;
 │   │                          gate.e2e.test.ts = THE quality gate
@@ -86,7 +87,7 @@ stockthink/
 └── docs/                    ← REFERENCE SHELF (not read daily)
     ├── knowledge/           ← taxonomy, template library, sources (see table above)
     ├── specs/               ← ANALYSIS-SYSTEM-V2.md, WHY-EXPLANATION-ENGINE-SPEC.md
-    ├── research/            ← digested papers + openchess-insights reference (.py)
+    ├── research/            ← digested research notes (PDFs/raw data pruned 2026-06-12)
     └── prototype/           ← stockthink-trial.html (design reference)
 ```
 
