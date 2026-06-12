@@ -64,6 +64,25 @@ describe('annotateMove — what the move concedes', () => {
     });
   });
 
+  it('ignores_threat: a piece already under attack, move does nothing, reply takes it (U2)', () => {
+    // White knight on c3 is attacked by the b4 pawn and undefended BEFORE the
+    // move; White plays the unrelated h3 and the engine reply wins the knight.
+    const p = pos('6k1/6pp/8/8/1p6/2N5/P6P/6K1 w - - 0 1');
+    const facts = annotateMove(p, mv('h2h3'), ctx({ winDrop: 25, replyPv: ['b4c3'] }));
+    expect(byKind(facts, 'ignores_threat')).toMatchObject({
+      piece: { role: 'knight', square: 'c3' },
+      capture: { san: 'bxc3' },
+    });
+    // and it must NOT double-report as a fresh hang
+    expect(byKind(facts, 'hangs_piece')).toBeUndefined();
+  });
+
+  it('ignores_threat does not fire when the move rescues the attacked piece', () => {
+    const p = pos('6k1/6pp/8/8/1p6/2N5/P6P/6K1 w - - 0 1');
+    const facts = annotateMove(p, mv('c3d5'), ctx({ winDrop: 0, replyPv: [] }));
+    expect(byKind(facts, 'ignores_threat')).toBeUndefined();
+  });
+
   it('allows mate-in-1 (fool’s mate pattern) with the mating reply named', () => {
     const p = pos('rnbqkbnr/pppp1ppp/8/4p3/8/5P2/PPPPP1PP/RNBQKBNR w KQkq - 0 2');
     const facts = annotateMove(
