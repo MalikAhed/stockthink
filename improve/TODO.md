@@ -30,9 +30,6 @@ Take items top-down. Move finished items to Done (bottom) with date + commit.
 > never layout).
 
 
-- [ ] **W3 · Spotlight voice pass** — once W1/W2 land, read the captions on
-  the two gate games end-to-end and polish register (friendly, no jargon,
-  no SAN soup beyond the move itself); feed GM-book phrasing when mined.
 
 ## TONIGHT — user directive 2026-06-12 (take these FIRST, top-down)
 
@@ -111,6 +108,7 @@ Take items top-down. Move finished items to Done (bottom) with date + commit.
 _(items land here with the open question attached)_
 
 ## Done
+- [x] W3 · Spotlight voice pass — 2026-06-12 (gate print-through review: pawn-pins muted, honesty note shows once, fine-move intros read as curiosity not correction)
 - [x] W2 · Step-level WHY captions — 2026-06-12 (whyClause: mate-threat > fork > pin > trap > tempo via existing board-only detectors, one clause per step; precision fixtures)
 - [x] W1 · Best-line outcome proof — 2026-06-12 (lineOutcome(): PV walk → forced mate / material win banked at quiet points; Spotlight intros now carry the verified WHY; residual: surface as a prose fact later)
 - [x] C6 · Praise pools — 2026-06-12 (6 variants × best/excellent/good, rotated by ply, deterministic)

@@ -42,6 +42,10 @@ trappedPiece→traps_piece · mateIn1→delivers_mate/mate_threat · sacrifice�
 
 ## Daily log (append ONE entry per session, 1–3 lines, newest on top)
 
+- **2026-06-12l** · 3 units · Spotlight (user directive): focus-mode walkthrough
+  replaces autoplay chips (user-paced, friendly CTAs, theme shift) + W1
+  lineOutcome WHY-proof intros + W2 step captions (fork/pin/trap/tempo/mate-
+  threat, board-proven). Tests 200→208. Next: W3 voice pass, PATTERN GM-4.
 - **2026-06-12k** · 2 units · chess.com alignment (user request): game accuracy
   → CAPS2-style classification-score average (book/forced=1, blunder=0; was
   lichess harmonic — read too low) + decided-position leniency in classify

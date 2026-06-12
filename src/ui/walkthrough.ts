@@ -153,7 +153,8 @@ function whyClause(before: Chess, move: NormalMove): string | null {
   if (createsMateThreat(before, move)) return 'threatening checkmate next move';
   const fork = createsFork(before, move);
   if (fork.length >= 2) return `forking the ${role(fork[0])} and the ${role(fork[1])}`;
-  const pins = pinsCreatedEx(before, move);
+  // a pinned PAWN is rarely the story — only narrate piece pins (W3)
+  const pins = pinsCreatedEx(before, move).filter(p => board.get(p.pinned)?.role !== 'pawn');
   if (pins.length) {
     const p = pins[0];
     return p.absolute
@@ -219,6 +220,9 @@ function describeMove(
 export function buildWalkthrough(
   chip: VariationChip,
   playedSan: string | null,
+  /** True when the played move was itself fine (best/excellent/good…) —
+   *  the intro then reads as a curiosity, never as a correction. */
+  playedWasFine = false,
 ): WalkthroughStep[] {
   const setup = parseFen(chip.fen);
   if (setup.isErr) return [];
@@ -242,9 +246,11 @@ export function buildWalkthrough(
   const outcome = lineOutcome(chip.fen, chip.uciPv);
   let intro: string;
   if (chip.kind === 'best') {
-    const opener = playedSan
-      ? `Instead of ${playedSan}, this was the moment for ${firstSan}`
-      : `The strongest idea here was ${firstSan}`;
+    const opener = playedWasFine
+      ? `${playedSan ?? 'Your move'} was a fine choice — the engine just liked ${firstSan} a touch more`
+      : playedSan
+        ? `Instead of ${playedSan}, this was the moment for ${firstSan}`
+        : `The strongest idea here was ${firstSan}`;
     intro = outcome
       ? `${opener} — ${outcomeClause(outcome)}. Step through to see how.`
       : `${opener}. Step through it at your own pace.`;
@@ -290,9 +296,11 @@ export function buildWalkthrough(
         brush: yours ? 'green' : 'yellow',
       },
       caption,
-      note: confident
-        ? undefined
-        : 'We keep explanations to 3 moves for now — deeper, well-explained lines are coming as the coach learns more.',
+      // the honesty note shows once, on the first beyond-our-depth step (W3)
+      note:
+        i === CONFIDENT_PLIES
+          ? 'We keep explanations to 3 moves for now — deeper, well-explained lines are coming as the coach learns more.'
+          : undefined,
       side: yours ? 'you' : 'opponent',
     });
     if (pos.isEnd()) break;
