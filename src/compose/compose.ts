@@ -53,8 +53,11 @@ const NEUTRAL: Partial<Record<MoveReport['classification'], string>> = {
 /** "Develops the knight toward the center." → "develops the knight toward the center"
  *  (keeps the capital when the sentence starts with a SAN token or square). */
 const asClause = (s: string): string => {
-  const t = s.replace(/\.\s*$/, '');
-  return /^[A-Z][a-z]/.test(t) ? t.charAt(0).toLowerCase() + t.slice(1) : t;
+  // inner em-dashes would collide with the "The idea — … —" frame
+  const t = s.replace(/\.\s*$/, '').replace(/\s+—\s+/g, ', ');
+  // decap a leading English word ("Develops…", "A fair trade…") but never a
+  // SAN token or square name (those contain digits)
+  return /^(?:[A-Z][a-z]+|A)\b/.test(t) ? t.charAt(0).toLowerCase() + t.slice(1) : t;
 };
 
 export function composeComment(m: MoveReport): Comment {
