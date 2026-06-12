@@ -17,11 +17,15 @@ done — do not touch it.
 2. Pick units. A session mixes three unit types, top-down within each queue:
    - **BUILD** — topmost unchecked, unblocked item in `TODO.md`
    - **MINE** — next chunk in `SOURCES.md` (read one bounded source chunk,
-     extract ≤3 pattern candidates in our own words — no code)
+     extract ≤3 pattern candidates in our own words — no code). Obey the
+     Context rules in `SOURCES.md`: one chunk only, dedupe against existing
+     detectors, respect the unbuilt-backlog cap.
    - **PATTERN** — topmost `mined` item in `SOURCES.md` → take it to `proven`
      (detector + confirm-gate + GM-voiced template + fires/stays-silent
      fixtures). Counts as 2 units. **The v3 contract: the source gives the
      pattern, Stockfish must confirm it in the position before we voice it.**
+     PATTERN and BUILD units work from `SOURCES.md`/`TODO.md` only — they
+     NEVER open the book (re-read its 1–2 ref'd pages only to settle a doubt).
    Default mix when nothing is urgent: 1 MINE + 1 PATTERN, or 3 BUILD.
 3. Only if your item needs it, consult the reference shelf (don't browse it):
    - `../docs/knowledge/chesscom-templates.md` — target phrasing + triggers

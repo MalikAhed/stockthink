@@ -31,18 +31,46 @@ Fixture: <FEN or puzzle ref that must trigger it + one that must NOT>
 An item is **proven** only when: detector + confirm-gate + template + both
 fixtures (fires / correctly stays silent) are green AND the e2e gate passed.
 
+## Context rules (non-negotiable — they keep 700 pages from poisoning sessions)
+
+1. **The book is read ONCE per chunk, ever.** A MINE unit distills its chunk
+   into this file and checks it off; no session re-opens a done chunk. PATTERN
+   and BUILD units read SOURCES.md items only — NEVER the book.
+2. **One chunk per MINE unit, ≤15 pages.** Never "read ahead", never read the
+   whole book, never bulk-convert it to markdown (that's just a second
+   700-page context bomb, with mangled diagrams).
+3. **Diagrams**: `pdftotext` for prose. When a fixture needs a board position,
+   Read the specific PDF page(s) visually (the Read tool renders pages),
+   transcribe to FEN, and the test MUST verify the FEN parses legally with
+   chessops AND that the book's key move is legal in it — a fixture that fails
+   either check is a misread diagram: re-read the page, don't guess.
+4. **No memory of the book.** Every pattern carries its page ref; if a later
+   session doubts a pattern, it re-reads those 1–2 pages — it never recalls
+   the book from model memory. Anything voiced to users still has to pass the
+   confirm-gate, so even a misread pattern cannot produce wrong commentary.
+5. **Anti-mess dedupe.** Before adding a pattern item, grep
+   `docs/knowledge/concept-taxonomy.md` + `src/concepts/facts.ts`. If we
+   already detect it, the item becomes `AUDIT: <existing detector> vs GM
+   pattern` (tighten gate/voice/exceptions) — NOT a new detector. Expect most
+   book patterns to land as audits; new code is the exception.
+6. **Backlog cap.** Max **6 unbuilt** (`mined`/`speced`) items in the queue.
+   At the cap, MINE units are forbidden — build down first. Mining the whole
+   book before building it = 50 stale patterns and spaghetti.
+
 ## Mining protocol (one MINE unit)
 
-1. Pick the next unmined chunk from the chunk queue below.
+1. Pick the next unmined chunk from the chunk queue below (skip if at the
+   backlog cap — do PATTERN units instead).
 2. `pdftotext -f A -l B ~/think-like-a-super-gm-*.pdf -` (or sed ranges on
    /tmp/supergm.txt) — read ONLY that chunk.
-3. Extract ≤3 pattern candidates in the format above, status `mined`.
-   A good candidate is *checkable by our pipeline* (board-detectable trigger +
-   engine-confirmable). Pure psychology ("don't rush") is queue-worthy only if
-   it maps to a checkable behavior (e.g. "moved the same piece twice for no
-   tactical reason").
-4. Mark the chunk done. That's the whole unit — building comes later, as
-   separate BUILD units, top of queue first.
+3. Extract ≤3 pattern candidates in the format above, status `mined`, each
+   with its page ref. A good candidate is *checkable by our pipeline*
+   (board-detectable trigger + engine-confirmable). Pure psychology ("don't
+   rush") is queue-worthy only if it maps to a checkable behavior (e.g.
+   "moved the same piece twice for no tactical reason"). Run the rule-5
+   dedupe on each.
+4. Mark the chunk done (date it). That's the whole unit — building comes
+   later, as separate PATTERN units, top of queue first.
 
 ## Chunk queue (book)
 
