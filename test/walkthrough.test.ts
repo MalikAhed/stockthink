@@ -71,6 +71,22 @@ describe('buildWalkthrough', () => {
     const deep = steps[CONFIDENT_PLIES + 1];
     expect(deep.caption).toContain('The engine continues');
     expect(deep.note).toContain('3 moves');
+    expect(steps[CONFIDENT_PLIES + 2].note).toBeUndefined(); // honesty note shows once
+  });
+
+  it('reads as a curiosity, not a correction, when the played move was fine', () => {
+    const steps = buildWalkthrough(chip({ sanPv: ['e4'], uciPv: ['e2e4'] }), 'd4', true);
+    expect(steps[0].caption).toContain('d4 was a fine choice');
+    expect(steps[0].caption).not.toContain('Instead of');
+  });
+
+  it('does not narrate pawn pins', () => {
+    // Re1 "pins" only the e5 pawn — not worth a clause
+    const steps = buildWalkthrough(
+      chip({ fen: '4k3/8/8/4p3/8/8/8/R5K1 w - - 0 1', sanPv: ['Re1'], uciPv: ['a1e1'] }),
+      null,
+    );
+    expect(steps[1].caption).not.toContain('pinning');
   });
 
   it('intro carries the machine-verified WHY (forced mate)', () => {

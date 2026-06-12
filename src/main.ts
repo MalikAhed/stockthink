@@ -193,7 +193,10 @@ function enterSpotlight(chip: VariationChip): void {
     : ply > 0
       ? report.moves[ply - 1]
       : null;
-  const steps = buildWalkthrough(chip, m?.san ?? null);
+  const fine = m
+    ? !['inaccuracy', 'mistake', 'blunder', 'miss'].includes(m.classification)
+    : false;
+  const steps = buildWalkthrough(chip, m?.san ?? null, fine);
   if (steps.length < 2) return;
   spotlight = {
     steps,
