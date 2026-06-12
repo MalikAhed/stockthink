@@ -16,6 +16,7 @@
   --text-on-bubble-2: #5c5854;
   --green-500: #81b64c;
   --green-glow: rgba(129, 182, 76, 0.32);
+  --green-edge: #4e7837; /* hard bottom edge of raised chess.com buttons */
   --r-sm: 8px;
   --r-md: 12px;
   --r-lg: 14px;
@@ -56,6 +57,11 @@ body {
 .hidden { display: none !important; }
 .tabular { font-variant-numeric: tabular-nums; }
 
+/* one consistent keyboard-focus ring everywhere; fields with their own
+   focus treatment (textarea glow, search box ring) opt out */
+:focus-visible { outline: 2px solid var(--green-500); outline-offset: 2px; }
+textarea:focus-visible, input:focus-visible { outline: none; }
+
 /* ---------------- top bar ---------------- */
 .topbar {
   height: 56px;
@@ -63,17 +69,33 @@ body {
   align-items: center;
   gap: 14px;
   padding: 0 24px;
-  background: var(--bg-canvas);
+  background: #2b2926;
   border-bottom: 1px solid var(--border-subtle);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.22);
 }
 .wordmark {
   font-size: 16px;
-  font-weight: 700;
+  font-weight: 800;
+  letter-spacing: -0.01em;
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 9px;
   user-select: none;
 }
+.wordmark-text { display: inline-flex; align-items: center; gap: 2px; }
+.brand-mark {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: linear-gradient(160deg, #93c55f, #6da13e);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 0 var(--green-edge), 0 1px 0 rgba(255, 255, 255, 0.25) inset;
+  transition: transform 180ms var(--ease-over);
+}
+.brand-mark svg { width: 17px; height: 17px; filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.18)); }
 button.wordmark {
   background: none;
   border: none;
@@ -84,6 +106,7 @@ button.wordmark {
 }
 button.wordmark:hover { background: none; }
 button.wordmark:hover .wordmark-dot { transform: scale(1.5); }
+button.wordmark:hover .brand-mark { transform: rotate(-8deg) scale(1.06); }
 .wordmark-dot {
   width: 6px;
   height: 6px;
@@ -108,15 +131,27 @@ button.wordmark:hover .wordmark-dot { transform: scale(1.5); }
   font-weight: 600;
   color: var(--text-secondary);
 }
-.nav-link svg { width: 14px; height: 14px; }
+.nav-link svg { width: 15px; height: 15px; opacity: 0.75; transition: opacity 120ms; }
 .nav-link:hover { background: var(--bg-surface-2); color: var(--text-primary); }
-.nav-link.active { background: var(--bg-surface-2); color: var(--text-primary); box-shadow: var(--shadow-sm); }
+.nav-link:hover svg { opacity: 1; }
+.nav-link.active { background: var(--bg-surface-3); color: var(--text-primary); box-shadow: var(--shadow-sm); }
+.nav-link.active svg { color: var(--green-500); opacity: 1; }
 #nav-review svg { color: var(--green-500); }
 
 /* ---------------- input screen ---------------- */
 .screen { flex: 1; padding: 24px; max-width: 1280px; margin: 0 auto; width: 100%; }
 #screen-input { max-width: 720px; }
-#screen-input h1 { font-weight: 700; font-size: 24px; }
+#screen-input h1 { font-weight: 800; font-size: 26px; letter-spacing: -0.01em; }
+/* the wordmark's green dot, carried through as punctuation */
+#screen-input h1::after {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 3px;
+  background: var(--green-500);
+  margin-left: 7px;
+}
 .hint { color: var(--text-secondary); font-size: 14px; }
 #pgn-input {
   width: 100%;
@@ -133,20 +168,28 @@ button.wordmark:hover .wordmark-dot { transform: scale(1.5); }
 }
 #pgn-input:focus {
   outline: none;
+  border-style: solid;
   border-color: var(--green-500);
   box-shadow: 0 0 0 4px var(--green-glow);
 }
 .row { display: flex; align-items: center; gap: 16px; margin-top: 14px; flex-wrap: wrap; }
 .tier-label { color: var(--text-secondary); font-size: 13px; display: flex; gap: 8px; align-items: center; }
 select {
-  background: var(--bg-surface-2);
+  appearance: none;
+  background: var(--bg-surface-2)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23b8b3a8' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")
+    no-repeat right 10px center / 13px;
   color: var(--text-primary);
   border: 1px solid var(--border-default);
   border-radius: var(--r-md);
-  padding: 8px 10px;
+  padding: 8px 32px 8px 12px;
   font-size: 13px;
+  font-weight: 600;
   font-family: var(--font-sans);
+  cursor: pointer;
+  transition: border-color 120ms, background-color 120ms;
 }
+select:hover { border-color: var(--border-strong); }
 button {
   background: var(--bg-surface-2);
   color: var(--text-primary);
@@ -157,18 +200,31 @@ button {
   font-weight: 600;
   font-family: var(--font-sans);
   cursor: pointer;
-  transition: background 120ms, box-shadow 120ms, filter 120ms;
+  transition: background 120ms, box-shadow 120ms, filter 120ms, transform 100ms;
 }
 button:hover { background: var(--bg-surface-3); }
+button:active { transform: translateY(1px); }
+/* the chess.com raised button: hard bottom edge, presses down on click */
 button.primary {
-  background: var(--green-500);
-  color: #1a1a19;
-  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: linear-gradient(180deg, #8fc25c, #7cb04a);
+  color: #fff;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.22);
+  font-weight: 800;
   font-size: 15px;
-  padding: 11px 26px;
-  box-shadow: var(--shadow-md);
+  padding: 12px 26px;
+  border-radius: 10px;
+  box-shadow: 0 4px 0 0 var(--green-edge), 0 8px 16px -6px rgba(0, 0, 0, 0.5);
 }
-button.primary:hover { background: var(--green-500); box-shadow: var(--shadow-glow); filter: brightness(1.05); }
+button.primary svg { width: 17px; height: 17px; flex-shrink: 0; }
+button.primary:hover {
+  background: linear-gradient(180deg, #97c967, #84b853);
+  box-shadow: 0 4px 0 0 var(--green-edge), 0 10px 22px -6px rgba(129, 182, 76, 0.45);
+}
+button.primary:active { transform: translateY(3px); box-shadow: 0 1px 0 0 var(--green-edge); }
 .error { color: #ff7769; }
 
 /* ---------------- home screen ---------------- */
@@ -181,13 +237,33 @@ button.primary:hover { background: var(--green-500); box-shadow: var(--shadow-gl
   max-width: 860px;
   padding-bottom: 60px;
 }
-.home-hero { animation: rise-in 0.5s var(--ease-out) both; }
+.home-hero { position: relative; animation: rise-in 0.5s var(--ease-out) both; }
+/* soft ambient stage light behind the hero board */
+.home-hero::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: -90px;
+  transform: translateX(-50%);
+  width: 620px;
+  max-width: 90vw;
+  height: 420px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(129, 182, 76, 0.12), transparent 72%);
+  pointer-events: none;
+}
 .home-board { width: 104px; margin: 0 auto; }
 .home-title {
   font-size: clamp(30px, 5vw, 42px);
   font-weight: 800;
   letter-spacing: -0.02em;
   margin: 26px 0 0;
+}
+.title-accent {
+  background: linear-gradient(115deg, #aada72, var(--green-500) 70%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 .home-sub {
   color: var(--text-secondary);
@@ -227,15 +303,17 @@ button.primary:hover { background: var(--green-500); box-shadow: var(--shadow-gl
   width: 46px;
   height: 46px;
   border-radius: 12px;
-  background: var(--bg-surface-2);
+  background: linear-gradient(160deg, rgba(129, 182, 76, 0.18), rgba(129, 182, 76, 0.05));
+  border: 1px solid rgba(129, 182, 76, 0.28);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  color: var(--text-secondary);
+  color: var(--green-500);
+  transition: transform 180ms var(--ease-over);
 }
 .home-card-icon svg { width: 22px; height: 22px; }
-.home-card-icon.green { color: var(--green-500); }
+.home-card:hover .home-card-icon { transform: scale(1.08) rotate(-3deg); }
 .home-card-body { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 .home-card-title { font-size: 15.5px; font-weight: 700; color: var(--text-primary); }
 .home-card-text { font-size: 12.5px; line-height: 1.45; color: var(--text-tertiary); }
@@ -246,13 +324,16 @@ button.primary:hover { background: var(--green-500); box-shadow: var(--shadow-gl
   font-size: 13px;
   font-weight: 800;
   white-space: nowrap;
+  transition: transform 160ms var(--ease-over);
 }
+.home-card:hover .home-go { transform: translateX(4px); }
 .home-feats {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   gap: 8px;
-  margin-top: 30px;
+  max-width: 600px; /* forces a balanced 3+2 wrap instead of a 4+1 orphan */
+  margin: 30px auto 0;
   animation: rise-in 0.5s 0.16s var(--ease-out) both;
 }
 .home-feat {
@@ -263,6 +344,12 @@ button.primary:hover { background: var(--green-500); box-shadow: var(--shadow-gl
   font-size: 12px;
   font-weight: 600;
   color: var(--text-secondary);
+}
+.home-feat::before {
+  content: '✓';
+  color: var(--green-500);
+  font-weight: 800;
+  margin-right: 6px;
 }
 #home-continue { width: 100%; max-width: 780px; }
 .home-continue {
@@ -303,6 +390,10 @@ button.primary:hover { background: var(--green-500); box-shadow: var(--shadow-gl
   .home-cards { grid-template-columns: 1fr; }
   .topnav .nav-link { padding: 7px 10px; }
 }
+@media (max-width: 560px) {
+  .wordmark-text { display: none; } /* logo tile alone — keeps 3 nav links from overflowing */
+  .topbar { padding: 0 14px; gap: 8px; }
+}
 
 /* ---------------- progress (centered, knight loader) ---------------- */
 #screen-progress {
@@ -319,7 +410,7 @@ button.primary:hover { background: var(--green-500); box-shadow: var(--shadow-gl
   aspect-ratio: 1 / 1;
   border-radius: 10px;
   overflow: hidden;
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-md), 0 0 48px -6px rgba(129, 182, 76, 0.35);
   margin-bottom: 22px;
   animation: rise-in 0.4s var(--ease-out) both;
 }
@@ -576,6 +667,7 @@ cg-board square.move-dest {
   width: 460px;
   flex-shrink: 0;
   background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--r-lg);
   box-shadow: var(--shadow-sm);
   padding: 6px;
@@ -705,7 +797,7 @@ table.counts { width: 100%; border-collapse: collapse; margin-top: 8px; font-siz
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: #fff;
-  background: var(--green, #81b64c);
+  background: var(--green-500);
   border-radius: var(--r-sm);
   padding: 2px 7px;
 }
@@ -720,7 +812,7 @@ table.counts { width: 100%; border-collapse: collapse; margin-top: 8px; font-siz
   padding: 2px 8px;
   cursor: pointer;
 }
-#live-back:hover { border-color: var(--green, #81b64c); color: var(--text-on-bubble); }
+#live-back:hover { border-color: var(--green-500); color: var(--text-on-bubble); }
 .live-thinking { opacity: 0.75; animation: live-pulse 1.2s ease-in-out infinite; }
 @keyframes live-pulse { 50% { opacity: 0.35; } }
 
@@ -774,17 +866,16 @@ table.counts { width: 100%; border-collapse: collapse; margin-top: 8px; font-siz
 
 /* nav controls — chess.com bottom bar */
 .controls {
-  height: 48px;
-  min-height: 48px;
+  height: 56px;
+  min-height: 56px;
   background: var(--bg-surface-2);
   border-radius: var(--r-md);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: 8px;
   padding: 0 12px;
 }
-.controls { height: 56px; min-height: 56px; gap: 8px; }
 .controls button {
   width: 42px;
   height: 42px;
@@ -825,7 +916,15 @@ table.counts { width: 100%; border-collapse: collapse; margin-top: 8px; font-siz
 .controls button.nav-primary svg { width: 26px; height: 26px; stroke-width: 2.8; }
 .controls button.nav-primary:hover { box-shadow: 0 5px 16px rgba(129, 182, 76, 0.6); filter: brightness(1.05); }
 .controls-gap { width: 10px; }
-.controls button#btn-new { width: auto; padding: 0 16px; font-size: 13px; font-weight: 700; border-radius: var(--r-full); }
+.controls button#btn-new {
+  width: auto;
+  padding: 0 16px;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  border-radius: var(--r-full);
+}
+.controls button#btn-new svg { width: 15px; height: 15px; }
 
 .footer {
   text-align: center;
@@ -1088,8 +1187,17 @@ body.focus-mode .board {
 }
 @keyframes cc-spin { to { transform: rotate(360deg); } }
 
-.progress-cancel { margin-top: 18px; color: var(--text-secondary); }
-.progress-cancel:hover { color: var(--text-primary); }
+.progress-cancel {
+  margin-top: 18px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-secondary);
+}
+.progress-cancel:hover {
+  background: var(--bg-surface-2);
+  border-color: var(--border-default);
+  color: var(--text-primary);
+}
 
 /* ---------------- chess.com tab ---------------- */
 .cc-search { display: flex; gap: 10px; margin: 4px 0 14px; }
@@ -1227,7 +1335,7 @@ body.focus-mode .board {
   transition: background 120ms;
 }
 .cc-row:last-child { border-bottom: none; }
-.cc-row:hover { background: var(--bg-surface-2); }
+.cc-row:hover { background: var(--bg-surface-2); box-shadow: inset 3px 0 0 var(--green-500); }
 .cc-row:hover .cc-go { color: var(--green-500); transform: translateX(2px); }
 .cc-game { flex: 1; min-width: 0; }
 .cc-players {

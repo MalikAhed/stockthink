@@ -6,6 +6,22 @@ for /work sessions). Past ~300 lines, /reflect compresses the oldest half into
 LESSONS.md. Entries below 2026-06-12p were migrated verbatim from
 improve/TRACKER.md's daily log (2026-06-12) — history is not rewritten.
 
+- **2026-06-13b** · USER FEATURE: site-wide visual facelift (index.html +
+  style.css ONLY — zero TS). chess.com signature raised 3D buttons (hard
+  `--green-edge` bottom edge, press-down :active) on every `.primary`; brand
+  identity: pawn-on-green logo tile in topbar + same mark as SVG favicon
+  (tab had NO icon before) + og: tags; nav links got house/magnifier icons,
+  active pill brightened; custom select chevron (appearance:none); global
+  :focus-visible green ring (none existed); home hero ambient glow + gradient
+  "explained" + green icon tiles + ✓ feature chips (max-width fixes 4+1 orphan
+  wrap); loader board green aura; quiet ghost Cancel; sidebar border; cc-row
+  hover inset accent; btn-new + icon. Hygiene: merged duplicate `.controls`
+  rule, normalized 2 stray `var(--green,…)` refs to `--green-500`, wordmark
+  text collapses ≤560px. ROLLBACK: tag `pre-facelift` = 23af32b; single commit
+  → one `git revert` undoes the whole pass. EVIDENCE: tsc clean · 246/247
+  green · build clean · smoke2 ALL PASSED (centered 690/1380 held) · 5
+  before/after screenshots compared per screen. SURPRISED: the two stray
+  `--green` vars only ever worked via their fallbacks.
 - **2026-06-13a** · USER FEATURE: home screen + topbar navigation + loading
   revamp. New `#screen-home` (hero, entry cards → each input tab, feature
   chips, resume card when a report is open); topnav Home / Game Review /

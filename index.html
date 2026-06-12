@@ -4,6 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="StockThink — free chess game analysis in your browser. Paste a PGN, get a full chess.com-style game review powered by Stockfish." />
+    <meta name="theme-color" content="#262421" />
+    <meta property="og:title" content="StockThink — Free Chess Game Review" />
+    <meta property="og:description" content="Paste a PGN or import from chess.com — accuracy, brilliancies, blunders and the coaching behind them. 100% in your browser." />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2381b64c'/%3E%3Cg fill='%23fff'%3E%3Ccircle cx='16' cy='9.5' r='4.6'/%3E%3Cpath d='M16 12.5l4.4 10.7H11.6z'/%3E%3Crect x='9.5' y='23.2' width='13' height='3.8' rx='1.9'/%3E%3C/g%3E%3C/svg%3E" />
     <title>StockThink — Free Chess Game Review</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -20,10 +24,21 @@
   <body>
     <div id="app">
       <header class="topbar">
-        <button class="wordmark" id="nav-brand" title="Home">StockTh<span class="wordmark-dot"></span>nk</button>
+        <button class="wordmark" id="nav-brand" title="Home">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 32 32" fill="currentColor"><circle cx="16" cy="9.5" r="4.6"/><path d="M16 12.5l4.4 10.7H11.6z"/><rect x="9.5" y="23.2" width="13" height="3.8" rx="1.9"/></svg>
+          </span>
+          <span class="wordmark-text">StockTh<span class="wordmark-dot"></span>nk</span>
+        </button>
         <nav class="topnav">
-          <button id="nav-home" class="nav-link active">Home</button>
-          <button id="nav-input" class="nav-link">Game Review</button>
+          <button id="nav-home" class="nav-link active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.2 12 4l9 7.2"/><path d="M5.5 9.8V20h13V9.8"/></svg>
+            Home
+          </button>
+          <button id="nav-input" class="nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.4-4.4"/></svg>
+            Game Review
+          </button>
           <button id="nav-review" class="nav-link hidden">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 12h16M12 4v16"/></svg>
             Current Game
@@ -35,7 +50,7 @@
       <section id="screen-home" class="screen">
         <div class="home-hero">
           <div id="home-board" class="loader-board home-board" aria-hidden="true"></div>
-          <h1 class="home-title">Every move, explained.</h1>
+          <h1 class="home-title">Every move, <span class="title-accent">explained</span>.</h1>
           <p class="home-sub">
             A full chess.com-style Game Review — accuracy, brilliancies, blunders and the
             coaching behind them. Powered by Stockfish 18 running entirely in your browser.
@@ -94,7 +109,10 @@
           <p class="hint">Paste a PGN (chess.com / lichess export) and let Stockfish 18 review every move — entirely in your browser.</p>
           <textarea id="pgn-input" spellcheck="false" placeholder='[Event "..."]&#10;&#10;1. e4 e5 2. Nf3 ...'></textarea>
           <div class="row">
-            <button id="analyze-btn" class="primary">Analyze game</button>
+            <button id="analyze-btn" class="primary">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.4-4.4"/></svg>
+              Analyze game
+            </button>
           </div>
           <p id="input-error" class="error hidden"></p>
         </div>
@@ -144,7 +162,10 @@
               <button id="btn-flip" title="Flip board (f)" aria-label="Flip board">
                 <svg viewBox="0 0 24 24"><path d="M8 7v10M8 17l-3-3M8 17l3-3"/><path d="M16 17V7M16 7l-3 3M16 7l3 3"/></svg>
               </button>
-              <button id="btn-new" title="Review another game">New</button>
+              <button id="btn-new" title="Review another game">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+                New
+              </button>
             </div>
           </aside>
         </div>
