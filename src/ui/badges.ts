@@ -22,20 +22,6 @@ export const CLASS_COLORS: Record<Classification, string> = {
   blunder: '#ca3431',
 };
 
-export const CLASS_GLYPHS: Record<Classification, string> = {
-  brilliant: '!!',
-  great: '!',
-  best: '★',
-  excellent: '✓',
-  good: '✓',
-  book: 'B',
-  forced: 'F',
-  inaccuracy: '?!',
-  mistake: '?',
-  miss: '✗',
-  blunder: '??',
-};
-
 export const CLASS_LABELS: Record<Classification, string> = {
   brilliant: 'Brilliant',
   great: 'Great move',

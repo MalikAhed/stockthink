@@ -180,13 +180,5 @@ export const isInBadSpot = (board: Board, square: Square): boolean => {
   );
 };
 
-/** Squares of `color`'s non-pawn, non-king pieces. */
-export const minorMajorSquares = (board: Board, color: Color): Square[] => {
-  const out: Square[] = [];
-  for (const role of ['knight', 'bishop', 'rook', 'queen'] as Role[])
-    for (const sq of board.pieces(color, role)) out.push(sq);
-  return out;
-};
-
 /** Re-export for callers that need raw attack sets. */
 export { attacks };

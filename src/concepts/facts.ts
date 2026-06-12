@@ -134,6 +134,3 @@ export const factPriority = (f: Fact): number => PRIORITY[f.kind];
 
 export const sortFacts = (facts: Fact[]): Fact[] =>
   [...facts].sort((a, b) => factPriority(a) - factPriority(b));
-
-/** Human noun for a role ("knight", "bishop", …). */
-export const roleName = (role: Role): string => role;

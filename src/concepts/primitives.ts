@@ -36,9 +36,6 @@ import {
 
 const RAY_ROLES: Role[] = ['bishop', 'rook', 'queen'];
 
-/** Material values with king = 99 (royal fork targets, SEE caps). */
-export const KING_VALUES = PIECE_VALUES;
-
 export { isDefended, isHanging, isInBadSpot, canBeTakenByLowerPiece };
 
 /* ------------------------------------------------------------ material --- */
