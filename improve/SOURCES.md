@@ -74,7 +74,7 @@ fixtures (fires / correctly stays silent) are green AND the e2e gate passed.
 
 ## Chunk queue (book)
 
-- [ ] B1 §4.1 The Candidate Move (pp. 372–374)
+- [x] B1 §4.1 The Candidate Move (pp. 372–374) — mined 2026-06-12 → GM-1/2/3
 - [ ] B2 §4.2 The Art of Falsifying (pp. 374–379)
 - [ ] B3 §4.3 Why Can't I Play Like a Super-GM? (pp. 379–392)
 - [ ] B4 §4.5 How Many Moves Ahead (pp. 395–401)
@@ -87,4 +87,43 @@ fixtures (fires / correctly stays silent) are green AND the e2e gate passed.
 
 ## Mined queue
 
-(empty — first MINE unit starts at B1)
+### GM-1 second-candidate contrast                                   [proven]
+Pattern: strong players weigh a small shortlist of candidate moves; a move
+  that was on the engine's own shortlist but not its top pick deserves
+  candidate framing ("a natural candidate, but…"), not generic criticism or
+  generic praise.
+Exceptions: not when the drop is mistake/blunder-sized (≥10) — being PV2 at
+  a huge gap isn't "shortlist company"; not when the move IS the best.
+Source: GM pp. 372–374 (§4.1) — GMs shortlist candidates via pattern
+  recognition, then pick between them.
+Confirm-gate: played move == first move of engine MultiPV line 2 AND
+  winDrop < 10 AND move != best.
+Voice: "One of the main candidate moves here — only {best} promised a bit
+  more." / on an inaccuracy: "A natural candidate, but it falls just short."
+Fixture: synthetic-lines unit (played==lines[1][0], drop 6 → fires; drop 15
+  → silent; played==best → silent) + gate e2e read-through.
+Proven 2026-06-12: fact `second_candidate` (annotate.ts, gate winDrop<10) +
+  composer weaving (neutral-pool replacement on good moves, verdict softener
+  on inaccuracies). Gate shows it live on Opera Game 8.Nc3.
+
+### GM-2 hard-to-find best move                                       [mined]
+Pattern: in complex/irrational positions even GMs take 4× longer and club
+  players find the best move only ~40% of the time — a missed best move that
+  was "unnatural" (quiet move, sacrifice, retreat) deserves softened
+  criticism; finding it deserves escalated praise.
+Exceptions: obvious recaptures/checks are never "hard to find".
+Source: GM pp. 373–374 (§4.1).
+Confirm-gate: needs a board-checkable "unnatural" predicate (sacrifice via
+  SEE<0, retreat, quiet non-capture non-check while tactics are on) — spec
+  in a PATTERN unit. AUDIT overlap: `only_move` fact + brilliant/great
+  classifications already cover part of this; extend their voice, don't
+  duplicate.
+Fixture: TBD at spec time.
+
+### GM-3 single-candidate positions                                   [mined]
+Pattern: when one candidate towers over the rest, the position is critical —
+  say so ("the position demanded exactly this").
+AUDIT: `only_move` fact already detects this (gap ≥25 between PV1/PV2,
+  annotate.ts:322) — audit its threshold + voice against the book framing
+  rather than adding anything new.
+Source: GM pp. 372–373 (§4.1).

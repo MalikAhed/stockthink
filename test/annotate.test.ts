@@ -52,6 +52,26 @@ describe('annotateMove — terminal & context', () => {
     );
     expect(byKind(facts, 'only_move')).toBeTruthy();
   });
+
+  it('second_candidate fires when the played move heads engine line 2 (GM-1)', () => {
+    const p = pos('6k1/5ppp/8/8/8/8/5PPP/3R2K1 w - - 0 1');
+    const lines = [
+      { eval: { cp: 50 }, pvUci: ['d1d8'] },
+      { eval: { cp: 20 }, pvUci: ['d1d2'] },
+    ];
+    const facts = annotateMove(p, mv('d1d2'), ctx({ bestUci: 'd1d8', winDrop: 4, lines }));
+    const sc = byKind(facts, 'second_candidate');
+    expect(sc).toBeTruthy();
+    expect(sc && sc.kind === 'second_candidate' && sc.best.san).toBe('Rd8#');
+    // mistake-sized drop: PV2 membership is not "shortlist company" (gate <10)
+    expect(
+      byKind(annotateMove(p, mv('d1d2'), ctx({ bestUci: 'd1d8', winDrop: 15, lines })), 'second_candidate'),
+    ).toBeFalsy();
+    // the best move itself never gets the fact
+    expect(
+      byKind(annotateMove(p, mv('d1d8'), ctx({ bestUci: 'd1d8', winDrop: 0, lines })), 'second_candidate'),
+    ).toBeFalsy();
+  });
 });
 
 describe('annotateMove — what the move concedes', () => {

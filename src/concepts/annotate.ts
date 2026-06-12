@@ -325,6 +325,21 @@ export function annotateMove(before: Chess, move: NormalMove, ctx: AnnotateConte
     if (gap >= ONLY_MOVE_GAP) facts.push({ kind: 'only_move' });
   }
 
+  // GM-1 (Think Like a Super-GM §4.1): the move was on the engine's own
+  // shortlist — PV2's first move — and the drop stayed below mistake size.
+  // Candidate framing instead of generic praise/criticism.
+  if (
+    ctx.lines.length >= 2 &&
+    ctx.bestUci !== null &&
+    ctx.bestUci !== playedUci &&
+    ctx.lines[1].pvUci[0] === playedUci &&
+    ctx.winDrop < 10
+  ) {
+    const bestMove = parseUci(ctx.bestUci) as NormalMove | undefined;
+    if (bestMove && before.isLegal(bestMove))
+      facts.push({ kind: 'second_candidate', best: sanMove(before, bestMove) });
+  }
+
   /* ---- what the played move achieves ----------------------------------- */
   const target = before.board.get(move.to);
   const victim = target && target.color !== mover ? target : undefined;

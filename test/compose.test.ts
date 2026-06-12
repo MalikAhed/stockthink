@@ -180,6 +180,34 @@ describe('composeComment — good moves (purpose)', () => {
     expect(c.more).not.toMatch(/^This allows a forced mate/);
   });
 
+  it('second_candidate frames a near-best move instead of the neutral pool (GM-1)', () => {
+    const sc = { kind: 'second_candidate', best: { san: 'Qe3', uci: 'd2e3' } } as Fact;
+    const c = composeComment(move({ classification: 'good', winDrop: 4, facts: [sc] }));
+    expect(c.text).toBe('One of the main candidate moves here — only Qe3 promised a bit more.');
+    // but a real purpose fact still outranks it
+    const c2 = composeComment(
+      move({
+        classification: 'good',
+        winDrop: 4,
+        facts: [sc, { kind: 'positional', fact: { kind: 'develops', role: 'knight', square: 'f3' } }],
+      }),
+    );
+    expect(c2.text).toContain('knight');
+    expect(c2.more ?? '').not.toContain('candidate'); // context fact, never spilled into "more"
+  });
+
+  it('second_candidate softens an inaccuracy verdict (GM-1)', () => {
+    const c = composeComment(
+      move({
+        classification: 'inaccuracy',
+        winDrop: 6,
+        facts: [{ kind: 'second_candidate', best: { san: 'Qe3', uci: 'd2e3' } } as Fact],
+      }),
+    );
+    expect(c.text).toContain('Qe3 was the better way.');
+    expect(c.text).toContain('A natural candidate, but it falls just short.');
+  });
+
   it('book moves name the opening', () => {
     const c = composeComment(move({ classification: 'book', openingName: "King's Indian Defense" }));
     expect(c.text).toBe("Book: King's Indian Defense.");
