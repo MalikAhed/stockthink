@@ -150,7 +150,7 @@ Proven 2026-06-12: composer 'explain more' on mistake/blunder with ≥1 purpose
   refutation[0] by priority sort). Live on Blackburne 5.Nxf7 (Qxg2) and
   7.Be2 (Nf3#), Opera 15.Bxd7+ (Nxd7).
 
-### GM-5 Lasker frame for Miss                                        [mined]
+### GM-5 Lasker frame for Miss                                       [proven]
 Pattern: weaker players stop at the first good-looking move; GMs keep looking
   for a better one. A move that keeps the win but skips a clean knockout is
   the classic case.
@@ -158,11 +158,16 @@ AUDIT: the `miss` classification + missed_* facts already detect this —
   extend the miss-class voice with the Lasker frame ("A good move — but the
   position offered more: …"), don't add detection.
 Source: GM pp. 377–379 (§4.2, "relentless determination").
+Proven 2026-06-12: miss without a concrete bad cause leads with "A decent
+  move on its own — but the position offered more." before the missed fact.
 
-### GM-3 single-candidate positions                                   [mined]
+### GM-3 single-candidate positions                                  [proven]
 Pattern: when one candidate towers over the rest, the position is critical —
   say so ("the position demanded exactly this").
 AUDIT: `only_move` fact already detects this (gap ≥25 between PV1/PV2,
   annotate.ts:322) — audit its threshold + voice against the book framing
   rather than adding anything new.
 Source: GM pp. 372–373 (§4.1).
+Proven 2026-06-12 (audit): ONLY_MOVE_GAP=10 win% confirmed sane (book:
+  towering candidate = critical moment); voice now opens with "The position
+  demanded exactly this". Note: earlier queue note said gap 25 — actual is 10.

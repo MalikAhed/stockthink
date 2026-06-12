@@ -129,6 +129,10 @@ export function composeComment(m: MoveReport): Comment {
       parts.push(sentence(cause)!);
       used.push(cause);
     }
+    // GM-5 (book §4.2, Lasker): a miss is not a bad move — it let a better
+    // one go. Frame it that way before naming what was on the table.
+    if (m.classification === 'miss' && !cause)
+      parts.push('A decent move on its own — but the position offered more.');
     // then what was better, and WHY (the best move's own facts)
     const better = missedFacts[0];
     if (better) {
