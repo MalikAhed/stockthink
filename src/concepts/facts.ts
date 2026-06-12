@@ -57,6 +57,8 @@ export type Fact =
   | { kind: 'positional'; fact: PositionalFact }
   /* what the played move concedes (bad) */
   | { kind: 'hangs_piece'; piece: PieceOn; capture: SanMove }
+  /* GM-7 (book §4.3): the move walked away from a square it had to cover */
+  | { kind: 'abandons_square'; role: Role; from: string; square: string; reply: SanMove }
   /* a piece was ALREADY under attack and this move did nothing about it */
   | { kind: 'ignores_threat'; piece: PieceOn; capture: SanMove }
   | { kind: 'allows_mate'; mateIn: number; firstMove: SanMove | null }
@@ -110,6 +112,7 @@ const PRIORITY: Record<FactKind, number> = {
   allows_mate: 1,
   missed_mate: 2,
   hangs_piece: 3,
+  abandons_square: 3.5,
   ignores_threat: 3.5,
   allows_fork: 4,
   refutation: 5,

@@ -226,6 +226,8 @@ export function renderFact(f: Fact): string | null {
       return `${f.move.san} would have trapped the ${pieceAt(f.piece)}.`;
     case 'missed_idea':
       return `${f.move.san} was the better way — it would have ${f.ideas.map(ideaClause).join(' and ')}.`;
+    case 'abandons_square':
+      return `The ${f.role} had a job on ${f.from} — covering ${f.square} — and this move walks away from it; ${f.reply.san} steps straight into the gap.`;
     case 'missed_mate_threat':
       return `${f.move.san} would have set up a direct mating threat.`;
   }

@@ -380,3 +380,27 @@ describe('annotateMove — GM-6 removes-checks prophylaxis', () => {
     ).toBeFalsy();
   });
 });
+
+describe('annotateMove — GM-7 abandons a covered square', () => {
+  // Ng4 is the only piece covering f2; after Ne5 the queen infiltrates there
+  it('fires when the refutation lands on the square the moved piece left', () => {
+    const facts = annotateMove(
+      pos('6k1/q5pp/8/8/6N1/7P/6PK/3R4 w - - 0 1'),
+      mv('g4e5'),
+      ctx({ evalBefore: { cp: 100 }, winDrop: 12, bestUci: 'd1d2', replyPv: ['a7f2'] }),
+    );
+    const f = byKind(facts, 'abandons_square');
+    expect(f).toMatchObject({ role: 'knight', from: 'g4', square: 'f2' });
+    expect(f && f.kind === 'abandons_square' && f.reply.san).toBe('Qf2');
+  });
+
+  it('stays silent when another piece still covers the square', () => {
+    // same position with a bishop on g1 — f2 is still covered after Ne5
+    const facts = annotateMove(
+      pos('6k1/q5pp/8/8/6N1/7P/6PK/3R2B1 w - - 0 1'),
+      mv('g4e5'),
+      ctx({ evalBefore: { cp: 100 }, winDrop: 12, bestUci: 'd1d2', replyPv: ['a7f2'] }),
+    );
+    expect(byKind(facts, 'abandons_square')).toBeFalsy();
+  });
+});
