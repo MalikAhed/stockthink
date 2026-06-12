@@ -70,9 +70,18 @@ export type Fact =
   | { kind: 'missed_pin'; move: SanMove; pinned: PieceOn }
   | { kind: 'missed_trap'; move: SanMove; piece: PieceOn }
   | { kind: 'missed_mate_threat'; move: SanMove }
+  /* quiet best move explained by its own purpose (no tactical miss found) */
+  | { kind: 'missed_idea'; move: SanMove; ideas: MissedIdea[] }
   /* context */
   | { kind: 'only_move' }
   | { kind: 'forced' };
+
+export type MissedIdea =
+  | { what: 'defends'; piece: PieceOn }
+  | { what: 'trades'; victim: PieceOn }
+  | { what: 'escapes'; role: Role }
+  | { what: 'wins_tempo'; target: PieceOn }
+  | { what: 'positional'; fact: PositionalFact };
 
 export type FactKind = Fact['kind'];
 
@@ -95,6 +104,7 @@ const PRIORITY: Record<FactKind, number> = {
   missed_trap: 8,
   missed_pin: 9,
   missed_mate_threat: 10,
+  missed_idea: 10.5,
   wins_free_piece: 11,
   creates_fork: 12,
   traps_piece: 13,

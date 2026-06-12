@@ -29,7 +29,7 @@ import {
   winsTempo,
 } from './detectors';
 import { between } from 'chessops/attacks';
-import type { Fact, PieceOn, SanMove } from './facts';
+import type { Fact, MissedIdea, PieceOn, SanMove } from './facts';
 import { factPriority, sortFacts } from './facts';
 import type { PinFound } from './primitives';
 import {
@@ -501,6 +501,31 @@ export function annotateMove(before: Chess, move: NormalMove, ctx: AnnotateConte
         createsMateThreat(before, best)
       )
         facts.push({ kind: 'missed_mate_threat', move: bestSan });
+
+      // no tactical miss found: explain the quiet best move by its own purpose
+      // so the suggestion always carries a WHY (never a bare "was better")
+      const MISSED: Fact['kind'][] = [
+        'missed_mate', 'missed_free_piece', 'missed_fork',
+        'missed_pin', 'missed_trap', 'missed_mate_threat',
+      ];
+      if (!facts.some(f => MISSED.includes(f.kind))) {
+        const ideas: MissedIdea[] = [];
+        const movedRoleBest = before.board.get(best.from)!.role;
+        // a sound non-free capture: the point was the exchange itself
+        if (bestVictim && seeSquare(afterBest, best.to) === 0)
+          ideas.push({ what: 'trades', victim: { role: bestVictim.role, square: makeSquare(best.to) } });
+        if (isInBadSpot(before.board, best.from) && seeSquare(afterBest, best.to) === 0)
+          ideas.push({ what: 'escapes', role: movedRoleBest });
+        const saved = defendsHangingPieces(before, best);
+        if (saved.length) ideas.push({ what: 'defends', piece: pieceOn(afterBest, saved[0]) });
+        const tempo = winsTempo(before, best);
+        if (tempo !== null && tempoConfirmed(afterBest, mover, best.to, tempo, ctx.lines[0]?.pvUci.slice(1)))
+          ideas.push({ what: 'wins_tempo', target: pieceOn(afterBest, tempo) });
+        for (const f of positionalPurposes(before, best))
+          ideas.push({ what: 'positional', fact: f });
+        if (ideas.length)
+          facts.push({ kind: 'missed_idea', move: bestSan, ideas: ideas.slice(0, 2) });
+      }
     }
   }
 
