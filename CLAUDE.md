@@ -42,12 +42,13 @@ executes **`improve/README.md`** — the self-contained workshop protocol
 (hard limits: default 3 / max 5 work units, gate must pass, one commit per
 item, TRACKER updated, push = deploy, stop).
 
-The workshop (`improve/`) is the daily working set — keep it to 3 files:
+The workshop (`improve/`) is the daily working set — keep it to 4 files:
 
 | File | Role |
 |---|---|
 | `improve/README.md` | the session protocol (start here every day) |
-| `improve/TODO.md` | prioritized queue, executed top-down; `[hard]` items = strongest model only |
+| `improve/TODO.md` | engineering queue, executed top-down; `[hard]` items = strongest model only |
+| `improve/SOURCES.md` | **workflow v3** pattern-mining queue: book/CPW/puzzle chunks → patterns (own words) → engine-confirm-gated detectors. Book PDF lives at `~/think-like-a-super-gm-*.pdf`, NEVER committed (copyright) |
 | `improve/TRACKER.md` | concept coverage snapshot + recall table + 1–3-line daily log |
 
 Reference shelf (consulted only when an item needs it, never read wholesale):
