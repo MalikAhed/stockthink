@@ -42,6 +42,11 @@ trappedPiece→traps_piece · mateIn1→delivers_mate/mate_threat · sacrifice�
 
 ## Daily log (append ONE entry per session, 1–3 lines, newest on top)
 
+- **2026-06-12n** · UX batch · san-tag pills (Neo piece SVG replaces N/B/R in all
+  prose; hover enlarges + plays the move on the board) · board coords fixed
+  (inside-square chess.com style; dangling-selector bug squashed) · nav buttons
+  restyled · Spotlight try-mode: user moves get live ratings + blue “Your move”
+  card + undo/back-to-line; eval bar live in focus mode. 226 tests green.
 - **2026-06-12m** · 8 units · Long run (user away): W3 voice pass (print-through
   audit) · PATTERN GM-4 falsify-coaching · GM-5 Lasker miss frame · GM-3
   only_move voice audit · MINE B3→GM-6/7 + B4→GM-8/9 · PATTERN GM-6

@@ -7,6 +7,7 @@ import type { AnnotatedMove, AnnotatedReport } from '../analyze';
 import { composeComment, type VariationChip } from '../compose/compose';
 import type { EvalScore } from '../analysis/winprob';
 import { badgeHtml, CLASS_COLORS } from './badges';
+import { renderRich } from './santag';
 
 /** "+1.3" / "−0.5" / "M5" — numbers belong to chips/bars, not prose. */
 export function formatEval(ev: EvalScore): string {
@@ -18,7 +19,7 @@ export function formatEval(ev: EvalScore): string {
 const esc = (s: string): string =>
   s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-const headline = (c: AnnotatedMove['classification']): string => {
+export const headline = (c: AnnotatedMove['classification']): string => {
   switch (c) {
     case 'best': return 'the best move';
     case 'book': return 'a book move';
@@ -91,18 +92,18 @@ export function renderCoach(
         ${live ? '<div class="live-row"><span class="live-tag">Your move</span><button id="live-back" title="Return to the game">↩ Back to review</button></div>' : ''}
         <div class="verdict-row">
           ${badgeHtml(c)}
-          <span class="verdict-label"><span class="san">${esc(move.san)}</span> is <span class="verdict-class" style="color:${CLASS_COLORS[c]}">${headline(c)}</span></span>
+          <span class="verdict-label"><span class="san">${renderRich(move.san, [move.fenBefore])}</span> is <span class="verdict-class" style="color:${CLASS_COLORS[c]}">${headline(c)}</span></span>
           <span class="score-chip">${formatEval(move.evalAfter)}</span>
         </div>
-        <div class="commentary-text">${esc(aiComment ?? comment.text)}</div>
+        <div class="commentary-text">${renderRich(aiComment ?? comment.text, [move.fenBefore, move.fenAfter])}</div>
         ${chipsHtml ? `<div class="chips-row">${chipsHtml}</div>` : ''}
         ${
           aiComment
             ? `<details class="coach-more"><summary>Quick take</summary>
-               <div class="commentary-text">${esc(comment.text)}</div></details>`
+               <div class="commentary-text">${renderRich(comment.text, [move.fenBefore, move.fenAfter])}</div></details>`
             : comment.more
               ? `<details class="coach-more"><summary>Explain more</summary>
-               <div class="commentary-text">${esc(comment.more)}</div></details>`
+               <div class="commentary-text">${renderRich(comment.more, [move.fenBefore, move.fenAfter])}</div></details>`
               : ''
         }
       </div>

@@ -285,20 +285,49 @@ cg-board square.move-dest {
   background: radial-gradient(rgba(20, 85, 30, 0.5) 22%, #208530 0, rgba(0, 0, 0, 0.3) 0, rgba(0, 0, 0, 0) 0);
 }
 
-/* coordinate colors on the green board */
-.orientation-white .ranks :nth-child(odd),
-.orientation-white .files :nth-child(even),
-.orientation-black .ranks :nth-child(even),
-.orientation-black .files :nth-child(odd) {
-  color: var(--board-light);
+/* coordinates INSIDE the squares, chess.com style: number top-left of the
+   left column, letter bottom-right of the bottom row, colored like the
+   OPPOSITE square so they always read clearly */
+.cg-wrap coords {
+  position: absolute;
+  display: flex;
+  pointer-events: none;
+  opacity: 1;
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: clamp(10px, 1.5vmin, 13px);
 }
-.orientation-white .ranks :nth-child(even),
-.orientation-white .files :nth-child(odd),
-.orientation-black .ranks :nth-child(odd),
-.orientation-black .files :nth-child(even) {
+.cg-wrap coords coord { flex: 1 1 auto; transform: none; }
+.cg-wrap coords.ranks {
+  left: 0;
+  top: 0;
+  width: auto;
+  height: 100%;
+  flex-flow: column-reverse;
+}
+.cg-wrap coords.ranks.black { flex-flow: column; }
+.cg-wrap coords.ranks coord { padding: 3px 0 0 5px; transform: none; }
+.cg-wrap coords.files {
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  flex-flow: row;
+}
+.cg-wrap coords.files.black { flex-flow: row-reverse; }
+.cg-wrap coords.files coord { text-align: right; padding: 0 5px 2px 0; }
+/* light squares carry dark-green text, dark squares carry cream text */
+.cg-wrap.orientation-white coords.ranks coord:nth-child(even),
+.cg-wrap.orientation-white coords.files coord:nth-child(even),
+.cg-wrap.orientation-black coords.ranks coord:nth-child(odd),
+.cg-wrap.orientation-black coords.files coord:nth-child(odd) {
   color: var(--board-dark);
 }
-.cg-wrap coords { font-family: var(--font-mono); font-weight: 600; }
+.cg-wrap.orientation-white coords.ranks coord:nth-child(odd),
+.cg-wrap.orientation-white coords.files coord:nth-child(odd),
+.cg-wrap.orientation-black coords.ranks coord:nth-child(even),
+.cg-wrap.orientation-black coords.files coord:nth-child(even) {
+  color: var(--board-light);
+}
 
 /* chess.com Neo piece set (CDN) */
 .cg-wrap piece.white.pawn   { background-image: url('https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wp.png'); }
@@ -527,29 +556,48 @@ table.counts { width: 100%; border-collapse: collapse; margin-top: 8px; font-siz
   gap: 4px;
   padding: 0 12px;
 }
+.controls { height: 56px; min-height: 56px; gap: 8px; }
 .controls button {
-  width: 38px;
-  height: 38px;
+  width: 42px;
+  height: 42px;
   padding: 0;
-  border-radius: var(--r-md);
-  background: var(--bg-surface-2);
+  border: 1px solid var(--border-default);
+  border-radius: var(--r-full);
+  background: var(--bg-surface-3);
+  color: var(--text-primary);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 15px;
-  transition: background 120ms, transform 80ms;
+  cursor: pointer;
+  transition: background 140ms, transform 140ms var(--ease-over), box-shadow 140ms;
 }
-.controls button:hover { background: var(--bg-surface-3); }
+.controls button svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.controls button:hover {
+  background: #555149;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.35);
+}
 .controls button:active { transform: scale(0.92); }
 .controls button.nav-primary {
-  width: 46px;
-  height: 46px;
-  background: var(--green-500);
-  color: #1a1a19;
-  box-shadow: var(--shadow-md);
+  width: 52px;
+  height: 52px;
+  border: none;
+  background: linear-gradient(135deg, #8bc34a, #689f38);
+  color: #fff;
+  box-shadow: 0 3px 10px rgba(129, 182, 76, 0.4);
 }
-.controls button.nav-primary:hover { box-shadow: var(--shadow-glow); filter: brightness(1.05); }
-.controls button#btn-new { width: auto; padding: 0 14px; font-size: 13px; font-weight: 600; }
+.controls button.nav-primary svg { width: 26px; height: 26px; stroke-width: 2.8; }
+.controls button.nav-primary:hover { box-shadow: 0 5px 16px rgba(129, 182, 76, 0.6); filter: brightness(1.05); }
+.controls-gap { width: 10px; }
+.controls button#btn-new { width: auto; padding: 0 16px; font-size: 13px; font-weight: 700; border-radius: var(--r-full); }
 
 .footer {
   text-align: center;
@@ -643,9 +691,9 @@ body.focus-mode #moves,
 body.focus-mode #graph,
 body.focus-mode #deep-review,
 body.focus-mode .sidebar .controls {
-  opacity: 0; pointer-events: none;
+  display: none;
 }
-body.focus-mode #eval-bar,
+body.focus-mode .sidebar { justify-content: center; background: transparent; box-shadow: none; }
 body.focus-mode .player-bar { opacity: 0.15; pointer-events: none; }
 body.focus-mode .topbar,
 body.focus-mode .footer { opacity: 0.35; }
@@ -724,3 +772,69 @@ body.focus-mode .board {
 .ai-panel .ai-row { display: flex; align-items: center; gap: 10px; margin: 8px 0; }
 .ai-panel .ai-status { font-size: 12px; color: var(--text-tertiary, #8a857c); }
 .ai-panel textarea { width: 100%; resize: vertical; }
+
+/* ---------------- rich move tags (piece image instead of a letter) ---- */
+.san-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  padding: 1px 7px 1px 4px;
+  border-radius: 7px;
+  background: rgba(0, 0, 0, 0.07);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: default;
+  transition: transform 0.18s var(--ease-over), box-shadow 0.18s, background 0.18s;
+  animation: tag-pop 0.25s var(--ease-over);
+}
+@keyframes tag-pop {
+  from { transform: scale(0.85); opacity: 0.4; }
+  to { transform: none; opacity: 1; }
+}
+.san-tag .san-piece { width: 18px; height: 18px; margin: -3px 0; }
+.san-tag:hover {
+  transform: scale(1.12);
+  background: rgba(129, 182, 76, 0.18);
+  border-color: rgba(129, 182, 76, 0.6);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+}
+/* on dark surfaces (movelist etc.) */
+.mv .mv-piece { width: 15px; height: 15px; vertical-align: -3px; margin-right: 1px; }
+
+/* ---------------- Spotlight try mode (the user's own move) ------------ */
+.spotlight-card.trymode {
+  background: linear-gradient(155deg, #eaf1f8 0%, #dfe9f4 100%);
+  box-shadow: 0 10px 36px -8px rgba(0, 0, 0, 0.55), 0 0 0 2px rgba(90, 140, 200, 0.55);
+}
+.spot-tag.try { color: #3d6ea5; }
+.spot-verdict {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0 10px;
+  font-size: 16px;
+  font-weight: 800;
+  color: #2c2a27;
+}
+.spot-badge { width: 26px; height: 26px; }
+.spot-eval {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 6px;
+  padding: 2px 8px;
+  color: #3d3936;
+}
+.spotlight-card.trymode .spot-caption { border-left-color: #5a8cc8; }
+.spotlight-card.trymode .spot-btn.primary {
+  background: linear-gradient(135deg, #64a0e0, #3d6ea5);
+  box-shadow: 0 3px 10px rgba(90, 140, 200, 0.45);
+  animation: cta-breathe-blue 2.4s ease-in-out infinite;
+}
+@keyframes cta-breathe-blue {
+  0%, 100% { box-shadow: 0 3px 10px rgba(90, 140, 200, 0.45); }
+  50% { box-shadow: 0 3px 18px rgba(90, 140, 200, 0.75); }
+}
