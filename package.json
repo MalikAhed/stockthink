@@ -9,7 +9,8 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "eval": "vite-node eval/score.ts --"
   },
   "dependencies": {
     "@mlc-ai/web-llm": "^0.2.84",

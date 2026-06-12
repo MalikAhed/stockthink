@@ -1,0 +1,602 @@
+{
+  "date": "2026-06-12",
+  "defaults": {
+    "nodes": 60000,
+    "multiPv": 3,
+    "hashMb": 32
+  },
+  "totals": {
+    "causal": {
+      "pts": 16,
+      "max": 20,
+      "pct": "80.0%"
+    },
+    "grounded": {
+      "pts": 29,
+      "max": 34,
+      "pct": "85.3%"
+    },
+    "economy": {
+      "pts": 18,
+      "max": 22,
+      "pct": "81.8%"
+    },
+    "total": {
+      "pts": 63,
+      "max": 76,
+      "pct": "82.9%"
+    }
+  },
+  "cases": [
+    {
+      "id": "opera-09-b5",
+      "category": "bad-causal",
+      "dims": [
+        "causal",
+        "grounded"
+      ],
+      "classification": "inaccuracy",
+      "leadKind": "regression",
+      "factKinds": [
+        "wins_tempo",
+        "regression"
+      ],
+      "text": "It falls further behind in development while the opponent brings pieces out. Qc7 was the better way.",
+      "more": "The idea — this gains time by attacking the bishop on c4, forcing an immediate answer — doesn't make up for what this concedes.",
+      "checks": {
+        "mentionsOk": false,
+        "factsOk": false,
+        "leadOk": false,
+        "forbiddenHits": [],
+        "classOk": true,
+        "sentences": 2,
+        "maxSentences": 3,
+        "falseAlarm": false
+      },
+      "scores": {
+        "causal": 0,
+        "grounded": 1
+      }
+    },
+    {
+      "id": "opera-07b-qe7",
+      "category": "good-quiet",
+      "dims": [
+        "causal",
+        "grounded",
+        "economy"
+      ],
+      "classification": "good",
+      "leadKind": "prepares",
+      "factKinds": [
+        "prepares",
+        "regression",
+        "second_candidate"
+      ],
+      "text": "This prepares Qb4+, forking the king and the bishop on c4.",
+      "more": "The queen comes out early — it can be chased around while the minor pieces are still at home.",
+      "checks": {
+        "mentionsOk": true,
+        "factsOk": true,
+        "leadOk": true,
+        "forbiddenHits": [],
+        "classOk": true,
+        "sentences": 1,
+        "maxSentences": 2,
+        "falseAlarm": false
+      },
+      "scores": {
+        "causal": 2,
+        "grounded": 2,
+        "economy": 2
+      }
+    },
+    {
+      "id": "opera-13-rxd7",
+      "category": "good-quiet",
+      "dims": [
+        "grounded",
+        "economy"
+      ],
+      "classification": "brilliant",
+      "leadKind": "sacrifice",
+      "factKinds": [
+        "hangs_piece",
+        "sacrifice",
+        "positional"
+      ],
+      "text": "A genuine rook sacrifice — material is given up for the attack. The rook lands on the seventh rank at d7, attacking from behind.",
+      "more": "This leaves the rook on d7 hanging — Nxd7 simply takes it.",
+      "checks": {
+        "mentionsOk": true,
+        "factsOk": true,
+        "leadOk": true,
+        "forbiddenHits": [],
+        "classOk": true,
+        "sentences": 2,
+        "maxSentences": 2,
+        "falseAlarm": false
+      },
+      "scores": {
+        "grounded": 2,
+        "economy": 2
+      }
+    },
+    {
+      "id": "opera-16-qb8",
+      "category": "good-quiet",
+      "dims": [
+        "grounded",
+        "economy"
+      ],
+      "classification": "great",
+      "leadKind": "only_move",
+      "factKinds": [
+        "hangs_piece",
+        "sacrifice",
+        "only_move"
+      ],
+      "text": "The position demanded exactly this — the only move that holds everything together. A genuine queen sacrifice — material is given up for the attack.",
+      "more": "This leaves the queen on b8 hanging — Nxb8 simply takes it.",
+      "checks": {
+        "mentionsOk": true,
+        "factsOk": true,
+        "leadOk": true,
+        "forbiddenHits": [],
+        "classOk": true,
+        "sentences": 2,
+        "maxSentences": 2,
+        "falseAlarm": false
+      },
+      "scores": {
+        "grounded": 2,
+        "economy": 2
+      }
+    },
+    {
+      "id": "opera-17-rd8",
+      "category": "good-quiet",
+      "dims": [
+        "grounded",
+        "economy"
+      ],
+      "classification": "best",
+      "leadKind": "delivers_mate",
+      "factKinds": [
+        "delivers_mate"
+      ],
+      "text": "Checkmate — the game ends here.",
+      "more": null,
+      "checks": {
+        "mentionsOk": true,
+        "factsOk": true,
+        "leadOk": true,
+        "forbiddenHits": [],
+        "classOk": true,
+        "sentences": 1,
+        "maxSentences": 1,
+        "falseAlarm": false
+      },
+      "scores": {
+        "grounded": 2,
+        "economy": 2
+      }
+    },
+    {
+      "id": "blk-04-nxe5",
+      "category": "bad-causal",
+      "dims": [
+        "causal",
+        "grounded"
+      ],
+      "classification": "inaccuracy",
+      "leadKind": "regression",
+      "factKinds": [
+        "missed_idea",
+        "wins_free_piece",
+        "regression"
+      ],
+      "text": "It gives up control of the center. Nxd4 was the better way — it would have taken the knight on d4.",
+      "more": "The idea — this wins the pawn on e5 for nothing, no recapture works — doesn't make up for what this concedes.",
+      "checks": {
+        "mentionsOk": true,
+        "factsOk": true,
+        "leadOk": false,
+        "forbiddenHits": [],
+        "classOk": true,
+        "sentences": 2,
+        "maxSentences": 3,
+        "falseAlarm": false
+      },
+      "scores": {
+        "causal": 1,
+        "grounded": 1
+      }
+    },
+    {
+      "id": "blk-04b-qg5",
+      "category": "good-quiet",
+      "dims": [
+        "economy"
+      ],
+      "classification": "best",
+      "leadKind": null,
+      "factKinds": [
+        "hangs_piece",
+        "regression"
+      ],
+      "text": "The best move here, no doubt about it.",
+      "more": "This leaves the pawn on f7 hanging — Bxf7+ simply takes it. The queen comes out early — it can be chased around while the minor pieces are still at home.",
+      "checks": {
+        "mentionsOk": true,
+        "factsOk": true,
+        "leadOk": true,
+        "forbiddenHits": [],
+        "classOk": true,
+        "sentences": 1,
+        "maxSentences": 1,
+        "falseAlarm": false
+      },
+      "scores": {
+        "economy": 2
+      }
+    },
+    {
+      "id": "blk-05-nxf7",
+      "category": "bad-causal",
+      "dims": [
+        "causal",
+        "grounded"
+      ],
+      "classification": "blunder",
+      "leadKind": "ignores_threat",
+      "factKinds": [
+        "ignores_threat",
+        "refutation",
+        "missed_free_piece",
+        "wins_free_piece",
+        "creates_fork",
+        "traps_piece",
+        "wins_tempo"
+      ],
+      "text": "The pawn on g2 was already under attack, and this move does nothing about it — Qxg2 now wins it. Bxf7+ was available, winning the pawn on f7 outright.",
+      "more": "The problem is Qxg2 (and after d3) — the rook is lost by force. The idea — this wins the pawn on f7 for nothing, no recapture works; the knight on f7 forks the queen on g5 and the rook on h8, they cannot all be saved; the enemy rook on h8 is now trapped, it has no safe square left; this gains time by attacking the queen on g5, forcing an immediate answer — doesn't make up for what this concedes. The test this move had to pass was Qxg2 — strong players spend most of their time looking for exactly this kind of answer before committing.",
+      "checks": {
+        "mentionsOk": true,
+        "factsOk": true,
+        "leadOk": true,
+        "forbiddenHits": [],
+        "classOk": true,
+        "sentences": 2,
+        "maxSentences": 3,
+        "falseAlarm": false
+      },
+      "scores": {
+        "causal": 2,
+        "grounded": 2
+      }
+    },
+    {
+      "id": "blk-05b-qxg2",
+      "category": "good-quiet",
+      "dims": [
+        "grounded",
+        "economy"
+      ],
+      "classification": "great",
+      "leadKind": "only_move",
+      "factKinds": [
+        "wins_free_piece",
+        "only_move"
+      ],
+      "text": "The position demanded exactly this — the only move that holds everything together. This wins the pawn on g2 for nothing — no recapture works.",
+      "more": null,
+      "checks": {
+        "mentionsOk": true,
+        "factsOk": true,
+        "leadOk": true,
+        "forbiddenHits": [],
+        "classOk": true,
+        "sentences": 2,
+        "maxSentences": 2,
+        "falseAlarm": false
+      },
+      "scores": {
+        "grounded": 2,
+        "economy": 2
+      }
+    },
+    {
+      "id": "blk-06b-qxe4",
+      "category": "good-quiet",
+      "dims": [
+        "grounded",
+        "economy"
+      ],
+      "classification": "best",
+      "leadKind": "wins_free_piece",
+      "factKinds": [
+        "wins_free_piece",
+        "defends_piece",
+        "positional",
+        "second_candidate"
+      ],
+      "text": "This wins the pawn on e4 for nothing — no recapture works. This protects the rook on h8, which was under attack.",
+      "more": "This strengthens the grip on the center.",
+      "checks": {
+        "mentionsOk": true,
+        "factsOk": true,
+        "leadOk": true,
+        "forbiddenHits": [],
+        "classOk": true,
+        "sentences": 2,
+        "maxSentences": 2,
+        "falseAlarm": false
+      },
+      "scores": {
+        "grounded": 2,
+        "economy": 2
+      }
+    },
+    {
+      "id": "blk-07-be2",
+      "category": "bad-causal",
+      "dims": [
+        "causal",
+        "grounded"
+      ],
+      "classification": "mistake",
+      "leadKind": "allows_mate",
+      "factKinds": [
+        "allows_mate",
+        "hangs_piece",
+        "hangs_piece",
+        "missed_pin",
+        "blocks_check",
+        "hard_to_find"
+      ],
+      "text": "This allows a forced mate: after Nf3# there is no defense (mate in one). Qe2 would have pinned the queen on e4 against the king. To be fair, Qe2 is a quiet move — the hardest kind to spot.",
+      "more": "This leaves the pawn on c2 hanging — Nxc2+ simply takes it. This leaves the knight on f7 hanging — Kxf7 simply takes it. The idea — the check is blocked while keeping the position intact — doesn't make up for what this concedes. The test this move had to pass was Nf3# — strong players spend most of their time looking for exactly this kind of answer before committing.",
+      "checks": {
+        "mentionsOk": true,
+        "factsOk": true,
+        "leadOk": true,
+        "forbiddenHits": [],
+        "classOk": true,
+        "sentences": 3,
+        "maxSentences": 3,
+        "falseAlarm": false
+      },
+      "scores": {
+        "causal": 2,
+        "grounded": 2
+      }
+    },
+    {
+      "id": "pz-fork-000Pw",
+      "category": "good-quiet",
+      "dims": [
+        "causal",
+        "grounded",
+        "economy"
+      ],
+      "classification": "great",
+      "leadKind": "only_move",
+      "factKinds": [
+        "creates_fork",
+        "only_move"
+      ],
+      "text": "The position demanded exactly this — the only move that holds everything together. The knight on e2 forks the king and the queen on c3 — they cannot all be saved.",
+      "more": null,
+      "checks": {
+        "mentionsOk": true,
+        "factsOk": true,
+        "leadOk": true,
+        "forbiddenHits": [],
+        "classOk": true,
+        "sentences": 2,
+        "maxSentences": 2,
+        "falseAlarm": false
+      },
+      "scores": {
+        "causal": 2,
+        "grounded": 2,
+        "economy": 2
+      }
+    },
+    {
+      "id": "pz-mate-001cr",
+      "category": "good-quiet",
+      "dims": [
+        "grounded",
+        "economy"
+      ],
+      "classification": "best",
+      "leadKind": "delivers_mate",
+      "factKinds": [
+        "delivers_mate"
+      ],
+      "text": "Checkmate — the game ends here.",
+      "more": null,
+      "checks": {
+        "mentionsOk": true,
+        "factsOk": true,
+        "leadOk": true,
+        "forbiddenHits": [],
+        "classOk": true,
+        "sentences": 1,
+        "maxSentences": 1,
+        "falseAlarm": false
+      },
+      "scores": {
+        "grounded": 2,
+        "economy": 2
+      }
+    },
+    {
+      "id": "pz-trap-009FP",
+      "category": "good-quiet",
+      "dims": [
+        "grounded",
+        "economy"
+      ],
+      "classification": "great",
+      "leadKind": "only_move",
+      "factKinds": [
+        "traps_piece",
+        "wins_tempo",
+        "positional",
+        "only_move",
+        "quiet_strength"
+      ],
+      "text": "The position demanded exactly this — the only move that holds everything together. The enemy queen on f6 is now trapped — it has no safe square left. A quiet move with teeth — the kind most players never even consider. Well spotted.",
+      "more": "This gains time by attacking the queen on f6, forcing an immediate answer. A developing move — the bishop joins the game from g5.",
+      "checks": {
+        "mentionsOk": true,
+        "factsOk": true,
+        "leadOk": true,
+        "forbiddenHits": [],
+        "classOk": true,
+        "sentences": 4,
+        "maxSentences": 2,
+        "falseAlarm": false
+      },
+      "scores": {
+        "grounded": 2,
+        "economy": 0
+      }
+    },
+    {
+      "id": "pz-fork-miss-000Pw",
+      "category": "bad-causal",
+      "dims": [
+        "causal",
+        "grounded"
+      ],
+      "classification": "blunder",
+      "leadKind": "abandons_square",
+      "factKinds": [
+        "abandons_square",
+        "missed_fork"
+      ],
+      "text": "The queen had a job on e5 — covering e3 — and this move walks away from it; Qe3 steps straight into the gap. Ne2+ would have forked the king and the queen on c3.",
+      "more": null,
+      "checks": {
+        "mentionsOk": true,
+        "factsOk": true,
+        "leadOk": false,
+        "forbiddenHits": [],
+        "classOk": true,
+        "sentences": 2,
+        "maxSentences": 3,
+        "falseAlarm": false
+      },
+      "scores": {
+        "causal": 1,
+        "grounded": 1
+      }
+    },
+    {
+      "id": "trap-rook-file-kick",
+      "category": "trap-wrong-reason",
+      "dims": [
+        "causal",
+        "grounded",
+        "economy"
+      ],
+      "classification": "best",
+      "leadKind": "mate_threat",
+      "factKinds": [
+        "mate_threat",
+        "positional",
+        "quiet_strength"
+      ],
+      "text": "This threatens checkmate with Rf8# next. The rook takes the open f-file, the natural highway into the position. A quiet move with teeth — the kind most players never even consider. Well spotted.",
+      "more": null,
+      "checks": {
+        "mentionsOk": true,
+        "factsOk": true,
+        "leadOk": true,
+        "forbiddenHits": [
+          "open f-file",
+          "natural highway"
+        ],
+        "classOk": true,
+        "sentences": 4,
+        "maxSentences": 2,
+        "falseAlarm": false
+      },
+      "scores": {
+        "causal": 2,
+        "grounded": 0,
+        "economy": 0
+      }
+    },
+    {
+      "id": "trap-legal-bxd1",
+      "category": "trap-wrong-reason",
+      "dims": [
+        "causal",
+        "grounded"
+      ],
+      "classification": "blunder",
+      "leadKind": "allows_mate",
+      "factKinds": [
+        "allows_mate",
+        "hangs_piece",
+        "missed_free_piece",
+        "captures_higher",
+        "regression"
+      ],
+      "text": "This allows a forced mate: after Bxf7+ there is no defense (mate in two). dxe5 was available, winning the knight on e5 outright.",
+      "more": "This leaves the pawn on f7 hanging — Bxf7+ simply takes it. It falls further behind in development while the opponent brings pieces out. The idea — a favorable exchange: the bishop takes the queen on d1 — doesn't make up for what this concedes. The test this move had to pass was Bxf7+ — strong players spend most of their time looking for exactly this kind of answer before committing.",
+      "checks": {
+        "mentionsOk": true,
+        "factsOk": true,
+        "leadOk": true,
+        "forbiddenHits": [],
+        "classOk": true,
+        "sentences": 2,
+        "maxSentences": 3,
+        "falseAlarm": false
+      },
+      "scores": {
+        "causal": 2,
+        "grounded": 2
+      }
+    },
+    {
+      "id": "trap-develop-hang",
+      "category": "trap-wrong-reason",
+      "dims": [
+        "causal",
+        "grounded"
+      ],
+      "classification": "blunder",
+      "leadKind": "ignores_threat",
+      "factKinds": [
+        "ignores_threat",
+        "refutation",
+        "missed_idea",
+        "positional",
+        "positional"
+      ],
+      "text": "The bishop on g5 was already under attack, and this move does nothing about it — hxg5 now wins it. Bh4 was the better way — it would have stepped the bishop out of danger.",
+      "more": "The problem is hxg5 (and after Nc3) — the bishop is lost by force. The idea — a developing move, the knight joins the game from f3; this strengthens the grip on the center — doesn't make up for what this concedes. The test this move had to pass was hxg5 — strong players spend most of their time looking for exactly this kind of answer before committing.",
+      "checks": {
+        "mentionsOk": true,
+        "factsOk": true,
+        "leadOk": true,
+        "forbiddenHits": [],
+        "classOk": true,
+        "sentences": 2,
+        "maxSentences": 3,
+        "falseAlarm": false
+      },
+      "scores": {
+        "causal": 2,
+        "grounded": 2
+      }
+    }
+  ]
+}
