@@ -655,11 +655,20 @@ export function annotateMove(before: Chess, move: NormalMove, ctx: AnnotateConte
         !play(before, best).isCheck() &&
         facts.some(f => TACTICAL_MISS.includes(f.kind))
       )
-        facts.push({
-          kind: 'hard_to_find',
-          move: bestSan,
-          reason: isRetreat && before.board.get(best.from)!.role !== 'king' ? 'retreat' : 'quiet',
-        });
+      {
+        // GM-12 (book §4.6, Puzzle 34 "bayonet attack"): a non-capturing pawn
+        // advance is the hardest miss of all — Adams notes novices "will not
+        // suspect that a pawn move can have such strength". A pawn never
+        // retreats, so it short-circuits the retreat/quiet split.
+        const bestRole = before.board.get(best.from)!.role;
+        const reason =
+          bestRole === 'pawn'
+            ? 'pawn_break'
+            : isRetreat && bestRole !== 'king'
+              ? 'retreat'
+              : 'quiet';
+        facts.push({ kind: 'hard_to_find', move: bestSan, reason });
+      }
     }
   }
 
