@@ -22,14 +22,6 @@ Take items top-down. Move finished items to Done (bottom) with date + commit.
   weaker than why-good. Use the engine PV after the bad move to narrate the
   punishment/intention ("this drops the bishop to …", "ignores the threat of …",
   "weakens the king after …"). Symmetric depth with the good-move side.
-- [ ] **U3 · LLM commentary, option A: zero-install API mode** — opt-in toggle
-  on the upload screen that sends position + facts to a hosted LLM (user pastes
-  their own API key, stored locally; nothing server-side — keeps zero-budget
-  constraint) and gets rephrased commentary back. Silent fallback to templates
-  on any failure.
-- [ ] **U4 · LLM commentary, option B: WebLLM local (~600 MB)** — experimental
-  opt-in WebLLM rephrase toggle (verify.ts-gated, downloads model in-browser,
-  silent fallback to templates). Both U3/U4 share one rephrase interface.
 - [ ] **U5 · Geometry & wrong-trigger audit** — sweep detectors for geometric
   bugs and facts firing on coincidental (non-causal) cases; add precision
   fixtures for each fix found.
@@ -98,6 +90,8 @@ Take items top-down. Move finished items to Done (bottom) with date + commit.
 _(items land here with the open question attached)_
 
 ## Done
+- [x] U3 · API-key LLM commentary — 2026-06-12 (src/llm/providers.ts generateViaApi: direct browser call to api.anthropic.com with user's own key in localStorage; haiku; R4 verify + silent fallback)
+- [x] U4 · WebLLM local commentary — 2026-06-12 (generateViaWebLLM: Llama-3.2-1B q4f16_1 via esm.run CDN dynamic import, WebGPU-gated, engine cached; same verify pipeline)
 - [x] C3 · Purpose-phrased better-move — 2026-06-12 (subsumed by U6 missed_idea)
 - [x] U1 · explain-more positive-bias bug — 2026-06-12 (compose.ts classification-aware: bad moves' purpose facts render only inside "The idea — … — doesn't make up for what this concedes" frame; regression tests)
 - [x] P1 · PV intent-confirmation everywhere — 2026-06-11 (forkConfirmed/tempoConfirmed vs engine best defense; newly-trapped only; pinned attackers threaten nothing off-ray)
