@@ -42,6 +42,13 @@ trappedPiece→traps_piece · mateIn1→delivers_mate/mate_threat · sacrifice�
 
 ## Daily log (append ONE entry per session, 1–3 lines, newest on top)
 
+- **2026-06-12o** · 3 units · MINE B5 (§4.6 pp. 401–416, Puzzle 34 bayonet
+  attack) → GM-10 strike-now pawn break + GM-11 guarded-target/remove-the-
+  defender (both `mined`, backlog 2/6) · PATTERN GM-12 proven: `hard_to_find`
+  reason gains 'pawn_break' (book: novices never suspect a pawn move bites this
+  hard) — softens a missed quiet pawn advance like quiet/retreat misses; fixture
+  f6→Qxg7# fires. Tests 226→227. Next: PATTERN GM-10 (open-lines missed_idea)
+  or GM-11 (deflection family, ties to R17/R18/DS1); chunk B6 (pp. 27–29).
 - **2026-06-12n** · UX batch · san-tag pills (Neo piece SVG replaces N/B/R in all
   prose; hover enlarges + plays the move on the board) · board coords fixed
   (inside-square chess.com style; dangling-selector bug squashed) · nav buttons
