@@ -459,3 +459,35 @@ describe('annotateMove — GM-9 counterattack beats passive defense', () => {
     ).toBeFalsy();
   });
 });
+
+describe('annotateMove — GM-2 praise side (quiet_strength)', () => {
+  const FEN = 'r5k1/5p1p/7P/8/5Q2/8/8/6K1 w - - 0 1';
+
+  it('playing a quiet tactical best move earns quiet_strength', () => {
+    // Qf6: quiet (no capture/check) and threatens Qg7#
+    const facts = annotateMove(
+      pos(FEN),
+      mv('f4f6'),
+      ctx({ winDrop: 0, bestUci: 'f4f6', lines: [{ eval: { cp: 900 }, pvUci: ['f4f6'] }] }),
+    );
+    expect(byKind(facts, 'mate_threat')).toBeTruthy();
+    expect(byKind(facts, 'quiet_strength')).toBeTruthy();
+  });
+
+  it('checking or non-best moves earn nothing extra', () => {
+    // a check is its own announcement — no quiet-strength praise
+    const check = annotateMove(
+      pos('6k1/5ppp/8/8/8/8/5PPP/3R2K1 w - - 0 1'),
+      mv('d1d8'),
+      ctx({ winDrop: 0, bestUci: 'd1d8' }),
+    );
+    expect(byKind(check, 'quiet_strength')).toBeFalsy();
+    // same quiet move but NOT the engine's best
+    const notBest = annotateMove(
+      pos(FEN),
+      mv('f4f6'),
+      ctx({ winDrop: 1, bestUci: 'f4e5', lines: [{ eval: { cp: 900 }, pvUci: ['f4e5'] }] }),
+    );
+    expect(byKind(notBest, 'quiet_strength')).toBeFalsy();
+  });
+});

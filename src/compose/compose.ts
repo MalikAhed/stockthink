@@ -39,7 +39,7 @@ const MISSED_KINDS: Fact['kind'][] = [
   'missed_mate_threat',
   'missed_idea',
 ];
-const CONTEXT_KINDS: Fact['kind'][] = ['only_move', 'forced', 'second_candidate', 'hard_to_find'];
+const CONTEXT_KINDS: Fact['kind'][] = ['only_move', 'forced', 'second_candidate', 'hard_to_find', 'quiet_strength'];
 
 const isBad = (f: Fact): boolean => BAD_KINDS.includes(f.kind) || f.kind === 'regression';
 const isMissed = (f: Fact): boolean => MISSED_KINDS.includes(f.kind);
@@ -163,6 +163,12 @@ export function composeComment(m: MoveReport): Comment {
       if (parts.length >= 2) break;
       parts.push(sentence(f)!);
       used.push(f);
+    }
+    // GM-2 praise side: the player found a quiet tactical move — say so
+    const qs = facts.find(f => f.kind === 'quiet_strength');
+    if (qs && parts.length > 0 && parts.length < 3) {
+      parts.push(sentence(qs)!);
+      used.push(qs);
     }
     if (parts.length === 0) {
       // GM-1: candidate framing beats a generic neutral line

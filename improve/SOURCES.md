@@ -123,9 +123,10 @@ Fixture: quiet Qf6 mate-threat miss fires; checking mate move Rd8# stays
 Proven 2026-06-12 (miss side): fact `hard_to_find` — best move quiet (no
   capture/check/promotion, EP-aware) + a missed_* tactic at MISS_GATE →
   softener appended to the verdict. Gate shows it on Blackburne 7.Be2 (missed
-  quiet pin Qe2). RESIDUAL: praise side (escalate brilliant/great voice when
-  the PLAYER finds a quiet tactical move) — needs quietness fact on played
-  moves; queue as PATTERN follow-up.
+  quiet pin Qe2). Praise side proven 2026-06-12: context fact `quiet_strength`
+  (played==best, winDrop≤2, no capture/check/promo, carries a confirmed
+  creates_fork/creates_pin/traps_piece/mate_threat) → "A quiet move with
+  teeth — the kind most players never even consider. Well spotted." 
 
 ### GM-4 falsify-before-committing coaching                          [proven]
 Pattern: strength correlates directly with time spent trying to REFUTE your
