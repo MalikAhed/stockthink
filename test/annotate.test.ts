@@ -226,6 +226,23 @@ describe('annotateMove — what the best move would have done', () => {
     expect(byKind(facts, 'hard_to_find')).toMatchObject({ reason: 'retreat' });
   });
 
+  it('a missed PAWN BREAK carries the pawn_break reason (GM-12)', () => {
+    // best g6: a non-capturing pawn advance threatening Qg7# (queen supported
+    // by the pushed pawn). Book §4.6: novices rarely suspect a pawn move bites.
+    const p = pos('6k1/6pp/7Q/5P2/8/8/8/6K1 w - - 0 1');
+    const facts = annotateMove(
+      p,
+      mv('g1f1'),
+      ctx({
+        winDrop: 18,
+        bestUci: 'f5f6',
+        lines: [{ eval: { cp: 900 }, pvUci: ['f5f6'] }],
+      }),
+    );
+    expect(byKind(facts, 'missed_mate_threat')).toMatchObject({ move: { san: 'f6' } });
+    expect(byKind(facts, 'hard_to_find')).toMatchObject({ move: { san: 'f6' }, reason: 'pawn_break' });
+  });
+
   it('missed free piece', () => {
     const p = pos('k7/8/8/3n4/8/8/3Q4/3K4 w - - 0 1');
     const facts = annotateMove(

@@ -81,7 +81,7 @@ export type Fact =
   | { kind: 'second_candidate'; best: SanMove }
   /* the missed best move was QUIET (no capture/check/promotion) yet tactical —
      the hardest kind to spot (GM-2: soften the criticism) */
-  | { kind: 'hard_to_find'; move: SanMove; reason: 'quiet' | 'retreat' }
+  | { kind: 'hard_to_find'; move: SanMove; reason: 'quiet' | 'retreat' | 'pawn_break' }
   /* GM-2 praise side: the player FOUND a quiet move with a tactical point */
   | { kind: 'quiet_strength' }
   | { kind: 'forced' };

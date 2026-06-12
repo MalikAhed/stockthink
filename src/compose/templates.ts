@@ -161,7 +161,9 @@ export function renderFact(f: Fact): string | null {
     case 'hard_to_find':
       return f.reason === 'retreat'
         ? `To be fair, ${f.move.san} is a backwards move — the kind even strong players overlook.`
-        : `To be fair, ${f.move.san} is a quiet move — the hardest kind to spot.`;
+        : f.reason === 'pawn_break'
+          ? `To be fair, ${f.move.san} is a quiet pawn move — few players suspect a pawn push can hit this hard.`
+          : `To be fair, ${f.move.san} is a quiet move — the hardest kind to spot.`;
     case 'wins_free_piece':
       return `This wins the ${pieceAt(f.victim)} for nothing — no recapture works.`;
     case 'captures_higher':
