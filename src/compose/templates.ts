@@ -133,6 +133,8 @@ function renderRegression(f: RegressionFact): string {
       return 'It falls further behind in development while the opponent brings pieces out.';
     case 'cedes_center':
       return 'It gives up control of the center.';
+    case 'early_queen':
+      return 'The queen comes out early — it can be chased around while the minor pieces are still at home.';
   }
 }
 

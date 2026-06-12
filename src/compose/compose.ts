@@ -44,11 +44,34 @@ const isMissed = (f: Fact): boolean => MISSED_KINDS.includes(f.kind);
 const isPurpose = (f: Fact): boolean =>
   !isBad(f) && !isMissed(f) && !CONTEXT_KINDS.includes(f.kind);
 
-/** Neutral one-liners for fact-less moves (R3 — short, never eval-speak). */
-const NEUTRAL: Partial<Record<MoveReport['classification'], string>> = {
-  best: 'The most precise continuation.',
-  excellent: 'A solid choice.',
-  good: 'A reasonable continuation.',
+/** Neutral one-liners for fact-less moves (R3 — short, never eval-speak).
+ *  ≥6 rotating variants per tier, picked deterministically by ply so the same
+ *  game always reads the same (C6). */
+const NEUTRAL: Partial<Record<MoveReport['classification'], string[]>> = {
+  best: [
+    'The most precise continuation.',
+    'Exactly the right move.',
+    'The strongest move in the position.',
+    'Spot on — this keeps everything under control.',
+    'The best move here, no doubt about it.',
+    'Right on target.',
+  ],
+  excellent: [
+    'A solid choice.',
+    'One of the best moves in this position.',
+    'Very strong play.',
+    'An excellent decision.',
+    'Hard to improve on this.',
+    'A fine move.',
+  ],
+  good: [
+    'A reasonable continuation.',
+    'A sensible move.',
+    'A perfectly playable choice.',
+    'Nothing wrong with this.',
+    'A sound, practical decision.',
+    'This keeps the game on course.',
+  ],
 };
 
 /** "Develops the knight toward the center." → "develops the knight toward the center"
@@ -117,8 +140,8 @@ export function composeComment(m: MoveReport): Comment {
       used.push(f);
     }
     if (parts.length === 0) {
-      const neutral = NEUTRAL[m.classification];
-      if (neutral) parts.push(neutral);
+      const pool = NEUTRAL[m.classification];
+      if (pool) parts.push(pool[Math.floor(m.ply / 2) % pool.length]);
     }
   }
 
