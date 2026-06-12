@@ -6,9 +6,9 @@ Run ONE loop of the daily ritual. One block per loop — stop when it's done,
 even with appetite left. The Laws of the Loop (CLAUDE.md) govern every step.
 
 ## 1 · BOOT
-Read, in order, NOTHING else: `docs/PROJECT_MAP.md` → top ~30 lines of
-`docs/JOURNAL.md` → `docs/BACKLOG.md` → `docs/METRICS.md`.
-(CLAUDE.md is already loaded.)
+Read, in order, NOTHING else: `docs/PROJECT_MAP.md` → `docs/ROADMAP.md`
+(the arc ORIENT must name) → top ~30 lines of `docs/JOURNAL.md` →
+`docs/BACKLOG.md` → `docs/METRICS.md`. (CLAUDE.md is already loaded.)
 
 ## 2 · ORIENT
 Output exactly 5 lines: where the project is (arc + milestone) · the top

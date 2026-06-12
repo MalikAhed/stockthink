@@ -17,14 +17,17 @@ the rook open-file-vs-mate-threat case and the Légal queen-grab trap), scored
 deterministically. Baseline: CAUSAL 80.0 · GROUNDED 85.3 · ECONOMY 81.8 ·
 TOTAL 82.9%. Exit met: `npm run eval` byte-identical across runs, row in METRICS.md.
 
-### M2 — Eval-driven explanation fixes  ← WE ARE HERE
+### M2 — Eval-driven explanation fixes ✅ 2026-06-12
 Each /work loop takes the worst eval failure cluster and fixes the underlying
 detector/composer cause. Known baseline gaps (see BACKLOG #1):
 why-bad regression platitudes (b5 case) · praise stacking on good moves ·
 secondary positional platitudes riding along · lead-priority on missed tactics.
-**Exit: TOTAL ≥ 90% with zero regressions on previously-passing cases.**
+**Exit met 2026-06-12: TOTAL 90.8% (E 100.0 · G 91.2 · C 80.0), zero
+regressions.** The two CAUSAL-side gaps (b5 punishment narration,
+lead-priority) carry on as BACKLOG #1–2 — the exit bar, not the gap list,
+defined done.
 
-### M3 — Ratchet and guard
+### M3 — Ratchet and guard  ← WE ARE HERE
 Eval floor asserted in a vitest suite (same ratchet pattern as recall FLOORS in
 test/recall.test.ts) so a falling score blocks a commit like a red gate. Expand
 to 25+ cases: STS positional traps (TODO DS2), more trap-wrong-reason cases,
