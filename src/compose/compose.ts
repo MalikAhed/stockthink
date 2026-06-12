@@ -76,6 +76,16 @@ const NEUTRAL: Partial<Record<MoveReport['classification'], string[]>> = {
   ],
 };
 
+/** The concrete engine-verified reply a bad move failed against (GM-4 gate). */
+const concreteReply = (facts: Fact[]): string | null => {
+  for (const f of facts) {
+    if (f.kind === 'hangs_piece') return f.capture.san;
+    if (f.kind === 'refutation') return f.moves[0]?.san ?? null;
+    if (f.kind === 'allows_mate' && f.firstMove) return f.firstMove.san;
+  }
+  return null;
+};
+
 /** "Develops the knight toward the center." → "develops the knight toward the center"
  *  (keeps the capital when the sentence starts with a SAN token or square). */
 const asClause = (s: string): string => {
@@ -179,6 +189,14 @@ export function composeComment(m: MoveReport): Comment {
       .map(asClause);
     if (intent.length)
       rest.push(`The idea — ${intent.join('; ')} — doesn't make up for what this concedes.`);
+    // GM-4 (book §4.2, falsify before committing): on a real mistake whose
+    // move HAD an idea, coach the habit by naming the concrete test it failed.
+    const serious = m.classification === 'mistake' || m.classification === 'blunder';
+    const reply = serious && facts.some(isPurpose) ? concreteReply(facts) : null;
+    if (reply)
+      rest.push(
+        `The test this move had to pass was ${reply} — strong players spend most of their time looking for exactly this kind of answer before committing.`,
+      );
   } else {
     rest = remaining
       .map(f =>

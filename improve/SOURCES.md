@@ -127,7 +127,7 @@ Proven 2026-06-12 (miss side): fact `hard_to_find` — best move quiet (no
   the PLAYER finds a quiet tactical move) — needs quietness fact on played
   moves; queue as PATTERN follow-up.
 
-### GM-4 falsify-before-committing coaching                           [mined]
+### GM-4 falsify-before-committing coaching                          [proven]
 Pattern: strength correlates directly with time spent trying to REFUTE your
   own candidate move (GMs ~85% of thinking time; club players ~38% and they
   only check confirming lines). When a move with a clear point fails to a
@@ -145,6 +145,10 @@ Voice (in "explain more"): "The test this move had to pass was {reply} —
   answer before committing."
 Fixture: compose unit — purpose+hang mistake → coaching line appears; same
   facts at inaccuracy → absent.
+Proven 2026-06-12: composer 'explain more' on mistake/blunder with ≥1 purpose
+  fact + concrete reply (allows_mate.firstMove > hangs_piece.capture >
+  refutation[0] by priority sort). Live on Blackburne 5.Nxf7 (Qxg2) and
+  7.Be2 (Nf3#), Opera 15.Bxd7+ (Nxd7).
 
 ### GM-5 Lasker frame for Miss                                        [mined]
 Pattern: weaker players stop at the first good-looking move; GMs keep looking
