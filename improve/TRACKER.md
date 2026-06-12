@@ -42,6 +42,10 @@ trappedPiece→traps_piece · mateIn1→delivers_mate/mate_threat · sacrifice�
 
 ## Daily log (append ONE entry per session, 1–3 lines, newest on top)
 
+- **2026-06-12** (loop iter 1/6) · 3 units · U1 explain-more no longer praises bad
+  moves (intent frame) · U2 ignores_threat fact (already-attacked piece, move
+  ignores it — fires on Blackburne 5.Nxf7) · U5 slice: dash-soup + decap polish.
+  Next: U2 remaining (PV punishment narration), U6 best-move intention, U3/U4 LLM toggles.
 - **2026-06-11c** · 3 units · DS1–DS4 dataset items queued (STS, WAC/ECM EPDs,
   [%eval] games, more puzzle themes) · R15 relative pins + exploit-pin mapping ·
   recall harness now line-wide (themes are line-level): pin 21→80, skewer 0→100,

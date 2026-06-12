@@ -17,14 +17,8 @@ Take items top-down. Move finished items to Done (bottom) with date + commit.
 
 ## TONIGHT — user directive 2026-06-12 (take these FIRST, top-down)
 
-- [ ] **U1 · Fix "explain more" positive bias (BUG)** — the expanded explanation
-  praises bad moves ("develops the piece and protects…") even when Stockfish
-  classified the move as a mistake/blunder. The composer must be
-  classification-aware: for bad moves, explain WHY IT'S BAD (what it hangs,
-  what it ignores, what got weaker) — never recite the move's positive facts
-  as if they justified it. Add regression tests: a known blunder must produce
-  zero praise phrasing in "explain more".
-- [ ] **U2 · Deeper why-bad explanations** — the why-a-move-is-bad side is much
+- [ ] **U2 · Deeper why-bad explanations** — _(partial: `ignores_threat` fact
+  shipped 2026-06-12 — already-attacked piece + move ignores it.)_ Remaining: the why-a-move-is-bad side is much
   weaker than why-good. Use the engine PV after the bad move to narrate the
   punishment/intention ("this drops the bishop to …", "ignores the threat of …",
   "weakens the king after …"). Symmetric depth with the good-move side.
@@ -105,6 +99,7 @@ Take items top-down. Move finished items to Done (bottom) with date + commit.
 _(items land here with the open question attached)_
 
 ## Done
+- [x] U1 · explain-more positive-bias bug — 2026-06-12 (compose.ts classification-aware: bad moves' purpose facts render only inside "The idea — … — doesn't make up for what this concedes" frame; regression tests)
 - [x] P1 · PV intent-confirmation everywhere — 2026-06-11 (forkConfirmed/tempoConfirmed vs engine best defense; newly-trapped only; pinned attackers threaten nothing off-ray)
 - [x] P2 · Two-move pairing ('prepares' fact) — 2026-06-11 (quiet move + engine follow-up told as one plan; Opera 7…Qe7 → 'prepares Qb4+, forking…'; coverage 93%→96%)
 - [x] R15 · Pin — 2026-06-11 (relative pins in pinsHeld/pinsCreatedEx; exploit-a-pin recall mapping; line-wide harness fix lifted pin 21%→79.5%, skewer 0%→100%, fork→100%)
