@@ -20,12 +20,61 @@
   <body>
     <div id="app">
       <header class="topbar">
-        <span class="wordmark">StockTh<span class="wordmark-dot"></span>nk</span>
-        <span class="tagline">free in-browser game review</span>
+        <button class="wordmark" id="nav-brand" title="Home">StockTh<span class="wordmark-dot"></span>nk</button>
+        <nav class="topnav">
+          <button id="nav-home" class="nav-link active">Home</button>
+          <button id="nav-input" class="nav-link">Game Review</button>
+          <button id="nav-review" class="nav-link hidden">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 12h16M12 4v16"/></svg>
+            Current Game
+          </button>
+        </nav>
         <span id="queue-pill" class="queue-pill hidden"></span>
       </header>
 
-      <section id="screen-input" class="screen">
+      <section id="screen-home" class="screen">
+        <div class="home-hero">
+          <div id="home-board" class="loader-board home-board" aria-hidden="true"></div>
+          <h1 class="home-title">Every move, explained.</h1>
+          <p class="home-sub">
+            A full chess.com-style Game Review — accuracy, brilliancies, blunders and the
+            coaching behind them. Powered by Stockfish 18 running entirely in your browser.
+            Free, no account, no server.
+          </p>
+        </div>
+        <div id="home-continue"></div>
+        <div class="home-cards">
+          <button class="home-card" id="home-pgn">
+            <span class="home-card-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4h7l4 4v12a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z"/><path d="M16 4v4h4M5 8H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h10"/><path d="M11.5 12h5M11.5 15.5h5"/></svg>
+            </span>
+            <span class="home-card-body">
+              <span class="home-card-title">Paste a PGN</span>
+              <span class="home-card-text">Any game export — chess.com, lichess, or hand-typed moves — reviewed move by move.</span>
+            </span>
+            <span class="home-go">Start →</span>
+          </button>
+          <button class="home-card" id="home-cc">
+            <span class="home-card-icon green">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a4 4 0 0 1 4 4c0 1.6-.95 3-2.3 3.6l.8 2.4h-5l.8-2.4A4 4 0 0 1 8 6a4 4 0 0 1 4-4zM8.5 13h7l1.3 5H7.2l1.3-5zM5.5 19.5h13a1 1 0 0 1 1 1V22h-15v-1.5a1 1 0 0 1 1-1z"/></svg>
+            </span>
+            <span class="home-card-body">
+              <span class="home-card-title">Import from Chess.com</span>
+              <span class="home-card-text">Search any player, browse their history, and pre-analyze whole batches in the background.</span>
+            </span>
+            <span class="home-go">Search →</span>
+          </button>
+        </div>
+        <div class="home-feats">
+          <span class="home-feat">100% in your browser</span>
+          <span class="home-feat">Move-by-move coaching</span>
+          <span class="home-feat">Brilliant &amp; blunder badges</span>
+          <span class="home-feat">Accuracy &amp; rating estimate</span>
+          <span class="home-feat">Free forever</span>
+        </div>
+      </section>
+
+      <section id="screen-input" class="screen hidden">
         <h1>Game Review</h1>
         <div class="input-tabs" role="tablist">
           <button id="tab-btn-pgn" class="input-tab active" role="tab" aria-selected="true">Paste PGN</button>
@@ -53,10 +102,12 @@
       </section>
 
       <section id="screen-progress" class="screen hidden">
-        <h1>Analyzing…</h1>
-        <p id="progress-sub" class="hint hidden"></p>
+        <div id="loader-board" class="loader-board" aria-hidden="true"></div>
+        <p id="progress-sub" class="progress-sub hidden"></p>
+        <div id="progress-pct" class="progress-pct">0%</div>
         <div class="progress-track"><div id="progress-fill"></div></div>
         <p id="progress-text">Starting engines…</p>
+        <p id="progress-quip" class="progress-quip"></p>
         <button id="progress-cancel" class="progress-cancel">Cancel</button>
       </section>
 

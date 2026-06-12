@@ -22,6 +22,7 @@ import { getReport } from './chesscom/store';
 import type { VariationChip } from './compose/compose';
 import { disposeLive, liveMoveReport, seedLiveAnalysis } from './live';
 import { initChesscomTab, refreshCached } from './ui/chesscom';
+import { startLoader, stopLoader } from './ui/loader';
 import { badgeSvg } from './ui/badges';
 import { formatEval, renderCoach, renderCoachThinking } from './ui/coach';
 import { renderDeepReview } from './ui/deepreview';
@@ -61,14 +62,51 @@ let liveToken = 0; // stale-search guard: bumped whenever the user navigates
 
 /* ---------------------------------------------------------- screens --- */
 const screens = {
+  home: () => $('#screen-home'),
   input: () => $('#screen-input'),
   progress: () => $('#screen-progress'),
   review: () => $('#screen-review'),
 };
 
 function show(name: keyof typeof screens): void {
+  // leaving the review dissolves an open Spotlight (no focus-mode bleed)
+  if (name !== 'review' && spotlight) {
+    spotlight = null;
+    document.body.classList.remove('focus-mode');
+  }
   for (const [key, get] of Object.entries(screens))
     get().classList.toggle('hidden', key !== name);
+  // one knight tours wherever it's needed: progress screen or home hero
+  if (name === 'progress') startLoader($('#loader-board'), $('#progress-quip'));
+  else if (name === 'home') startLoader($('#home-board'));
+  else stopLoader();
+  // topbar nav state ("Game Review" stays lit while its analysis runs)
+  const navFor = name === 'progress' ? 'input' : name;
+  for (const nav of ['home', 'input', 'review'])
+    $(`#nav-${nav}`).classList.toggle('active', nav === navFor);
+  if (name === 'home') renderHome();
+}
+
+/** Home: hero + entry cards + a resume card when a review is open. */
+function renderHome(): void {
+  const el = $('#home-continue');
+  if (!report) {
+    el.innerHTML = '';
+    return;
+  }
+  const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+  // "?" is the PGN placeholder for an unknown player — don't show it
+  const name = (h: string | undefined): string | null => (h && h !== '?' ? h : null);
+  const w = name(report.headers.White);
+  const b = name(report.headers.Black);
+  const who = w || b ? ` — <b>${esc(w ?? 'White')}</b> vs <b>${esc(b ?? 'Black')}</b>` : '';
+  el.innerHTML = `
+    <button class="home-continue" id="home-resume">
+      <span class="home-continue-dot"></span>
+      <span class="home-continue-text">Continue your review${who}</span>
+      <span class="home-go">Resume →</span>
+    </button>`;
+  $('#home-resume').addEventListener('click', () => show('review'));
 }
 
 /* ----------------------------------------------------------- analyze --- */
@@ -79,29 +117,44 @@ const isAbortError = (e: unknown): boolean =>
 
 function openReport(r: AnnotatedReport): void {
   report = r;
+  $('#nav-review').classList.remove('hidden');
   initReview();
 }
 
 let pasteSeq = 0;
 /** Id of the analysis the progress screen is showing (Cancel targets it). */
 let foregroundJobId: string | null = null;
+/** Bumped per foreground run — a superseded run must not drive the UI. */
+let fgSeq = 0;
 
-/** Progress screen + queue-front analysis (preempts any background job). */
-async function runForeground(job: QueueJob, sub: string | null): Promise<AnnotatedReport> {
+/**
+ * Progress screen + queue-front analysis (preempts any background job).
+ * Resolves null when a newer foreground analysis took over meanwhile
+ * (the user navigated away and started something else).
+ */
+async function runForeground(job: QueueJob, sub: string | null): Promise<AnnotatedReport | null> {
+  const seq = ++fgSeq;
   show('progress');
   const subEl = $('#progress-sub');
   subEl.textContent = sub ?? '';
   subEl.classList.toggle('hidden', !sub);
   $('#progress-text').textContent = 'Starting engines…';
   $('#progress-fill').style.width = '0%';
+  $('#progress-pct').textContent = '0%';
   foregroundJobId = job.id;
   try {
-    return await analysisQueue.runNow(job, (done, total) => {
-      $('#progress-fill').style.width = `${Math.round((done / total) * 100)}%`;
+    const r = await analysisQueue.runNow(job, (done, total) => {
+      const pct = `${Math.round((done / total) * 100)}%`;
+      $('#progress-fill').style.width = pct;
+      $('#progress-pct').textContent = pct;
       $('#progress-text').textContent = `Evaluating position ${done} / ${total}`;
     });
+    return seq === fgSeq ? r : null;
+  } catch (e) {
+    if (seq !== fgSeq) return null; // superseded — outcome no longer drives the UI
+    throw e;
   } finally {
-    foregroundJobId = null;
+    if (seq === fgSeq) foregroundJobId = null;
   }
 }
 
@@ -116,7 +169,8 @@ async function startAnalysis(): Promise<void> {
   }
   try {
     const job = { id: `paste-${++pasteSeq}`, pgn, tier: currentTier(), label: 'Pasted game' };
-    openReport(await runForeground(job, null));
+    const r = await runForeground(job, null);
+    if (r) openReport(r);
   } catch (e) {
     show('input');
     setTab('pgn');
@@ -134,12 +188,11 @@ async function reviewCcGame(game: CcGame): Promise<void> {
   const label = `${game.white.username} vs ${game.black.username}`;
   const tc = game.timeClass ? ` · ${game.timeClass.charAt(0).toUpperCase()}${game.timeClass.slice(1)}` : '';
   try {
-    openReport(
-      await runForeground(
-        { id: game.uuid, pgn: game.pgn, tier, label, cacheUuid: game.uuid },
-        `${label}${tc}`,
-      ),
+    const r = await runForeground(
+      { id: game.uuid, pgn: game.pgn, tier, label, cacheUuid: game.uuid },
+      `${label}${tc}`,
     );
+    if (r) openReport(r);
   } catch (e) {
     // cancelled or failed — back to the list (a failed row wears its chip)
     show('input');
@@ -548,6 +601,22 @@ function setTab(tab: 'pgn' | 'cc'): void {
 $('#tab-btn-pgn').addEventListener('click', () => setTab('pgn'));
 $('#tab-btn-cc').addEventListener('click', () => setTab('cc'));
 
+// topbar navigation + home entry cards
+$('#nav-brand').addEventListener('click', () => show('home'));
+$('#nav-home').addEventListener('click', () => show('home'));
+$('#nav-input').addEventListener('click', () => show('input'));
+$('#nav-review').addEventListener('click', () => {
+  if (report) show('review');
+});
+$('#home-pgn').addEventListener('click', () => {
+  show('input');
+  setTab('pgn');
+});
+$('#home-cc').addEventListener('click', () => {
+  show('input');
+  setTab('cc');
+});
+
 initChesscomTab($('#tab-cc'), {
   review: game => void reviewCcGame(game),
   getTier: currentTier,
@@ -590,8 +659,11 @@ $('#btn-new').addEventListener('click', () => {
   document.body.classList.remove('focus-mode');
   exitExplore();
   disposeLive();
+  $('#nav-review').classList.add('hidden');
   show('input');
 });
+
+show('home'); // boot: land on the home screen (starts its knight)
 
 document.addEventListener('keydown', e => {
   if (!report || screens.review().classList.contains('hidden')) return;

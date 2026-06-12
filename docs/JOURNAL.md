@@ -6,6 +6,23 @@ for /work sessions). Past ~300 lines, /reflect compresses the oldest half into
 LESSONS.md. Entries below 2026-06-12p were migrated verbatim from
 improve/TRACKER.md's daily log (2026-06-12) — history is not rewritten.
 
+- **2026-06-13a** · USER FEATURE: home screen + topbar navigation + loading
+  revamp. New `#screen-home` (hero, entry cards → each input tab, feature
+  chips, resume card when a report is open); topnav Home / Game Review /
+  Current Game (hidden until a report exists; wordmark → home); progress
+  screen centered (was left-aligned) with `src/ui/loader.ts`: knight rides
+  the 3×3 ring — the classic closed knight's tour, all 8 hops legal — plus
+  big live %, rotating quips; same knight animates the home hero. Foreground
+  runs got a supersede guard (fgSeq): navigating away mid-analysis and
+  starting another can't let the old job's completion/failure yank the UI.
+  Spotlight now dissolves on any nav (focus-mode used to bleed onto home).
+  EVIDENCE: tsc clean · 246/247 green · build clean · headless-chromium
+  smoke: boot lands home, cards deep-link tabs, progress track centered at
+  exactly viewport-mid (690/1380px), knight position changes between samples,
+  resume card round-trips, "New" hides nav entry. FAILED first: header-less
+  PGNs showed "? vs ?" in the resume card (PGN placeholder headers) — name
+  filter added. SURPRISED: nothing structural — the queue absorbed nav-away
+  semantics with one integer guard. NEXT: BACKLOG #1 (U2) still top.
 - **2026-06-12s** · USER FEATURE (overrides "UI is done" for one session):
   chess.com game import + background pre-analysis. New `src/chesscom/`
   (api/queue/store) + `src/ui/chesscom.ts` + input tabs; ALL analysis now runs
