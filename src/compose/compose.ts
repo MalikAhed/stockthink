@@ -140,7 +140,13 @@ export function composeComment(m: MoveReport): Comment {
       rest.push(`The idea — ${intent.join('; ')} — doesn't make up for what this concedes.`);
   } else {
     rest = remaining
-      .map(renderFact)
+      .map(f =>
+        // a mate allowed by a GOOD move means the game was already beyond
+        // saving — frame it so the best try doesn't read like a blunder (P3)
+        f.kind === 'allows_mate'
+          ? `The game could not be saved either way — ${asClause(renderFact(f)!)}.`
+          : renderFact(f),
+      )
       .filter((s): s is string => s !== null && !parts.includes(s));
   }
 

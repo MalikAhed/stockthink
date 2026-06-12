@@ -112,6 +112,17 @@ describe('composeComment — bad moves (cause → consequence → better)', () =
     expect(idea).toBeGreaterThan(0);
   });
 
+  it('missed_idea wins_material renders a forcing-line explanation (C8)', () => {
+    const c = composeComment(
+      move({
+        facts: [
+          { kind: 'missed_idea', move: { san: 'Qb4+', uci: 'e7b4' }, ideas: [{ what: 'wins_material', role: 'bishop' }] } as Fact,
+        ],
+      }),
+    );
+    expect(c.text).toBe('Qb4+ was the better way — it would have won the bishop by force.');
+  });
+
   it('non-best moves carry a Best-line chip instead of a PV in prose', () => {
     const c = composeComment(move({ facts: [hangFact] }));
     expect(c.chips.some(ch => ch.label === 'Best: Qe3')).toBe(true);
@@ -146,6 +157,21 @@ describe('composeComment — good moves (purpose)', () => {
     const c = composeComment(move({ classification: 'good', winDrop: 3, facts: [] }));
     expect(c.text).toBe('A reasonable continuation.');
     assertNoEvalSpeak(c.text);
+  });
+
+  it('a best try in a lost position frames the allowed mate as unavoidable (P3)', () => {
+    const c = composeComment(
+      move({
+        classification: 'good',
+        winDrop: 2,
+        facts: [
+          { kind: 'defends_piece', piece: { role: 'bishop', square: 'd3' } } as Fact,
+          { kind: 'allows_mate', mateIn: 2, firstMove: { san: 'Qb8+', uci: 'b2b8' } } as Fact,
+        ],
+      }),
+    );
+    expect(c.more).toContain('could not be saved either way');
+    expect(c.more).not.toMatch(/^This allows a forced mate/);
   });
 
   it('book moves name the opening', () => {
