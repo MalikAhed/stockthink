@@ -81,7 +81,9 @@ export type MissedIdea =
   | { what: 'trades'; victim: PieceOn }
   | { what: 'escapes'; role: Role }
   | { what: 'wins_tempo'; target: PieceOn }
-  | { what: 'positional'; fact: PositionalFact };
+  | { what: 'positional'; fact: PositionalFact }
+  /* the point is the follow-up: best move prepares a tactic one move deeper */
+  | { what: 'prepares'; move: SanMove; idea: Extract<Fact, { kind: 'prepares' }>['idea'] };
 
 export type FactKind = Fact['kind'];
 

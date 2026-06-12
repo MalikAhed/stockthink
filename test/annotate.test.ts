@@ -267,6 +267,25 @@ describe('annotateMove — what the move achieves', () => {
     });
   });
 
+  it('missed_idea narrates the best move via its PV follow-up when move 1 is quiet (U6)', () => {
+    // White played the aimless Kh2; the engine wanted the quiet Nb2 whose
+    // POINT is one move deeper: …Ke7 Qd4 forking both knights.
+    const p = pos('4k3/6n1/1n6/8/8/3N4/8/3Q3K w - - 0 1');
+    const facts = annotateMove(
+      p,
+      mv('h1h2'),
+      ctx({
+        winDrop: 15,
+        bestUci: 'd3b2',
+        lines: [{ eval: { cp: 300 }, pvUci: ['d3b2', 'e8e7', 'd1d4'] }],
+      }),
+    );
+    const idea = byKind(facts, 'missed_idea') as Extract<Fact, { kind: 'missed_idea' }>;
+    expect(idea).toBeTruthy();
+    expect(idea.move.san).toBe('Nb2');
+    expect(idea.ideas[0]).toMatchObject({ what: 'prepares', move: { san: 'Qd4' }, idea: { what: 'fork' } });
+  });
+
   it('no prepares fact when the follow-up was already available before the move', () => {
     // here Qd4 was playable immediately — the quiet king move prepared nothing
     const p = pos('4k3/6n1/1n6/8/8/8/8/3Q3K w - - 0 1');

@@ -62,6 +62,17 @@ function ideaClause(i: MissedIdea): string {
       return `defended the ${pieceAt(i.piece)}`;
     case 'trades':
       return `traded off the ${pieceAt(i.victim)}`;
+    case 'prepares':
+      switch (i.idea.what) {
+        case 'mate_threat':
+          return `set up ${i.move.san} next, threatening checkmate`;
+        case 'wins_piece':
+          return `prepared ${i.move.san}, winning the ${pieceAt(i.idea.piece)}`;
+        case 'fork':
+          return `prepared ${i.move.san}, forking ${listTargets(i.idea.targets)}`;
+        case 'pin':
+          return `prepared ${i.move.san}, pinning the ${pieceAt(i.idea.piece)}`;
+      }
     case 'escapes':
       return `stepped the ${i.role} out of danger`;
     case 'wins_tempo':
