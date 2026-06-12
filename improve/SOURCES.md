@@ -79,7 +79,9 @@ fixtures (fires / correctly stays silent) are green AND the e2e gate passed.
 - [x] B3 §4.3 (pp. 379–392, Carlsen–Nakamura Kh2 study + think-alouds) — mined 2026-06-12 → GM-6/GM-7
 - [x] B4 §4.5 (pp. 395–401, Storey–Crouch Bd1 study) — mined 2026-06-12 → GM-8/GM-9
 - [x] B5 §4.6 (pp. 401–416, Puzzle 33 tail + Puzzle 34 "bayonet attack" think-alouds) — mined 2026-06-12 → GM-10/GM-11/GM-12 (GM-12 proven same session)
-- [ ] B6 §1.6 Tips for Solving the Puzzles (pp. 27–29)
+- [x] B6 §1.6 Tips for Solving the Puzzles (pp. 27–30) — mined 2026-06-12 →
+      GM-13 (rest is book logistics: scoring/pacing; "points for 2nd/3rd best
+      move" dedupes to GM-1)
 - [ ] B7–B18 Puzzle solutions, 4 positions per chunk (pp. 37–314) — mine the
       GM-vs-club-player *differences* (what the GM checked that the club
       player didn't) + harvest each position as a candidate fixture
@@ -261,6 +263,26 @@ Voice: "The time to strike was now — {best} tears open lines toward the king
 Fixture: book diagram (visual read p. 410) or crafted: dev-lead + ...g5 opening
   the g-file toward a congested white king fires; same break with no king
   target / no dev lead stays silent.
+
+### GM-13 calibrated human eval vocabulary                            [mined]
+Pattern: the book gives a calibrated translation from engine eval ranges to
+  human verdict language (±0.09 equal/drawn · to 0.29 "more pleasant, nothing
+  serious" · to 0.59 "slightly better / pawn up with compensation" · to 0.89
+  "significantly better" · to 1.39 "significant to large, not decisive" · to
+  2.49 "substantial, probably winning" · 2.5+ "clearly winning"). Wherever we
+  voice who stands better (Spotlight intros, lineOutcome, summaries), the
+  wording should match this scale — never stronger or weaker than the eval
+  supports, and never the number itself (R1).
+Exceptions: mate scores are their own vocabulary; volatile/sharp positions may
+  deserve a hedge (ties to the volatility flag in Later).
+Source: GM p. 30 (§1.6, evaluation-points table) — paraphrased scale.
+Confirm-gate: AUDIT, not a detector — sweep existing verdict phrasing
+  (compose/templates, walkthrough captions) against the scale; any place we
+  say "winning/much better/slightly better", the underlying eval bucket must
+  match. Add a shared evalVocabulary(cp) helper if phrasing is ad hoc.
+Voice: per-bucket phrases above, our own words.
+Fixture: unit test mapping cp values to buckets + gate read-through (no
+  caption claims "winning" below the 1.4 bucket, etc.).
 
 ### GM-11 the guarded target — count defenders before lunging          [mined]
 Pattern: a tempting piece lunge onto a square that is already defended is a
