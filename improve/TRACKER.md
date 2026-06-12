@@ -42,6 +42,10 @@ trappedPiece→traps_piece · mateIn1→delivers_mate/mate_threat · sacrifice�
 
 ## Daily log (append ONE entry per session, 1–3 lines, newest on top)
 
+- **2026-06-12b** (loop iter 2/6) · 3 units · U6/C3 missed_idea: quiet best-move
+  suggestions now carry a WHY ("Bxf6 was the better way — it would have defended
+  the pawn on e4"); ideas: escapes/defends/trades/tempo/positional, max 2.
+  Next: U3/U4 LLM rephrase toggles (needs src/llm+ui override), U2/U6 PV-plan narration.
 - **2026-06-12** (loop iter 1/6) · 3 units · U1 explain-more no longer praises bad
   moves (intent frame) · U2 ignores_threat fact (already-attacked piece, move
   ignores it — fires on Blackburne 5.Nxf7) · U5 slice: dash-soup + decap polish.

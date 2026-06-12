@@ -33,9 +33,10 @@ Take items top-down. Move finished items to Done (bottom) with date + commit.
 - [ ] **U5 · Geometry & wrong-trigger audit** — sweep detectors for geometric
   bugs and facts firing on coincidental (non-causal) cases; add precision
   fixtures for each fix found.
-- [ ] **U6 · Stockfish intention narration** — explain the IDEA behind the
-  engine's best move (what the PV is trying to achieve), not just its first
-  move's surface facts.
+- [ ] **U6 · Stockfish intention narration** — _(partial: `missed_idea` fact
+  shipped 2026-06-12 — best move's own purposes: escape/defend/trade/tempo/
+  positional; also covers C3.)_ Remaining: narrate the PV's PLAN (multi-move
+  intention), and ideas for capture-best-moves with tactical follow-ups.
 
 ## Concepts — from zero (chessprogramming.org reading list)
 
@@ -66,8 +67,6 @@ Take items top-down. Move finished items to Done (bottom) with date + commit.
 
 - [ ] **C1 · Recapture phrasing** — "A straightforward recapture." / "Takes back."
 - [ ] **C2 · Escapes-attack** — "This steps the {piece} out of danger."
-- [ ] **C3 · Purpose-phrased better-move** — "The best option was to recapture
-  the {piece} / put a pawn in the center / develop the {piece}" (SAN fallback).
 - [ ] **C4 · Pressure stacking** — "A new attacker joins the pressure on the {piece}."
 - [ ] **C5 · Opening principles** — early queen · same piece twice · luft ·
   opens line for own piece · trade offer · plain check.
@@ -99,6 +98,7 @@ Take items top-down. Move finished items to Done (bottom) with date + commit.
 _(items land here with the open question attached)_
 
 ## Done
+- [x] C3 · Purpose-phrased better-move — 2026-06-12 (subsumed by U6 missed_idea)
 - [x] U1 · explain-more positive-bias bug — 2026-06-12 (compose.ts classification-aware: bad moves' purpose facts render only inside "The idea — … — doesn't make up for what this concedes" frame; regression tests)
 - [x] P1 · PV intent-confirmation everywhere — 2026-06-11 (forkConfirmed/tempoConfirmed vs engine best defense; newly-trapped only; pinned attackers threaten nothing off-ray)
 - [x] P2 · Two-move pairing ('prepares' fact) — 2026-06-11 (quiet move + engine follow-up told as one plan; Opera 7…Qe7 → 'prepares Qb4+, forking…'; coverage 93%→96%)
