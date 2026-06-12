@@ -136,6 +136,17 @@ describe('composeComment — bad moves (cause → consequence → better)', () =
     expect(noIdea.more ?? '').not.toContain('The test this move had to pass');
   });
 
+  it('a miss leads with the Lasker frame, never with blame (GM-5)', () => {
+    const c = composeComment(
+      move({ classification: 'miss', winDrop: 12, winPercentAfter: 80, facts: [missedFact] }),
+    );
+    expect(c.text).toMatch(/^A decent move on its own — but the position offered more\./);
+    const withCause = composeComment(
+      move({ classification: 'miss', winDrop: 12, facts: [hangFact, missedFact] }),
+    );
+    expect(withCause.text).not.toContain('A decent move'); // a concrete cause leads instead
+  });
+
   it('missed_idea wins_material renders a forcing-line explanation (C8)', () => {
     const c = composeComment(
       move({

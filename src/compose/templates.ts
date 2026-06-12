@@ -148,7 +148,8 @@ export function renderFact(f: Fact): string | null {
     case 'forced':
       return 'The only legal move.';
     case 'only_move':
-      return 'The only move that holds everything together — anything else falls apart.';
+      // GM-3 (book §4.1): a towering single candidate marks a critical moment
+      return 'The position demanded exactly this — the only move that holds everything together.';
     case 'second_candidate':
       return `One of the main candidate moves here — only ${f.best.san} promised a bit more.`;
     case 'hard_to_find':
