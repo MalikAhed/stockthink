@@ -78,7 +78,7 @@ fixtures (fires / correctly stays silent) are green AND the e2e gate passed.
 - [x] B2 §4.2 The Art of Falsifying (pp. 374–379) — mined 2026-06-12 → GM-4/5
 - [x] B3 §4.3 (pp. 379–392, Carlsen–Nakamura Kh2 study + think-alouds) — mined 2026-06-12 → GM-6/GM-7
 - [x] B4 §4.5 (pp. 395–401, Storey–Crouch Bd1 study) — mined 2026-06-12 → GM-8/GM-9
-- [ ] B5 §4.6 Grandmaster Secrets (pp. 401–416)
+- [x] B5 §4.6 (pp. 401–416, Puzzle 33 tail + Puzzle 34 "bayonet attack" think-alouds) — mined 2026-06-12 → GM-10/GM-11/GM-12 (GM-12 proven same session)
 - [ ] B6 §1.6 Tips for Solving the Puzzles (pp. 27–29)
 - [ ] B7–B18 Puzzle solutions, 4 positions per chunk (pp. 37–314) — mine the
       GM-vs-club-player *differences* (what the GM checked that the club
@@ -240,6 +240,63 @@ Voice: "To be fair, {best} is a backwards move — the kind even strong
   players overlook."
 Proven 2026-06-12: hard_to_find.reason quiet|retreat (retreat = toward own
   back rank, non-king); Ra1 mate-miss fixture; Blackburne Qe2 stays quiet.
+
+### GM-10 strike-while-ahead pawn break (bayonet)                     [mined]
+Pattern: when you lead in development and the opponent is underdeveloped, the
+  strongest move is often a PAWN BREAK that opens lines toward the enemy king
+  ("this is the time to strike — less urgent continuations cost a large part
+  of the advantage"); a quiet developing move squanders the initiative.
+Exceptions: only when a real development lead exists AND the pawn break opens
+  a file/diagonal pointing at the enemy king; never in equal/worse positions
+  (where opening lines cuts both ways); concrete tactics still take priority.
+Source: GM pp. 409–410, 416 (§4.6, Puzzle 34 Adams Insight, 1...g5! bayonet).
+Confirm-gate (spec in a future PATTERN unit): mover has a develops/lead edge
+  AND engine best is a non-capturing pawn advance AND it opens a file or
+  diagonal whose far end bears on the enemy king zone AND a slower developing
+  alternative drops a meaningful slice of eval. AUDIT overlap: missed_idea
+  positional + opens_line; likely extends missed_idea with an 'open_lines'
+  lead-in rather than a new fact.
+Voice: "The time to strike was now — {best} tears open lines toward the king
+  before the defender can untangle."
+Fixture: book diagram (visual read p. 410) or crafted: dev-lead + ...g5 opening
+  the g-file toward a congested white king fires; same break with no king
+  target / no dev lead stays silent.
+
+### GM-11 the guarded target — count defenders before lunging          [mined]
+Pattern: a tempting piece lunge onto a square that is already defended is a
+  mirage; the resourceful idea first removes or targets the DEFENDER (Puzzle 34:
+  every solver blurted 1...Ng4 then retracted — "h2 is guarded" by Nf3 — and the
+  real plan 1...Ne4 attacks the f3 defender). Name the defender the attack had
+  to clear.
+Exceptions: only when the lunge's target is genuinely held (SEE-losing for the
+  attacker) AND the engine best concretely attacks/removes that defender;
+  never when the target was already winnable.
+Source: GM pp. 407–408 (§4.6, Puzzle 34 think-aloud transcripts).
+Confirm-gate (spec later): played/inaccuracy move attacks a square whose
+  capture is SEE-bad because of one identifiable defender AND engine best's
+  first move attacks or captures that defender. AUDIT overlap: this is the
+  deflection / capturing-the-defender family (TODO R17 overload, R18
+  deflection, DS1 capturingDefender theme) — build there, not as a new fork.
+Voice: "The {square} only looked loose — {defender} guards it; {best} goes
+  after the guard first."
+Fixture: crafted: knight lunge onto a square held by one defender (SEE<0),
+  best attacks that defender → fires; target with no defender → silent.
+
+### GM-12 pawn moves are the hardest miss of all                      [proven]
+Pattern: novices base attacks on piece play and "will not suspect that a pawn
+  move can have such strength" — a missed best move that is a quiet pawn
+  advance deserves the same softened criticism as a quiet piece move or a
+  retreat (GM-2/GM-8 family).
+AUDIT: extends GM-2 `hard_to_find` — its reason field gains 'pawn_break'
+  (best is a non-capturing pawn advance; a pawn never retreats, so it
+  short-circuits the retreat/quiet split). Same MISS_GATE + tactical-miss
+  gates, pawn-specific voice. No new detector.
+Source: GM pp. 415–416 (§4.6, Puzzle 34 Phil's commentary + Adams Insight).
+Proven 2026-06-12: facts.ts reason union + annotate.ts reason computation
+  (bestRole==='pawn' → 'pawn_break') + template "a quiet pawn move — few
+  players suspect a pawn push can hit this hard." Fixture: missed f6 (threatens
+  Qxg7#, supported by the f6 pawn) → fires pawn_break; quiet Qf6 stays 'quiet',
+  retreat Ra1 stays 'retreat'. Gate green, full suite 227.
 
 ### GM-9 meet the threat indirectly                                   [proven]
 Pattern: when a piece is attacked, club players reach for defense/retreat;
