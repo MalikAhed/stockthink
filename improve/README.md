@@ -41,7 +41,8 @@ done — do not touch it.
   item (revert it, log as blocked) · OR an item needs a user decision (log the
   question, skip the item).
 - No refactors outside the item. No new dependencies. Never touch `src/ui/`,
-  `src/llm/`, `index.html`, or `src/style.css`.
+  `src/llm/`, `index.html`, or `src/style.css` — single exception:
+  `src/ui/walkthrough.ts` caption logic for the Spotlight-depth (W) items.
 
 ### 3. Per-item procedure
 1. Implement minimally. Where things go (the only 4 code files you normally edit):
