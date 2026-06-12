@@ -163,14 +163,18 @@ export function composeComment(m: MoveReport): Comment {
       parts.push(sentence(lead)!);
       used.push(lead);
     }
-    for (const f of purposeFacts) {
+    // a generic positional purpose never rides along once a concrete purpose
+    // carries the comment — it waits in "explain more" (trap-rook-file-kick)
+    const concrete = purposeFacts.filter(f => f.kind !== 'positional');
+    for (const f of concrete.length ? concrete : purposeFacts) {
       if (parts.length >= 2) break;
       parts.push(sentence(f)!);
       used.push(f);
     }
-    // GM-2 praise side: the player found a quiet tactical move — say so
+    // GM-2 praise side: quiet-strength garnish only when the text would
+    // otherwise be a single line — praise never stacks past the cap
     const qs = facts.find(f => f.kind === 'quiet_strength');
-    if (qs && parts.length > 0 && parts.length < 3) {
+    if (qs && parts.length === 1) {
       parts.push(sentence(qs)!);
       used.push(qs);
     }

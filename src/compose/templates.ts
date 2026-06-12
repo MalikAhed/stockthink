@@ -157,7 +157,7 @@ export function renderFact(f: Fact): string | null {
       // GM-3 (book §4.1): a towering single candidate marks a critical moment
       return 'The position demanded exactly this — the only move that holds everything together.';
     case 'quiet_strength':
-      return 'A quiet move with teeth — the kind most players never even consider. Well spotted.';
+      return 'A quiet move with teeth — the kind most players never even consider.';
     case 'second_candidate':
       return `One of the main candidate moves here — only ${f.best.san} promised a bit more.`;
     case 'hard_to_find':

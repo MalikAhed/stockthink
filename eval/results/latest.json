@@ -12,19 +12,19 @@
       "pct": "80.0%"
     },
     "grounded": {
-      "pts": 29,
+      "pts": 31,
       "max": 34,
-      "pct": "85.3%"
+      "pct": "91.2%"
     },
     "economy": {
-      "pts": 18,
+      "pts": 22,
       "max": 22,
-      "pct": "81.8%"
+      "pct": "100.0%"
     },
     "total": {
-      "pts": 63,
+      "pts": 69,
       "max": 76,
-      "pct": "82.9%"
+      "pct": "90.8%"
     }
   },
   "cases": [
@@ -105,15 +105,15 @@
         "sacrifice",
         "positional"
       ],
-      "text": "A genuine rook sacrifice — material is given up for the attack. The rook lands on the seventh rank at d7, attacking from behind.",
-      "more": "This leaves the rook on d7 hanging — Nxd7 simply takes it.",
+      "text": "A genuine rook sacrifice — material is given up for the attack.",
+      "more": "This leaves the rook on d7 hanging — Nxd7 simply takes it. The rook lands on the seventh rank at d7, attacking from behind.",
       "checks": {
         "mentionsOk": true,
         "factsOk": true,
         "leadOk": true,
         "forbiddenHits": [],
         "classOk": true,
-        "sentences": 2,
+        "sentences": 1,
         "maxSentences": 2,
         "falseAlarm": false
       },
@@ -449,7 +449,7 @@
         "only_move",
         "quiet_strength"
       ],
-      "text": "The position demanded exactly this — the only move that holds everything together. The enemy queen on f6 is now trapped — it has no safe square left. A quiet move with teeth — the kind most players never even consider. Well spotted.",
+      "text": "The position demanded exactly this — the only move that holds everything together. The enemy queen on f6 is now trapped — it has no safe square left.",
       "more": "This gains time by attacking the queen on f6, forcing an immediate answer. A developing move — the bishop joins the game from g5.",
       "checks": {
         "mentionsOk": true,
@@ -457,13 +457,13 @@
         "leadOk": true,
         "forbiddenHits": [],
         "classOk": true,
-        "sentences": 4,
+        "sentences": 2,
         "maxSentences": 2,
         "falseAlarm": false
       },
       "scores": {
         "grounded": 2,
-        "economy": 0
+        "economy": 2
       }
     },
     {
@@ -511,25 +511,22 @@
         "positional",
         "quiet_strength"
       ],
-      "text": "This threatens checkmate with Rf8# next. The rook takes the open f-file, the natural highway into the position. A quiet move with teeth — the kind most players never even consider. Well spotted.",
-      "more": null,
+      "text": "This threatens checkmate with Rf8# next. A quiet move with teeth — the kind most players never even consider.",
+      "more": "The rook takes the open f-file, the natural highway into the position.",
       "checks": {
         "mentionsOk": true,
         "factsOk": true,
         "leadOk": true,
-        "forbiddenHits": [
-          "open f-file",
-          "natural highway"
-        ],
+        "forbiddenHits": [],
         "classOk": true,
-        "sentences": 4,
+        "sentences": 2,
         "maxSentences": 2,
         "falseAlarm": false
       },
       "scores": {
         "causal": 2,
-        "grounded": 0,
-        "economy": 0
+        "grounded": 2,
+        "economy": 2
       }
     },
     {
