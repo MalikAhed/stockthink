@@ -415,6 +415,40 @@ describe('annotateMove — GM-6 removes-checks prophylaxis', () => {
   });
 });
 
+describe('annotateMove — GM-10 strike-now pawn break (open_lines)', () => {
+  // White fully developed vs Black's untouched Nb8/Bc8; the bayonet f4-f5
+  // hits e6, and the engine line f5 exf5 Qxf5 plants the queen on the
+  // king's doorstep (f7/h7) — slider pressure on the king zone 1 → 2.
+  const FEN = 'rnbq1rk1/p4ppp/4p3/8/5P2/3Q4/P5PP/5RK1 w - - 0 1';
+  const lines = [{ eval: { cp: 250 }, pvUci: ['f4f5', 'e6f5', 'd3f5'] }];
+
+  it('missed pawn break with a dev lead + PV-confirmed king pressure → open_lines idea', () => {
+    const facts = annotateMove(
+      pos(FEN),
+      mv('a2a3'),
+      ctx({ evalBefore: { cp: 250 }, winDrop: 8, bestUci: 'f4f5', lines }),
+    );
+    const idea = byKind(facts, 'missed_idea');
+    expect(idea).toBeTruthy();
+    expect(
+      idea && idea.kind === 'missed_idea' && idea.ideas.some(i => i.what === 'open_lines'),
+    ).toBe(true);
+  });
+
+  it('stays silent without the development lead', () => {
+    // same break, but Black's minors are gone from home — no lead to press
+    const facts = annotateMove(
+      pos('r2q1rk1/p4ppp/4p3/8/5P2/3Q4/P5PP/5RK1 w - - 0 1'),
+      mv('a2a3'),
+      ctx({ evalBefore: { cp: 250 }, winDrop: 8, bestUci: 'f4f5', lines }),
+    );
+    const idea = byKind(facts, 'missed_idea');
+    expect(
+      idea && idea.kind === 'missed_idea' && idea.ideas.some(i => i.what === 'open_lines'),
+    ).toBeFalsy();
+  });
+});
+
 describe('annotateMove — GM-7 abandons a covered square', () => {
   // Ng4 is the only piece covering f2; after Ne5 the queen infiltrates there
   it('fires when the refutation lands on the square the moved piece left', () => {

@@ -243,7 +243,7 @@ Voice: "To be fair, {best} is a backwards move — the kind even strong
 Proven 2026-06-12: hard_to_find.reason quiet|retreat (retreat = toward own
   back rank, non-king); Ra1 mate-miss fixture; Blackburne Qe2 stays quiet.
 
-### GM-10 strike-while-ahead pawn break (bayonet)                     [mined]
+### GM-10 strike-while-ahead pawn break (bayonet)                    [proven]
 Pattern: when you lead in development and the opponent is underdeveloped, the
   strongest move is often a PAWN BREAK that opens lines toward the enemy king
   ("this is the time to strike — less urgent continuations cost a large part
@@ -263,6 +263,14 @@ Voice: "The time to strike was now — {best} tears open lines toward the king
 Fixture: book diagram (visual read p. 410) or crafted: dev-lead + ...g5 opening
   the g-file toward a congested white king fires; same break with no king
   target / no dev lead stays silent.
+Proven 2026-06-12: MissedIdea `open_lines` (annotate.ts) — best is a
+  non-capturing, non-checking pawn advance that attacks an enemy pawn (a true
+  lever), mover leads development by ≥2 minors (undevelopedMinors), and the
+  engine's own PV walk (≤6 plies) strictly raises mover slider attacks into
+  the enemy king zone (kingAttacks ring + king). Voice: "struck at once,
+  tearing open lines toward the king before the defender could untangle."
+  Crafted f4-f5 vs e6 fixtures (Qxf5 lands on the king's doorstep: fires /
+  same position without the dev lead: silent). Gate green, no false fires.
 
 ### GM-13 calibrated human eval vocabulary                            [mined]
 Pattern: the book gives a calibrated translation from engine eval ranges to
