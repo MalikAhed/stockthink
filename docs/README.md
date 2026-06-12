@@ -2,6 +2,19 @@
 
 Everything that isn't code lives here. Quick map:
 
+## The brain (the self-managing system — see CLAUDE.md)
+
+| Path | What it is | Read it when… |
+|---|---|---|
+| `PROJECT_MAP.md` | Codebase index: every module + "to change X, edit here" | Looking for where anything lives |
+| `ROADMAP.md` | Current arc + next 3 milestones | Orienting a session |
+| `BACKLOG.md` | MASTER ranked backlog (coarse; top item = next /work) | Choosing what to do |
+| `JOURNAL.md` | One entry per session, newest on top — THE single journal | Every session boot |
+| `LESSONS.md` | Distilled anti-patterns from real mistakes | Before repeating history |
+| `METRICS.md` | The numbers that define "better" + dated history | Judging whether work helped |
+
+## Reference shelf (read per-item, never wholesale)
+
 | Path | What it is | Read it when… |
 |---|---|---|
 | `specs/ANALYSIS-SYSTEM-V2.md` | The V2 analysis-system design (facts pipeline, classification ladder, Mode A/B) | Touching the pipeline architecture |
