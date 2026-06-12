@@ -42,6 +42,11 @@ trappedPiece→traps_piece · mateIn1→delivers_mate/mate_threat · sacrifice�
 
 ## Daily log (append ONE entry per session, 1–3 lines, newest on top)
 
+- **2026-06-12e** (loop iter 5/6) · 4 units · C8: missed_idea now fires for
+  inaccuracies too (idea gate 5, accusatory missed-tactics keep gate 10) + new
+  wins_material (mirrored refutation walk) and plain-captures ideas — nearly all
+  "better way" suggestions now carry a WHY · P3: good-move allowed-mate framed
+  as unavoidable. Next: iter 6 = C5/C6 phrasing variety + final summary.
 - **2026-06-12d** (loop iter 4/6) · 3 units · U6 deeper: missed_idea now walks
   the best PV one move in ("Nb2 was the better way — it would have prepared Qd4,
   forking…") · U5 audit: logged P3 (lost-position phrasing) + C8 (bare

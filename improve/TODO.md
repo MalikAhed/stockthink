@@ -55,16 +55,12 @@ Take items top-down. Move finished items to Done (bottom) with date + commit.
 
 ## Precision (stop over-triggering — facts must be the REASON, not coincidence)
 
-- [ ] **P3 · Lost-position phrasing** — in already-lost positions the best try
-  still gets "This allows a forced mate…" in its expansion (gate: Opera 16…Qb8).
-  Acknowledge context: "the position was beyond saving; this at least…".
-- [ ] **C8 · Bare better-way cases** — extend missed_idea: checks that win
-  material ("it would have given check, then won the …"), broader defends
-  (defending attacked-but-not-hanging pieces), recapture phrasing (absorbs C1).
+- [ ] **C8 · Bare better-way cases (residual)** — remaining: quiet defensive
+  moves (Qd7) and deep sacrifice ideas (Opera 10…Qb4+); consider broader
+  defends + check-then-win narration.
 
 ## Phrasing & composer (after a concept's detector is solid, make it SPEAK well)
 
-- [ ] **C1 · Recapture phrasing** — "A straightforward recapture." / "Takes back."
 - [ ] **C2 · Escapes-attack** — "This steps the {piece} out of danger."
 - [ ] **C4 · Pressure stacking** — "A new attacker joins the pressure on the {piece}."
 - [ ] **C5 · Opening principles** — early queen · same piece twice · luft ·
@@ -97,6 +93,8 @@ Take items top-down. Move finished items to Done (bottom) with date + commit.
 _(items land here with the open question attached)_
 
 ## Done
+- [x] P3 · Lost-position mate framing — 2026-06-12 ("The game could not be saved either way — …")
+- [x] C1 · Recapture/capture suggestion phrasing — 2026-06-12 (subsumed by C8 'captures' idea)
 - [x] U3 · API-key LLM commentary — 2026-06-12 (src/llm/providers.ts generateViaApi: direct browser call to api.anthropic.com with user's own key in localStorage; haiku; R4 verify + silent fallback)
 - [x] U4 · WebLLM local commentary — 2026-06-12 (generateViaWebLLM: Llama-3.2-1B q4f16_1 via esm.run CDN dynamic import, WebGPU-gated, engine cached; same verify pipeline)
 - [x] C3 · Purpose-phrased better-move — 2026-06-12 (subsumed by U6 missed_idea)
