@@ -82,6 +82,8 @@ export type Fact =
   /* the missed best move was QUIET (no capture/check/promotion) yet tactical —
      the hardest kind to spot (GM-2: soften the criticism) */
   | { kind: 'hard_to_find'; move: SanMove; reason: 'quiet' | 'retreat' }
+  /* GM-2 praise side: the player FOUND a quiet move with a tactical point */
+  | { kind: 'quiet_strength' }
   | { kind: 'forced' };
 
 export type MissedIdea =
@@ -142,6 +144,7 @@ const PRIORITY: Record<FactKind, number> = {
   only_move: 25,
   second_candidate: 25.5,
   hard_to_find: 25.7,
+  quiet_strength: 25.9,
   forced: 26,
 };
 

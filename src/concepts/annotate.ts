@@ -663,6 +663,22 @@ export function annotateMove(before: Chess, move: NormalMove, ctx: AnnotateConte
     }
   }
 
+  // GM-2 praise side (book §4.1): the player FOUND a quiet move carrying a
+  // real tactical point — the kind club players find only ~40% of the time.
+  if (ctx.bestUci === playedUci && ctx.winDrop <= 2) {
+    const TACTICAL_POINT: Fact['kind'][] = ['creates_fork', 'creates_pin', 'traps_piece', 'mate_threat'];
+    const victim = before.board.get(move.to);
+    const isPawnCapture = movedRole === 'pawn' && (move.from & 7) !== (move.to & 7);
+    if (
+      !victim &&
+      !isPawnCapture &&
+      move.promotion === undefined &&
+      !after.isCheck() &&
+      facts.some(f => TACTICAL_POINT.includes(f.kind))
+    )
+      facts.push({ kind: 'quiet_strength' });
+  }
+
   return sortFacts(facts);
 }
 
