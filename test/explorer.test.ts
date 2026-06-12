@@ -20,15 +20,27 @@ describe('masterBookPlies', () => {
       .fn()
       .mockResolvedValueOnce(explorerResponse([['e4', 5000]]))
       .mockResolvedValueOnce(explorerResponse([['e5', 4000]]))
-      .mockResolvedValueOnce(explorerResponse([['Nf3', 3000]])) // played san not listed
+      .mockResolvedValueOnce(explorerResponse([['Nf3', 3000]])) // masters: played san missing
+      .mockResolvedValueOnce(explorerResponse([['Nf3', 90000]])) // online DB: also missing
       .mockResolvedValueOnce(explorerResponse([['d4', 9999]]));
     const out = await masterBookPlies([ply('e4'), ply('e5'), ply('h4'), ply('d4')], fetchFn as never);
     expect([...out]).toEqual([0, 1]);
-    expect(fetchFn).toHaveBeenCalledTimes(3); // never queried past the miss
+    expect(fetchFn).toHaveBeenCalledTimes(4); // masters x3 + one online fallback, never past the miss
   });
 
-  it('a move below the games threshold is not book', async () => {
-    const fetchFn = vi.fn().mockResolvedValue(explorerResponse([['e4', 9]]));
+  it('a rare-in-masters move stays book via the high-rated online DB', async () => {
+    const fetchFn = vi
+      .fn()
+      .mockResolvedValueOnce(explorerResponse([['e4', 3]])) // below masters bar
+      .mockResolvedValueOnce(explorerResponse([['e4', 25000]])); // online DB confirms
+    const out = await masterBookPlies([ply('e4')], fetchFn as never);
+    expect([...out]).toEqual([0]);
+    const url = fetchFn.mock.calls[1][0] as string;
+    expect(url).toContain('/lichess?ratings=2200,2500');
+  });
+
+  it('a move below both thresholds is not book', async () => {
+    const fetchFn = vi.fn().mockResolvedValue(explorerResponse([['e4', 4]]));
     expect((await masterBookPlies([ply('e4')], fetchFn as never)).size).toBe(0);
   });
 
@@ -37,6 +49,7 @@ describe('masterBookPlies', () => {
       .fn()
       .mockResolvedValueOnce(explorerResponse([['e4', 100]]))
       .mockResolvedValueOnce({ ok: false, status: 429 });
+    // ply 0 passes masters outright; ply 1's masters call 429s -> stop
     expect([...(await masterBookPlies([ply('e4'), ply('e5')], httpErr as never))]).toEqual([0]);
 
     const netErr = vi.fn().mockRejectedValue(new Error('offline'));
