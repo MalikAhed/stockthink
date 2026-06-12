@@ -14,7 +14,7 @@ import type { NormalMove, Role, Square } from 'chessops/types';
 import { makeSquare, makeUci, opposite, parseUci } from 'chessops/util';
 import type { EvalScore } from '../analysis/winprob';
 import { winPercent } from '../analysis/winprob';
-import { attackersTo, isInBadSpot, PIECE_VALUES } from './board';
+import { attackersTo, attacks, isInBadSpot, PIECE_VALUES } from './board';
 import {
   blocksCheck,
   capturesFreePiece,
@@ -466,6 +466,29 @@ export function annotateMove(before: Chess, move: NormalMove, ctx: AnnotateConte
           targets: replyForks.map(sq => pieceOn(afterReply, sq)),
         });
     }
+  }
+
+  // GM-7 (book §4.3, Adams' 1.Ne5?!): a move can fail by what it STOPS doing.
+  // The engine's punishing reply lands on an empty square that ONLY the moved
+  // piece used to cover from its old post — it walked away from its job.
+  if (ctx.winDrop >= MISS_GATE && replyMove && after.isLegal(replyMove) && movedRole !== 'pawn') {
+    const t = replyMove.to;
+    const movedBefore = before.board.get(move.from);
+    if (
+      movedBefore &&
+      t !== move.to &&
+      !before.board.get(t) && // infiltration, not a capture story
+      attacks(movedBefore, move.from, before.board.occupied).has(t) &&
+      attackersTo(before.board, t, mover, before.board.occupied).without(move.from).isEmpty() &&
+      attackersTo(after.board, t, mover, after.board.occupied).isEmpty()
+    )
+      facts.push({
+        kind: 'abandons_square',
+        role: movedBefore.role,
+        from: makeSquare(move.from),
+        square: makeSquare(t),
+        reply: sanMove(after, replyMove),
+      });
   }
 
   /* ---- quiet good move: explain it together with the engine's plan ------ */

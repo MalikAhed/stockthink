@@ -201,7 +201,7 @@ Proven 2026-06-12: MissedIdea variant `removes_checks` in the missed_idea
   hard decisions to your opponent." Residual: GM-2 hard_to_find still skips
   quiet-positional misses (needs non-tactical softener decision).
 
-### GM-7 walks away from its job                                      [mined]
+### GM-7 walks away from its job                                     [proven]
 Pattern: a move can fail not by what it does but by what it STOPS doing —
   Adams rejects 1.Ne5?! because the knight on g4 "has an important defensive
   influence, keeping f2 under control"; after it leaves, ...Qf2 infiltrates.
@@ -220,3 +220,8 @@ Voice: "The {piece} had a job on {from} — covering {square} — and this move
   walks away from it; {reply} steps straight into the gap."
 Fixture: crafted: knight leaves the only cover of f2, Qf2 infiltrates →
   fires; same but a bishop still covers f2 → silent.
+Proven 2026-06-12: fact `abandons_square` (priority 3.5, BAD_KINDS) — reply
+  PV lands on an empty square the moved piece covered exclusively from its
+  old post and nobody covers now. Voice: "The knight had a job on g4 —
+  covering f2 — and this move walks away from it; Qf2 steps straight into
+  the gap." Both fixtures green; gate unchanged (no false fires).
