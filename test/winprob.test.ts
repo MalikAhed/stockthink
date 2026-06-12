@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import {
-  gameAccuracy,
   moveAccuracy,
   toWhitePov,
   winPercent,
@@ -52,15 +51,6 @@ describe('moveAccuracy', () => {
   });
   it('approaches 0 for catastrophic drops', () => {
     expect(moveAccuracy(90)).toBeLessThan(2);
-  });
-});
-
-describe('gameAccuracy', () => {
-  it('is high for a clean game and lower for a blunder-filled one', () => {
-    const clean = gameAccuracy([100, 98, 95, 99, 97], [50, 52, 51, 53, 52, 54]);
-    const dirty = gameAccuracy([100, 40, 95, 30, 97], [50, 52, 20, 45, 10, 12]);
-    expect(clean).toBeGreaterThan(90);
-    expect(dirty).toBeLessThan(clean - 15);
   });
 });
 

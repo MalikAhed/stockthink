@@ -7,7 +7,6 @@ import type { PositionAnalysis } from '../engine/engine';
 import type { ParsedGame, Ply } from './pgn';
 import {
   type EvalScore,
-  gameAccuracy,
   moveAccuracy,
   winPercent,
   winPercentDrop,
@@ -19,7 +18,7 @@ import { parseUci } from 'chessops/util';
 import type { NormalMove } from 'chessops/types';
 import { annotateMove } from '../concepts/annotate';
 import type { Fact } from '../concepts/facts';
-import { classifyMove, type Classification } from './classify';
+import { classificationScore, classifyMove, type Classification } from './classify';
 import { openingBook } from './openings';
 
 export interface EngineLineReport {
@@ -148,8 +147,12 @@ export function buildReport(
 }
 
 function summarize(color: 'white' | 'black', moves: MoveReport[]): PlayerSummary {
-  const accuracies: number[] = [];
-  const winPercents: number[] = [];
+  // CAPS2-style game accuracy (chess.com): plain average of per-move
+  // classification scores — book/forced/best are perfect, errors cost by
+  // severity. Matches what users compare us against far better than the
+  // lichess weighted/harmonic formula did.
+  let scoreSum = 0;
+  let scoreMoves = 0;
   let cpLossSum = 0;
   let cpLossMoves = 0;
   const counts = Object.fromEntries(
@@ -164,10 +167,8 @@ function summarize(color: 'white' | 'black', moves: MoveReport[]): PlayerSummary
   for (const m of moves) {
     if (m.color !== color) continue;
     counts[m.classification]++;
-    accuracies.push(m.accuracy);
-    // player-POV win% before this move (for volatility windows)
-    const before = winPercent(m.evalBefore);
-    winPercents.push(color === 'white' ? before : 100 - before);
+    scoreSum += classificationScore[m.classification];
+    scoreMoves++;
     // ACPL from mover-POV cp drop, mate ≈ ±1000
     const drop =
       color === 'white'
@@ -177,13 +178,9 @@ function summarize(color: 'white' | 'black', moves: MoveReport[]): PlayerSummary
     cpLossMoves++;
   }
 
-  // final position win% closes the last volatility window
-  const last = moves[moves.length - 1];
-  if (last) winPercents.push(color === 'white' ? last.winPercentAfter : 100 - last.winPercentAfter);
-
   const acpl = cpLossMoves ? cpLossSum / cpLossMoves : 0;
   return {
-    accuracy: Math.round(gameAccuracy(accuracies, winPercents) * 10) / 10,
+    accuracy: scoreMoves ? Math.round((scoreSum / scoreMoves) * 1000) / 10 : 100,
     acpl: Math.round(acpl),
     estimatedElo: Math.round(3100 * Math.exp(-0.01 * acpl)),
     counts,
