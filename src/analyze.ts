@@ -2,6 +2,7 @@
  * Browser-side orchestration: PGN text → engine pool → eval report.
  * (Classification & commentary removed pending the analysis-system redesign.)
  */
+import { masterBookPlies } from './analysis/explorer';
 import { parseGame } from './analysis/pgn';
 import { buildReport, type GameReport, type MoveReport } from './analysis/report';
 import { WorkerTransport } from './engine/engine';
@@ -44,10 +45,13 @@ export async function analyzeGame(
   );
   try {
     onProgress(0, game.fens.length);
+    // deep book check (lichess masters) runs alongside the engine — it
+    // resolves long before the analysis does and never throws
+    const bookPromise = masterBookPlies(game.plies);
     const analyses = await pool.analyzeAll(game.fens, { nodes: TIER_NODES[tier] }, p =>
       onProgress(p.done, p.total),
     );
-    const report = buildReport(game, analyses);
+    const report = buildReport(game, analyses, await bookPromise);
     return { ...report, initialFen: game.initialFen };
   } finally {
     pool.dispose();

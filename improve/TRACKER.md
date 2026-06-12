@@ -42,6 +42,12 @@ trappedPiece→traps_piece · mateIn1→delivers_mate/mate_threat · sacrifice�
 
 ## Daily log (append ONE entry per session, 1–3 lines, newest on top)
 
+- **2026-06-12i** · 1 unit (user-reported) · BOOK DEPTH FIX: chess.com marks
+  ~6 more book moves than us — the EPD map only knows *named* positions. New
+  src/analysis/explorer.ts: lichess masters explorer (keyless, CORS) walks the
+  game prefix, ≥10 master games = book, cap 30 plies, runs alongside engine,
+  silent EPD fallback offline. NOTE: endpoint unreachable from dev sandbox
+  (proxy) — verify in browser. Tests 186→190.
 - **2026-06-12h** · 3 units · FIRST V3 SESSION: MINE B1 (§4.1 Candidate Move →
   GM-1/2/3 mined, GM-3 is an only_move audit) + PATTERN GM-1 second_candidate
   proven (fact + candidate framing: replaces neutral praise on near-best moves,

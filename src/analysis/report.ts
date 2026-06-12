@@ -83,6 +83,8 @@ export function buildMoveReport(
   before: PositionAnalysis,
   after: PositionAnalysis | undefined,
   book: Map<string, { name: string }>,
+  /** Deep-book override (lichess masters explorer) — EPD map is the fallback. */
+  inMasterBook = false,
 ): MoveReport {
   const pos = Chess.fromSetup(parseFen(ply.fenBefore).unwrap()).unwrap();
   const lines = before.lines.map(line => sanifyLine(pos, line.eval, line.pvUci));
@@ -119,14 +121,19 @@ export function buildMoveReport(
     classification: 'good' as Classification,
     openingName: book.get(ply.epdAfter)?.name ?? null,
   };
-  m.classification = classifyMove(m, m.openingName !== null);
+  m.classification = classifyMove(m, m.openingName !== null || inMasterBook);
   return m;
 }
 
-export function buildReport(game: ParsedGame, analyses: PositionAnalysis[]): GameReport {
+export function buildReport(
+  game: ParsedGame,
+  analyses: PositionAnalysis[],
+  /** Ply indices confirmed as book by the masters explorer (optional). */
+  masterBook: Set<number> = new Set(),
+): GameReport {
   const book = openingBook();
   const moves: MoveReport[] = game.plies.map((ply, i) =>
-    buildMoveReport(ply, analyses[i], analyses[i + 1], book),
+    buildMoveReport(ply, analyses[i], analyses[i + 1], book, masterBook.has(i)),
   );
 
   return {
