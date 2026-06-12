@@ -8,12 +8,14 @@ done — do not touch it.
 - `README.md` — this protocol (how to work)
 - `TODO.md` — engineering queue (pick top-down)
 - `SOURCES.md` — pattern-mining queue (workflow v3: books/CPW/puzzles → patterns)
-- `TRACKER.md` — coverage snapshot + daily log (update before you stop)
+- `TRACKER.md` — coverage snapshot + recall table (update before you stop;
+  the daily log lives in `../docs/JOURNAL.md`)
 
 ## Session protocol — follow exactly
 
 ### 1. Orient (2 minutes, don't read more than this)
-1. Read `TRACKER.md` — last 3 daily-log entries + the coverage snapshot.
+1. Read the top 3 entries of `../docs/JOURNAL.md` + the `TRACKER.md`
+   coverage snapshot.
 2. Pick units. A session mixes three unit types, top-down within each queue:
    - **BUILD** — topmost unchecked, unblocked item in `TODO.md`
    - **MINE** — next chunk in `SOURCES.md` (read one bounded source chunk,
@@ -63,9 +65,10 @@ done — do not touch it.
 
 ### 4. End of session — ALWAYS, even after 0 finished units
 1. `npx vitest run` (full suite) must be green.
-2. Update `TRACKER.md`:
-   - flip any concept rows in the coverage snapshot you changed
-   - append ONE daily-log entry, 1–3 lines MAX (date · units · what · next)
+2. Bookkeeping:
+   - flip any concept rows you changed in the `TRACKER.md` coverage snapshot
+   - append ONE entry to `../docs/JOURNAL.md`, newest on top, 1–3 lines MAX
+     (date · units · what · next)
 3. If you discovered new gaps, add ≤5 items to `TODO.md` — never let it balloon.
 4. Commit bookkeeping, then **`git push`** — GitHub Pages auto-deploys main.
    A session that doesn't push didn't happen. (If push fails with HTTP2/host
