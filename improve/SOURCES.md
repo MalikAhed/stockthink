@@ -77,7 +77,7 @@ fixtures (fires / correctly stays silent) are green AND the e2e gate passed.
 - [x] B1 §4.1 The Candidate Move (pp. 372–374) — mined 2026-06-12 → GM-1/2/3
 - [x] B2 §4.2 The Art of Falsifying (pp. 374–379) — mined 2026-06-12 → GM-4/5
 - [x] B3 §4.3 (pp. 379–392, Carlsen–Nakamura Kh2 study + think-alouds) — mined 2026-06-12 → GM-6/GM-7
-- [ ] B4 §4.5 How Many Moves Ahead (pp. 395–401)
+- [x] B4 §4.5 (pp. 395–401, Storey–Crouch Bd1 study) — mined 2026-06-12 → GM-8/GM-9
 - [ ] B5 §4.6 Grandmaster Secrets (pp. 401–416)
 - [ ] B6 §1.6 Tips for Solving the Puzzles (pp. 27–29)
 - [ ] B7–B18 Puzzle solutions, 4 positions per chunk (pp. 37–314) — mine the
@@ -225,3 +225,34 @@ Proven 2026-06-12: fact `abandons_square` (priority 3.5, BAD_KINDS) — reply
   old post and nobody covers now. Voice: "The knight had a job on g4 —
   covering f2 — and this move walks away from it; Qf2 steps straight into
   the gap." Both fixtures green; gate unchanged (no false fires).
+
+### GM-8 backwards moves are the hardest to spot                     [proven]
+Pattern: retreating moves ("a strong backwards move, notoriously difficult
+  to spot... a long-range tactical idea on a crowded board") deserve the
+  same softened criticism as quiet moves when missed — 1.Bd1! was "commonly
+  missed" even by strong solvers.
+AUDIT: GM-2 `hard_to_find` covers quiet misses only — add a `reason` field
+  ('quiet' | 'retreat'): retreat = best move travels toward the mover's back
+  rank, same tactical-miss + MISS_GATE gates; retreat-specific voice.
+Source: GM pp. 397–398 (§ Puzzle 33, Storey–Crouch Durham 1998).
+Voice: "To be fair, {best} is a backwards move — the kind even strong
+  players overlook."
+Proven 2026-06-12: hard_to_find.reason quiet|retreat (retreat = toward own
+  back rank, non-king); Ra1 mate-miss fixture; Blackburne Qe2 stays quiet.
+
+### GM-9 meet the threat indirectly                                    [mined]
+Pattern: when a piece is attacked, club players reach for defense/retreat;
+  the strong choice often IGNORES the threat and creates a bigger one
+  (Adams: "meeting the threat to the knight indirectly, by attacking one of
+  Black's pieces, may have been another factor in this being widely
+  overlooked"). When the missed best move does this, name the lesson.
+Exceptions: only when the threat was real (attacked piece, SEE-losing) AND
+  the best move's counter-threat is engine-line confirmed (existing
+  tempoConfirmed / trap machinery); never when best simply defends.
+Source: GM pp. 397–398 (§ Puzzle 33 analysis).
+Confirm-gate: a mover piece is attacked before the move AND best move
+  neither moves nor defends it AND best creates a confirmed tempo/trap/fork
+  → missed_idea lead-in variant ("instead of defending, it answers the
+  threat with a bigger one").
+Fixture: crafted: knight attacked, best traps a rook instead of retreating
+  → fires; best retreats the knight → silent.

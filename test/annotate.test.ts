@@ -206,7 +206,24 @@ describe('annotateMove — what the best move would have done', () => {
       }),
     );
     expect(byKind(facts, 'missed_mate_threat')).toMatchObject({ move: { san: 'Qf6' } });
-    expect(byKind(facts, 'hard_to_find')).toMatchObject({ move: { san: 'Qf6' } });
+    expect(byKind(facts, 'hard_to_find')).toMatchObject({ move: { san: 'Qf6' }, reason: 'quiet' });
+  });
+
+  it('a missed quiet RETREAT carries the retreat reason (GM-8)', () => {
+    // best Ra1: a backwards rook move, no capture/check; the engine line
+    // shows a forced mate was missed (lines[0] eval mate 2)
+    const p = pos('7k/R7/8/8/8/8/8/6K1 w - - 0 1');
+    const facts = annotateMove(
+      p,
+      mv('g1g2'),
+      ctx({
+        winDrop: 18,
+        bestUci: 'a7a1',
+        lines: [{ eval: { mate: 2 }, pvUci: ['a7a1'] }],
+      }),
+    );
+    expect(byKind(facts, 'missed_mate')).toBeTruthy();
+    expect(byKind(facts, 'hard_to_find')).toMatchObject({ reason: 'retreat' });
   });
 
   it('missed free piece', () => {

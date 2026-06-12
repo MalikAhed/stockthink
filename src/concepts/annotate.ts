@@ -630,6 +630,12 @@ export function annotateMove(before: Chess, move: NormalMove, ctx: AnnotateConte
       ];
       const bestIsPawnCapture =
         before.board.get(best.from)!.role === 'pawn' && (best.from & 7) !== (best.to & 7);
+      // GM-8 (book §4.5, Storey-Crouch 1.Bd1!): a RETREAT toward the back
+      // rank is just as notoriously hard to spot as a quiet move.
+      const bestRank = best.to >> 3;
+      const fromRank = best.from >> 3;
+      const isRetreat =
+        mover === 'white' ? bestRank < fromRank : bestRank > fromRank;
       if (
         ctx.winDrop >= MISS_GATE &&
         !bestVictim &&
@@ -638,7 +644,11 @@ export function annotateMove(before: Chess, move: NormalMove, ctx: AnnotateConte
         !play(before, best).isCheck() &&
         facts.some(f => TACTICAL_MISS.includes(f.kind))
       )
-        facts.push({ kind: 'hard_to_find', move: bestSan });
+        facts.push({
+          kind: 'hard_to_find',
+          move: bestSan,
+          reason: isRetreat && before.board.get(best.from)!.role !== 'king' ? 'retreat' : 'quiet',
+        });
     }
   }
 

@@ -81,7 +81,7 @@ export type Fact =
   | { kind: 'second_candidate'; best: SanMove }
   /* the missed best move was QUIET (no capture/check/promotion) yet tactical —
      the hardest kind to spot (GM-2: soften the criticism) */
-  | { kind: 'hard_to_find'; move: SanMove }
+  | { kind: 'hard_to_find'; move: SanMove; reason: 'quiet' | 'retreat' }
   | { kind: 'forced' };
 
 export type MissedIdea =
