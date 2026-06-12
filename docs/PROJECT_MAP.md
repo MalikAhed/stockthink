@@ -52,7 +52,7 @@ PGN text
 ### Compose (Mode A prose)
 | File | What it does | Key exports |
 |---|---|---|
-| `src/compose/compose.ts` (253L) | Facts → 1–3 sentences. Structure enforced: bad = cause→consequence→better+why (R5); good = ≤2 purposes; factless = NEUTRAL one-liner rotated by ply (never empty — R3). GM-1/2/4/5 weaving. BAD/MISSED/CONTEXT kind sets defined at top | `composeComment`, `Comment`, `VariationChip` |
+| `src/compose/compose.ts` (257L) | Facts → 1–3 sentences. Structure enforced: bad = cause→consequence→better+why (R5); good = ≤2 purposes (concrete outrank positional ride-alongs; quiet_strength only as a 2nd line); factless = NEUTRAL one-liner rotated by ply (never empty — R3). GM-1/2/4/5 weaving. BAD/MISSED/CONTEXT kind sets defined at top | `composeComment`, `Comment`, `VariationChip` |
 | `src/compose/templates.ts` (242L) | One sentence renderer per fact kind; slots filled only from the fact (R4) | `renderFact` |
 
 ### LLM (Mode B — reword only, never analyze)

@@ -6,6 +6,19 @@ for /work sessions). Past ~300 lines, /reflect compresses the oldest half into
 LESSONS.md. Entries below 2026-06-12p were migrated verbatim from
 improve/TRACKER.md's daily log (2026-06-12) — history is not rewritten.
 
+- **2026-06-12r** · /work T2 · BACKLOG #1 gaps (b)+(c): good-move praise
+  stacking + positional ride-alongs. `compose.ts`: concrete purposes outrank
+  `positional` (which waits in "explain more"); `quiet_strength` garnish only
+  when the text is otherwise one line; its template loses "Well spotted."
+  EVIDENCE: eval 82.9→**90.8%** (ECONOMY 81.8→100.0 · GROUNDED 85.3→91.2 ·
+  CAUSAL 80.0 flat) — pz-trap-009FP E0→2 · trap-rook-file-kick G0→2 E0→2 ·
+  opera-13 now "sacrifice — and stop" · zero regressions · gate green ·
+  tests 233/234. **M2 exit met** (TOTAL ≥90, no regressions) → arrow to M3.
+  FAILED: nothing on-block. SURPRISED: BACKLOG #8 bit during PROVE
+  (metrics.json dup append — reverted by hand, item annotated); M2 fell in one
+  loop because the economy cluster alone was worth 6/76 pts.
+  UPGRADE: ROADMAP joins /work BOOT (ORIENT asks for an arc it never read).
+  NEXT: U2 punishment narration via improve/ ([T1] top).
 - **2026-06-12q** · 3 units · MINE B6 (§1.6 pp. 27–30: mostly logistics; 1
   candidate → GM-13 calibrated eval-vocabulary audit, backlog 2/6) · PATTERN
   GM-10 proven: MissedIdea `open_lines` — dev-lead pawn lever + PV-walk
