@@ -14,7 +14,9 @@ import { makeSan } from 'chessops/san';
 import type { NormalMove, Role } from 'chessops/types';
 import type { VariationChip } from '../compose/compose';
 import { createsFork, createsMateThreat, trapsPieces, winsTempo } from '../concepts/detectors';
-import { pinsCreatedEx } from '../concepts/primitives';
+import { pinsCreatedEx, seeCapture } from '../concepts/primitives';
+import { positionalPurposes } from '../concepts/positional';
+import type { PositionalFact } from '../concepts/positional';
 import { composeComment } from '../compose/compose';
 import type { MoveReport } from '../analysis/report';
 import { badgeUrl, CLASS_COLORS } from './badges';
@@ -173,9 +175,108 @@ function whyClause(before: Chess, move: NormalMove): string | null {
   return null;
 }
 
+/** Which positional purpose to lead with when several fire (most teachable first). */
+const POS_RANK: Record<PositionalFact['kind'], number> = {
+  castles: 0,
+  develops: 1,
+  center_gain: 2,
+  knight_outpost: 3,
+  rook_open_file: 4,
+  rook_seventh: 5,
+  passed_pawn: 6,
+  file_battery: 7,
+  fianchetto: 8,
+  releases_pin: 9,
+  simplifies_ahead: 10,
+  improves_shield: 11,
+  mobility_gain: 12,
+};
+
+/** A board-verified positional purpose as a present-participle clause. */
+function positionalWhy(f: PositionalFact): string {
+  switch (f.kind) {
+    case 'castles':
+      return f.side === 'king'
+        ? 'tucking the king to safety and connecting the rooks'
+        : 'castling long, bringing the king to safety and the rook into play';
+    case 'passed_pawn':
+      return `creating a passed pawn on ${f.square} that no enemy pawn can stop`;
+    case 'simplifies_ahead':
+      return 'trading down while ahead — every swap brings the win closer';
+    case 'releases_pin':
+      return `freeing the ${ROLE_NAME[f.role]} from the pin`;
+    case 'rook_open_file':
+      return `seizing the open ${'abcdefgh'[f.file]}-file`;
+    case 'rook_seventh':
+      return `planting the rook on the seventh rank at ${f.square}`;
+    case 'knight_outpost':
+      return `landing the knight on a strong outpost at ${f.square}`;
+    case 'file_battery':
+      return `doubling the heavy pieces on the ${'abcdefgh'[f.file]}-file`;
+    case 'fianchetto':
+      return 'fianchettoing the bishop onto the long diagonal';
+    case 'develops': {
+      // small deterministic rotation so consecutive developing moves don't drone
+      const v = [
+        `developing the ${ROLE_NAME[f.role]} into the game`,
+        `bringing the ${ROLE_NAME[f.role]} into play`,
+        `getting the ${ROLE_NAME[f.role]} off its starting square and into the action`,
+      ];
+      return v[(f.square.charCodeAt(0) + f.square.charCodeAt(1)) % v.length];
+    }
+    case 'improves_shield':
+      return "shoring up the king's pawn cover";
+    case 'center_gain':
+      return 'strengthening the grip on the center';
+    case 'mobility_gain':
+      return `giving the ${ROLE_NAME[f.role]} much more room`;
+  }
+}
+
+/** The single strongest positional purpose of a move, or null. */
+function topPositional(before: Chess, move: NormalMove): PositionalFact | null {
+  const facts = positionalPurposes(before, move);
+  if (!facts.length) return null;
+  return facts.reduce((a, b) => (POS_RANK[a.kind] <= POS_RANK[b.kind] ? a : b));
+}
+
 /**
- * One board-verified sentence for a move: what moved, what it captured,
- * whether it checks or mates. Never speculates beyond the board.
+ * Up to two board-verified clauses explaining WHY a move is played. `punish`
+ * frames captures as material WON (the refutation's job) instead of merely
+ * "taken", and is used when narrating the line that refutes a bad move.
+ */
+function reasonClauses(before: Chess, move: NormalMove, punish: boolean): string[] {
+  const clauses: string[] = [];
+  const piece = before.board.get(move.from);
+  const victim = before.board.get(move.to);
+  const isEp = piece?.role === 'pawn' && (move.from & 7) !== (move.to & 7) && !victim;
+
+  if (victim) {
+    const target = `the ${ROLE_NAME[victim.role]} on ${SQUARE(move.to)}`;
+    clauses.push(punish && seeCapture(before, move) >= 0 ? `winning ${target}` : `taking ${target}`);
+  } else if (isEp) {
+    clauses.push('capturing en passant');
+  }
+
+  // strongest tactical sting the move creates (mate threat > fork > pin > trap > tempo)
+  const why = whyClause(before, move);
+  if (why) clauses.push(why);
+
+  // fill the remaining slot with the move's positional purpose
+  if (clauses.length < 2) {
+    const pf = topPositional(before, move);
+    if (pf) clauses.push(positionalWhy(pf));
+  }
+
+  return clauses.slice(0, 2);
+}
+
+/**
+ * One board-verified sentence for a move that leads with its PURPOSE (why the
+ * engine plays it) rather than narrating coordinates. `mode` shapes the frame:
+ * 'good'/'defense' explain intent, 'punish' explains what the move wins/threatens.
+ * Every clause is machine-verified (R4); when nothing concrete fires we fall
+ * back to a plain factual statement rather than inventing a reason.
  */
 function describeMove(
   pos: Chess,
@@ -183,6 +284,7 @@ function describeMove(
   san: string,
   yours: boolean,
   moveIdx: number,
+  mode: 'good' | 'defense' | 'punish',
 ): string {
   const lead = yours
     ? YOUR_LEADS[Math.floor(moveIdx / 2) % YOUR_LEADS.length]
@@ -190,32 +292,28 @@ function describeMove(
 
   const piece = pos.board.get(move.from);
   const victim = pos.board.get(move.to);
-  const isEp = piece?.role === 'pawn' && (move.from & 7) !== (move.to & 7) && !victim;
-
   const after = pos.clone();
   after.play(move);
   const mate = after.isCheckmate();
   const check = !mate && after.isCheck();
 
-  let body: string;
-  if (san.startsWith('O-O-O')) body = 'the king castles long, tucking away to safety';
-  else if (san.startsWith('O-O')) body = 'the king castles to safety';
-  else if (move.promotion)
-    body = `the pawn reaches the last rank and becomes a ${ROLE_NAME[move.promotion]}!`;
-  else if (isEp) body = 'the pawn captures en passant';
-  else if (victim)
-    body = `the ${ROLE_NAME[piece?.role ?? 'pawn']} captures the ${ROLE_NAME[victim.role]} on ${SQUARE(move.to)}`;
-  else
-    body = `the ${ROLE_NAME[piece?.role ?? 'pawn']} goes to ${SQUARE(move.to)}`;
+  if (mate) {
+    const cap = victim ? `taking the ${ROLE_NAME[victim.role]} on ${SQUARE(move.to)} and delivering ` : '';
+    return `${lead} ${san} — ${cap}checkmate, the game would end right here!`;
+  }
 
-  if (mate) return `${lead} ${san} — ${body} — checkmate, the game would end right here!`;
+  let clauses: string[];
+  if (san.startsWith('O-O-O'))
+    clauses = ['castling long, bringing the king to safety and the rook into play'];
+  else if (san.startsWith('O-O')) clauses = ['castling — the king tucks away and the rooks connect'];
+  else if (move.promotion) clauses = [`promoting to a ${ROLE_NAME[move.promotion]}`];
+  else clauses = reasonClauses(pos, move, mode === 'punish');
 
-  // W2: append the strongest board-provable consequence (one idea per step)
-  const why = whyClause(pos, move);
-  if (check && why) return `${lead} ${san} — ${body} — check, and it's ${why}!`;
-  if (check) return `${lead} ${san} — ${body} — check!`;
-  if (why) return `${lead} ${san} — ${body}, ${why}.`;
-  return `${lead} ${san} — ${body}.`;
+  // honest fallback: no verified purpose found — name the move, claim nothing
+  if (!clauses.length) clauses = [`bringing the ${ROLE_NAME[piece?.role ?? 'pawn']} to ${SQUARE(move.to)}`];
+
+  const body = clauses.join(' and ');
+  return check ? `${lead} ${san} — ${body}, with check.` : `${lead} ${san} — ${body}.`;
 }
 
 /**
@@ -287,9 +385,13 @@ export function buildWalkthrough(
     if (!move || !pos.isLegal(move)) break;
     const san = makeSan(pos, move);
     const yours = youAreFirstMover ? i % 2 === 0 : i % 2 === 1;
+    // in a refutation the opponent's moves (not "yours") are the punishment —
+    // frame them by what they win/threaten; everything else explains intent.
+    const mode: 'good' | 'defense' | 'punish' =
+      chip.kind === 'refutation' && !yours ? 'punish' : yours ? 'good' : 'defense';
     const confident = i < CONFIDENT_PLIES;
     const caption = confident
-      ? describeMove(pos, move, san, yours, i)
+      ? describeMove(pos, move, san, yours, i, mode)
       : `The engine continues with ${san}.`;
     pos.play(move);
     steps.push({

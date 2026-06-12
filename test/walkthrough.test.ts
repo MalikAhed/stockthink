@@ -38,7 +38,7 @@ describe('buildWalkthrough', () => {
     expect(steps[2].side).toBe('opponent'); // reply steps belong to the opponent
     expect(steps[2].arrow?.brush).toBe('yellow');
     const mate = steps[3];
-    expect(mate.caption).toContain('captures the pawn on f7');
+    expect(mate.caption).toContain('taking the pawn on f7');
     expect(mate.caption).toContain('checkmate');
   });
 
@@ -137,9 +137,20 @@ describe('step captions carry the WHY (W2)', () => {
     expect(steps[1].caption).toContain('pinning the queen to the king');
   });
 
-  it('stays quiet when a move proves nothing on the board', () => {
+  it('explains a developing move by its positional purpose', () => {
     const steps = buildWalkthrough(chip({ sanPv: ['Nf3'], uciPv: ['g1f3'] }), null);
-    expect(steps[1].caption).toBe('You play Nf3 — the knight goes to f3.');
+    expect(steps[1].caption).toContain('Nf3');
+    expect(steps[1].caption).toContain('developing the knight');
+  });
+
+  it('falls back to a plain factual statement when nothing is verified', () => {
+    // a bare king step proves nothing positional or tactical — name it, no claim
+    const steps = buildWalkthrough(
+      chip({ fen: '8/8/4k3/8/8/8/8/4K1N1 w - - 0 1', sanPv: ['Ke2'], uciPv: ['e1e2'] }),
+      null,
+    );
+    expect(steps[1].caption).toContain('bringing the king to e2');
+    expect(steps[1].caption).not.toContain('goes to');
   });
 });
 
