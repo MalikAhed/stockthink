@@ -1,4 +1,8 @@
-# TODO — improvement queue
+# TODO — engineering queue
+
+> Workflow v3: pattern work (book/CPW mining → engine-confirm-gated detectors)
+> lives in `SOURCES.md`. This file keeps pure engineering items. Sessions mix
+> BUILD/MINE/PATTERN units per `README.md`.
 
 We treat the engine as having NO trusted concepts yet. Every concept below gets
 the same treatment, top-down, one item per session unit:

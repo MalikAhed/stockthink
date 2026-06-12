@@ -4,16 +4,25 @@ This folder is the ONLY place a daily improvement session needs to start from.
 You are improving ONE thing: the quality of move explanations. The UI/UX is
 done — do not touch it.
 
-**This folder has exactly 3 files:**
+**This folder has exactly 4 files:**
 - `README.md` — this protocol (how to work)
-- `TODO.md` — what to work on (pick top-down)
+- `TODO.md` — engineering queue (pick top-down)
+- `SOURCES.md` — pattern-mining queue (workflow v3: books/CPW/puzzles → patterns)
 - `TRACKER.md` — coverage snapshot + daily log (update before you stop)
 
 ## Session protocol — follow exactly
 
 ### 1. Orient (2 minutes, don't read more than this)
 1. Read `TRACKER.md` — last 3 daily-log entries + the coverage snapshot.
-2. Read `TODO.md` — pick the topmost unchecked, unblocked items.
+2. Pick units. A session mixes three unit types, top-down within each queue:
+   - **BUILD** — topmost unchecked, unblocked item in `TODO.md`
+   - **MINE** — next chunk in `SOURCES.md` (read one bounded source chunk,
+     extract ≤3 pattern candidates in our own words — no code)
+   - **PATTERN** — topmost `mined` item in `SOURCES.md` → take it to `proven`
+     (detector + confirm-gate + GM-voiced template + fires/stays-silent
+     fixtures). Counts as 2 units. **The v3 contract: the source gives the
+     pattern, Stockfish must confirm it in the position before we voice it.**
+   Default mix when nothing is urgent: 1 MINE + 1 PATTERN, or 3 BUILD.
 3. Only if your item needs it, consult the reference shelf (don't browse it):
    - `../docs/knowledge/chesscom-templates.md` — target phrasing + triggers
    - `../docs/knowledge/concept-taxonomy.md` — full concept matrix

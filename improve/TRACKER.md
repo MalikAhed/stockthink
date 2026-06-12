@@ -42,6 +42,12 @@ trappedPiece→traps_piece · mateIn1→delivers_mate/mate_threat · sacrifice�
 
 ## Daily log (append ONE entry per session, 1–3 lines, newest on top)
 
+- **2026-06-12g** · cleanup + workflow v3 · Pruned consumed research (12MB
+  arXiv PDFs, raw JSON, external .py — all distilled already), 4 dead exports;
+  doc maps refreshed. Built v3: improve/SOURCES.md (pattern-mining queue,
+  source registry, confirm-gate contract, book chunk queue B1–B19) + README
+  unit types BUILD/MINE/PATTERN. Book located at ~/think-like-a-super-gm-*.pdf.
+  Next: first v3 session — MINE B1 (§4.1 Candidate Move) + PATTERN it.
 - **2026-06-12f** (loop iter 6/6 — OVERNIGHT LOOP COMPLETE) · 2 units · C6
   praise rotation (6/tier by ply) · C5 early_queen regression.
   NIGHT TOTAL: 18 units / 6 sessions — U1 praise-on-bad-moves bug fixed ·
