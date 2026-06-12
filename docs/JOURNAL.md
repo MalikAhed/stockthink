@@ -6,6 +6,22 @@ for /work sessions). Past ~300 lines, /reflect compresses the oldest half into
 LESSONS.md. Entries below 2026-06-12p were migrated verbatim from
 improve/TRACKER.md's daily log (2026-06-12) — history is not rewritten.
 
+- **2026-06-12s** · USER FEATURE (overrides "UI is done" for one session):
+  chess.com game import + background pre-analysis. New `src/chesscom/`
+  (api/queue/store) + `src/ui/chesscom.ts` + input tabs; ALL analysis now runs
+  through one `AnalysisQueue` (single pool invariant) — batch in background,
+  `runNow` preempts via new AbortSignal in pool/analyze, reports cached in
+  IndexedDB keyed `uuid:tier` (LRU 60). EVIDENCE: tsc clean · 246/247 tests
+  (13 new: normalization, outcome map, queue preempt/cancel/fail) · gate green
+  · build clean · headless-chromium E2E walked the real flow against live
+  api.chess.com: hikaru → 50 rows → fast review (acc box 96.2) → "Analyzed ✓"
+  chip → cached reopen 153ms → batch chips + topbar pill across tabs.
+  FAILED first: custom-checkbox click bubbled into the row handler and opened
+  the review (caught by E2E, not unit tests) — stopPropagation belongs on the
+  label, the input never receives the click. SURPRISED: api.chess.com is fully
+  CORS-open with per-game CAPS accuracies in archives (shown in rows);
+  explorer.lichess.ovh 401s in the same browser (BACKLOG #8 annotated).
+  Eval untouched (no pipeline change). NEXT: BACKLOG #1 (U2) unchanged on top.
 - **2026-06-12r** · /work T2 · BACKLOG #1 gaps (b)+(c): good-move praise
   stacking + positional ride-alongs. `compose.ts`: concrete purposes outrank
   `positional` (which waits in "explain more"); `quiet_strength` garnish only

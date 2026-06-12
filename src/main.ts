@@ -14,10 +14,14 @@ import { parseFen } from 'chessops/fen';
 import { makeSan } from 'chessops/san';
 import type { NormalMove } from 'chessops/types';
 import { parseSquare } from 'chessops/util';
-import { analyzeGame, type AnnotatedMove, type AnnotatedReport, type Tier } from './analyze';
+import type { AnnotatedMove, AnnotatedReport, Tier } from './analyze';
 import { winPercent } from './analysis/winprob';
+import type { CcGame } from './chesscom/api';
+import { analysisQueue, type QueueJob } from './chesscom/queue';
+import { getReport } from './chesscom/store';
 import type { VariationChip } from './compose/compose';
 import { disposeLive, liveMoveReport, seedLiveAnalysis } from './live';
+import { initChesscomTab, refreshCached } from './ui/chesscom';
 import { badgeSvg } from './ui/badges';
 import { formatEval, renderCoach, renderCoachThinking } from './ui/coach';
 import { renderDeepReview } from './ui/deepreview';
@@ -68,9 +72,41 @@ function show(name: keyof typeof screens): void {
 }
 
 /* ----------------------------------------------------------- analyze --- */
+const currentTier = (): Tier => ($('#tier') as unknown as HTMLSelectElement).value as Tier;
+
+const isAbortError = (e: unknown): boolean =>
+  e instanceof DOMException && e.name === 'AbortError';
+
+function openReport(r: AnnotatedReport): void {
+  report = r;
+  initReview();
+}
+
+let pasteSeq = 0;
+/** Id of the analysis the progress screen is showing (Cancel targets it). */
+let foregroundJobId: string | null = null;
+
+/** Progress screen + queue-front analysis (preempts any background job). */
+async function runForeground(job: QueueJob, sub: string | null): Promise<AnnotatedReport> {
+  show('progress');
+  const subEl = $('#progress-sub');
+  subEl.textContent = sub ?? '';
+  subEl.classList.toggle('hidden', !sub);
+  $('#progress-text').textContent = 'Starting engines…';
+  $('#progress-fill').style.width = '0%';
+  foregroundJobId = job.id;
+  try {
+    return await analysisQueue.runNow(job, (done, total) => {
+      $('#progress-fill').style.width = `${Math.round((done / total) * 100)}%`;
+      $('#progress-text').textContent = `Evaluating position ${done} / ${total}`;
+    });
+  } finally {
+    foregroundJobId = null;
+  }
+}
+
 async function startAnalysis(): Promise<void> {
   const pgn = ($('#pgn-input') as HTMLTextAreaElement).value.trim();
-  const tier = ($('#tier') as unknown as HTMLSelectElement).value as Tier;
   const errEl = $('#input-error');
   errEl.classList.add('hidden');
   if (!pgn) {
@@ -78,19 +114,37 @@ async function startAnalysis(): Promise<void> {
     errEl.classList.remove('hidden');
     return;
   }
-  show('progress');
-  $('#progress-text').textContent = 'Starting engines…';
-  $('#progress-fill').style.width = '0%';
   try {
-    report = await analyzeGame(pgn, tier, (done, total) => {
-      $('#progress-fill').style.width = `${Math.round((done / total) * 100)}%`;
-      $('#progress-text').textContent = `Evaluating position ${done} / ${total}`;
-    });
-    initReview();
+    const job = { id: `paste-${++pasteSeq}`, pgn, tier: currentTier(), label: 'Pasted game' };
+    openReport(await runForeground(job, null));
   } catch (e) {
     show('input');
+    setTab('pgn');
+    if (isAbortError(e)) return;
     errEl.textContent = e instanceof Error ? e.message : String(e);
     errEl.classList.remove('hidden');
+  }
+}
+
+/** A game picked from the chess.com list: cached → instant, else analyze now. */
+async function reviewCcGame(game: CcGame): Promise<void> {
+  const tier = currentTier();
+  const cached = await getReport(game.uuid, tier);
+  if (cached) return openReport(cached);
+  const label = `${game.white.username} vs ${game.black.username}`;
+  const tc = game.timeClass ? ` · ${game.timeClass.charAt(0).toUpperCase()}${game.timeClass.slice(1)}` : '';
+  try {
+    openReport(
+      await runForeground(
+        { id: game.uuid, pgn: game.pgn, tier, label, cacheUuid: game.uuid },
+        `${label}${tc}`,
+      ),
+    );
+  } catch (e) {
+    // cancelled or failed — back to the list (a failed row wears its chip)
+    show('input');
+    setTab('cc');
+    if (!isAbortError(e)) void refreshCached();
   }
 }
 
@@ -483,6 +537,44 @@ function seek(p: number): void {
 }
 
 /* ------------------------------------------------------------ wiring --- */
+function setTab(tab: 'pgn' | 'cc'): void {
+  $('#tab-pgn').classList.toggle('hidden', tab !== 'pgn');
+  $('#tab-cc').classList.toggle('hidden', tab !== 'cc');
+  $('#tab-btn-pgn').classList.toggle('active', tab === 'pgn');
+  $('#tab-btn-cc').classList.toggle('active', tab === 'cc');
+  $('#tab-btn-pgn').setAttribute('aria-selected', String(tab === 'pgn'));
+  $('#tab-btn-cc').setAttribute('aria-selected', String(tab === 'cc'));
+}
+$('#tab-btn-pgn').addEventListener('click', () => setTab('pgn'));
+$('#tab-btn-cc').addEventListener('click', () => setTab('cc'));
+
+initChesscomTab($('#tab-cc'), {
+  review: game => void reviewCcGame(game),
+  getTier: currentTier,
+});
+$('#tier').addEventListener('change', () => void refreshCached());
+
+$('#progress-cancel').addEventListener('click', () => {
+  if (foregroundJobId) analysisQueue.cancel(foregroundJobId);
+});
+
+// topbar pill: background analysis keeps the user posted on any screen
+// (hidden on the progress screen, which already shows the same numbers)
+analysisQueue.subscribe(snap => {
+  const pill = $('#queue-pill');
+  const busy = snap.pendingCount + (snap.active ? 1 : 0);
+  if (!busy || !screens.progress().classList.contains('hidden')) {
+    pill.classList.add('hidden');
+    return;
+  }
+  const pct = snap.active?.total
+    ? ` · ${Math.round((snap.active.done / snap.active.total) * 100)}%`
+    : '';
+  const n = Math.min(snap.doneCount + 1, snap.totalCount);
+  pill.innerHTML = `<span class="cc-spin"></span>Analyzing ${n} of ${snap.totalCount}${pct}`;
+  pill.classList.remove('hidden');
+});
+
 $('#analyze-btn').addEventListener('click', () => void startAnalysis());
 $('#btn-start').addEventListener('click', () => seek(0));
 $('#btn-prev').addEventListener('click', () => seek(ply - 1));
