@@ -74,7 +74,8 @@ PGN text
 ### UI (done — only walkthrough captions may change, per improve/README)
 | File | What it does | Key exports |
 |---|---|---|
-| `src/main.ts` (643L) | App shell: input tabs (PGN / chess.com) → progress → review; all analysis routed through `analysisQueue`; topbar queue pill; chip playback; badge overlay | (entry) |
+| `src/main.ts` (715L) | App shell: home → input tabs (PGN / chess.com) → progress → review; topbar nav (Home / Game Review / Current Game) + queue pill; all analysis routed through `analysisQueue`; chip playback; badge overlay | (entry) |
+| `src/ui/loader.ts` (81L) | Knight's-tour loader (3×3 ring, every hop legal) + rotating quips — progress screen and home hero share one instance | `startLoader`, `stopLoader` |
 | `src/live.ts` (95L) | "Try a move": same pipeline on demand, lazy worker, cached | `liveMoveReport`, `seedLiveAnalysis` |
 | `src/ui/coach.ts` (114L) | Coach bubble: verdict row + commentary + variation chips | `renderCoach`, `headline`, `formatEval` |
 | `src/ui/walkthrough.ts` (503L) | Best-move Spotlight: user-paced PV walkthrough, board-verified captions, try-mode | `buildWalkthrough`, `lineOutcome`, `renderSpotlightCard`, `CONFIDENT_PLIES` |
