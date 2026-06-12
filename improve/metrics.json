@@ -1481,5 +1481,61 @@
         "0Ivll"
       ]
     }
+  },
+  {
+    "date": "2026-06-12",
+    "recall": {
+      "discoveredAttack": 0.95,
+      "fork": 1,
+      "hangingPiece": 1,
+      "mateIn1": 1,
+      "pin": 0.795,
+      "sacrifice": 0.855,
+      "skewer": 1,
+      "trappedPiece": 0.985
+    },
+    "missed": {
+      "discoveredAttack": [
+        "00zdb",
+        "017zX",
+        "01G4i",
+        "01kUF",
+        "01t6f",
+        "01x76",
+        "02EhR",
+        "02oX3",
+        "02u8i",
+        "03oNr"
+      ],
+      "pin": [
+        "001kG",
+        "003S3",
+        "005Bm",
+        "009BH",
+        "00GiQ",
+        "00Se9",
+        "00Ueq",
+        "00XL2",
+        "00jPw",
+        "00xOm"
+      ],
+      "sacrifice": [
+        "001xO",
+        "00CXr",
+        "00P81",
+        "00WoW",
+        "00Wyh",
+        "00eWz",
+        "00hSW",
+        "00vuv",
+        "017Ou",
+        "01MRs"
+      ],
+      "trappedPiece": [
+        "04YaR",
+        "0AfWu",
+        "0Ivll"
+      ]
+    }
   }
 ]

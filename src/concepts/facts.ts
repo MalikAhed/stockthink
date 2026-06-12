@@ -77,6 +77,9 @@ export type Fact =
   /* the played move was the engine's own second candidate (GM-1: candidate
      framing instead of generic praise/criticism) */
   | { kind: 'second_candidate'; best: SanMove }
+  /* the missed best move was QUIET (no capture/check/promotion) yet tactical —
+     the hardest kind to spot (GM-2: soften the criticism) */
+  | { kind: 'hard_to_find'; move: SanMove }
   | { kind: 'forced' };
 
 export type MissedIdea =
@@ -131,6 +134,7 @@ const PRIORITY: Record<FactKind, number> = {
   positional: 24,
   only_move: 25,
   second_candidate: 25.5,
+  hard_to_find: 25.7,
   forced: 26,
 };
 

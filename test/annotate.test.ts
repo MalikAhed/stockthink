@@ -189,6 +189,24 @@ describe('annotateMove — what the best move would have done', () => {
       }),
     );
     expect(byKind(facts, 'missed_mate')).toMatchObject({ mateIn: 1, move: { san: 'Rd8#' } });
+    // the mating move gives check — never "hard to find" (GM-2 exception)
+    expect(byKind(facts, 'hard_to_find')).toBeFalsy();
+  });
+
+  it('a QUIET missed tactic earns hard_to_find (GM-2)', () => {
+    // best Qf6: no capture, no check — threatens Qg7# (supported by the h6 pawn)
+    const p = pos('r5k1/5p1p/7P/8/5Q2/8/8/6K1 w - - 0 1');
+    const facts = annotateMove(
+      p,
+      mv('g1f1'),
+      ctx({
+        winDrop: 18,
+        bestUci: 'f4f6',
+        lines: [{ eval: { cp: 900 }, pvUci: ['f4f6'] }],
+      }),
+    );
+    expect(byKind(facts, 'missed_mate_threat')).toMatchObject({ move: { san: 'Qf6' } });
+    expect(byKind(facts, 'hard_to_find')).toMatchObject({ move: { san: 'Qf6' } });
   });
 
   it('missed free piece', () => {

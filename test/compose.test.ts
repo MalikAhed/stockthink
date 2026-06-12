@@ -208,6 +208,21 @@ describe('composeComment — good moves (purpose)', () => {
     expect(c.text).toContain('A natural candidate, but it falls just short.');
   });
 
+  it('hard_to_find softens the verdict on a quiet missed tactic (GM-2)', () => {
+    const c = composeComment(
+      move({
+        classification: 'mistake',
+        winDrop: 15,
+        facts: [
+          { kind: 'missed_mate_threat', move: { san: 'Qf6', uci: 'f4f6' } } as Fact,
+          { kind: 'hard_to_find', move: { san: 'Qf6', uci: 'f4f6' } } as Fact,
+        ],
+      }),
+    );
+    expect(c.text).toContain('To be fair, Qf6 is a quiet move — the hardest kind to spot.');
+    expect(c.more).toBeNull(); // context fact never leaks into "more"
+  });
+
   it('book moves name the opening', () => {
     const c = composeComment(move({ classification: 'book', openingName: "King's Indian Defense" }));
     expect(c.text).toBe("Book: King's Indian Defense.");

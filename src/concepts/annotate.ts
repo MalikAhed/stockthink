@@ -566,6 +566,25 @@ export function annotateMove(before: Chess, move: NormalMove, ctx: AnnotateConte
         if (ideas.length)
           facts.push({ kind: 'missed_idea', move: bestSan, ideas: ideas.slice(0, 2) });
       }
+
+      // GM-2 (Think Like a Super-GM §4.1): a QUIET tactical move — no capture,
+      // no check, no promotion — is the hardest kind to spot. Soften the
+      // verdict when the engine shows the miss was exactly that.
+      const TACTICAL_MISS: Fact['kind'][] = [
+        'missed_mate', 'missed_free_piece', 'missed_fork',
+        'missed_pin', 'missed_trap', 'missed_mate_threat',
+      ];
+      const bestIsPawnCapture =
+        before.board.get(best.from)!.role === 'pawn' && (best.from & 7) !== (best.to & 7);
+      if (
+        ctx.winDrop >= MISS_GATE &&
+        !bestVictim &&
+        !bestIsPawnCapture &&
+        best.promotion === undefined &&
+        !play(before, best).isCheck() &&
+        facts.some(f => TACTICAL_MISS.includes(f.kind))
+      )
+        facts.push({ kind: 'hard_to_find', move: bestSan });
     }
   }
 
