@@ -16,6 +16,8 @@ export interface VariationChip {
   label: string;
   /** What this line shows — drives the walkthrough intro & button styling. */
   kind: 'best' | 'refutation';
+  /** White-POV eval of the line (focus-mode eval bar). */
+  eval?: import('../analysis/winprob').EvalScore;
   sanPv: string[];
   uciPv: string[];
   /** Position the line starts from. */
@@ -232,6 +234,7 @@ function buildChips(m: MoveReport): VariationChip[] {
     chips.push({
       label: `Best: ${m.bestSan}`,
       kind: 'best',
+      eval: m.lines[0].eval,
       sanPv: m.lines[0].sanPv,
       uciPv: m.lines[0].uciPv,
       fen: m.fenBefore,
@@ -241,6 +244,7 @@ function buildChips(m: MoveReport): VariationChip[] {
     chips.push({
       label: `Why it fails: ${refutation.moves[0].san}`,
       kind: 'refutation',
+      eval: m.evalAfter,
       sanPv: refutation.moves.map(x => x.san),
       uciPv: refutation.moves.map(x => x.uci),
       fen: m.fenAfter,

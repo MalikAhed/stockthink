@@ -21,7 +21,8 @@ import { disposeLive, liveMoveReport, seedLiveAnalysis } from './live';
 import { badgeSvg } from './ui/badges';
 import { formatEval, renderCoach, renderCoachThinking } from './ui/coach';
 import { renderDeepReview } from './ui/deepreview';
-import { buildWalkthrough, renderSpotlightCard, type WalkthroughStep } from './ui/walkthrough';
+import { buildWalkthrough, renderSpotlightCard, renderTryCard, type WalkthroughStep } from './ui/walkthrough';
+import { attachPreviews } from './ui/santag';
 import { renderGraph } from './ui/graph';
 import { renderMoveList } from './ui/movelist';
 import { renderSummary } from './ui/summary';
@@ -40,7 +41,14 @@ let spotlight: {
   i: number;
   title: string;
   kind: 'best' | 'refutation';
+  chip: VariationChip;
+  /** User's own moves played from the current step (live-rated). */
+  tryLine: AnnotatedMove[];
+  thinking: boolean;
 } | null = null;
+/** Hover preview of a move tag — remembers how to restore the view. */
+let previewTimer: ReturnType<typeof setTimeout> | null = null;
+let previewing = false;
 let aiComments: Map<number, string> = new Map();
 /** Live "try a move" line played by the user from the current ply. */
 let exploreLine: AnnotatedMove[] = [];
@@ -134,7 +142,8 @@ function seedFromReport(fen: string): void {
 
 /** User dropped a piece: run the move through the normal analysis pipeline. */
 function onUserMove(orig: Key, dest: Key): void {
-  if (!report || exploreThinking || spotlight) return;
+  if (!report || exploreThinking) return;
+  if (spotlight) return onSpotlightMove(orig, dest);
   const fenBefore = shownFen();
   const pos = Chess.fromSetup(parseFen(fenBefore).unwrap()).unwrap();
   const from = parseSquare(orig);
@@ -206,23 +215,40 @@ function enterSpotlight(chip: VariationChip): void {
         ? `The best move was ${chip.sanPv[0] ?? ''}`
         : `Why ${m?.san ?? 'that move'} falls short`,
     kind: chip.kind,
+    chip,
+    tryLine: [],
+    thinking: false,
   };
   document.body.classList.add('focus-mode');
   renderSpotlight();
 }
 
+/** Eval bar update — shared by review, spotlight steps and try moves. */
+function setEvalBar(ev: { cp?: number; mate?: number }, win: number): void {
+  ($('#eval-bar .white-fill') as HTMLElement).style.height = `${win}%`;
+  $('#eval-bar .eval-label').textContent = formatEval(ev);
+}
+
 function renderSpotlight(): void {
   if (!board || !spotlight) return;
-  const { steps, i, title, kind } = spotlight;
+  const { steps, i, title, kind, chip } = spotlight;
   const step = steps[i];
+  // pieces stay movable — trying your own idea is one drag away
+  const pos = Chess.fromSetup(parseFen(step.fen).unwrap()).unwrap();
   board.set({
     fen: step.fen,
     lastMove: step.lastMove as Key[] | undefined,
-    movable: { color: undefined },
+    turnColor: pos.turn,
+    movable: {
+      free: false,
+      color: spotlight.thinking || pos.isEnd() ? undefined : pos.turn,
+      dests: chessgroundDests(pos),
+    },
   });
   board.setAutoShapes(
     step.arrow ? [{ orig: step.arrow.orig as Key, dest: step.arrow.dest as Key, brush: step.arrow.brush }] : [],
   );
+  if (chip.eval) setEvalBar(chip.eval, winPercent(chip.eval));
   renderSpotlightCard($('#coach'), title, kind, steps, i, {
     go: n => {
       if (!spotlight) return;
@@ -231,6 +257,120 @@ function renderSpotlight(): void {
     },
     exit: exitSpotlight,
   });
+  attachPreviews($('#coach'), startPreview, endPreview);
+}
+
+/** Board position the Spotlight is currently showing (step or try line). */
+function spotlightFen(): string {
+  const sp = spotlight!;
+  return sp.tryLine.length ? sp.tryLine[sp.tryLine.length - 1].fenAfter : sp.steps[sp.i].fen;
+}
+
+/** A piece moved inside the Spotlight → rate it live, switch to try mode. */
+function onSpotlightMove(orig: Key, dest: Key): void {
+  if (!board || !spotlight || spotlight.thinking) return;
+  const fenBefore = spotlightFen();
+  const pos = Chess.fromSetup(parseFen(fenBefore).unwrap()).unwrap();
+  const from = parseSquare(orig);
+  const to = parseSquare(dest);
+  if (from === undefined || to === undefined) return renderSpotView();
+  let move: NormalMove = { from, to };
+  if (pos.board.get(from)?.role === 'pawn' && (to >= 56 || to < 8))
+    move = { ...move, promotion: 'queen' };
+  move = normalizeMove(pos, move) as NormalMove;
+  if (!pos.isLegal(move)) return renderSpotView();
+
+  const san = makeSan(pos, move);
+  const token = ++liveToken;
+  spotlight.thinking = true;
+  renderTryCard($('#coach'), null, san, { undo: () => {}, back: backToLine });
+  const plyIndex = ply + spotlight.i + spotlight.tryLine.length + 1;
+  void liveMoveReport(fenBefore, move, plyIndex)
+    .then(m => {
+      if (!spotlight || token !== liveToken) return;
+      spotlight.thinking = false;
+      if (m) spotlight.tryLine.push(m);
+      renderSpotView();
+    })
+    .catch(() => {
+      if (!spotlight || token !== liveToken) return;
+      spotlight.thinking = false;
+      renderSpotView();
+    });
+}
+
+/** Render whichever Spotlight view applies (best line or the user's try). */
+function renderSpotView(): void {
+  if (!spotlight) return;
+  if (spotlight.tryLine.length) renderSpotTry();
+  else renderSpotlight();
+}
+
+function backToLine(): void {
+  if (!spotlight) return;
+  liveToken++;
+  spotlight.tryLine = [];
+  spotlight.thinking = false;
+  renderSpotlight();
+}
+
+function undoTryMove(): void {
+  if (!spotlight) return;
+  liveToken++;
+  spotlight.thinking = false;
+  spotlight.tryLine.pop();
+  renderSpotView();
+}
+
+/** Try mode: user's own move on the board, rated — visually distinct card. */
+function renderSpotTry(): void {
+  if (!board || !spotlight) return;
+  const m = spotlight.tryLine[spotlight.tryLine.length - 1];
+  const pos = Chess.fromSetup(parseFen(m.fenAfter).unwrap()).unwrap();
+  const [from, to] = displaySquares(m);
+  board.set({
+    fen: m.fenAfter,
+    lastMove: [from, to],
+    turnColor: pos.turn,
+    movable: {
+      free: false,
+      color: spotlight.thinking || pos.isEnd() ? undefined : pos.turn,
+      dests: chessgroundDests(pos),
+    },
+  });
+  board.setAutoShapes([
+    { orig: to, customSvg: { html: badgeSvg(m.classification), center: 'orig' } },
+  ]);
+  setEvalBar(m.evalAfter, m.winPercentAfter);
+  renderTryCard($('#coach'), m, m.san, { undo: undoTryMove, back: backToLine });
+  attachPreviews($('#coach'), startPreview, endPreview);
+}
+
+/* --------------------------------------------- move-tag hover preview --- */
+
+function startPreview(fen: string, uci: string): void {
+  if (!board || exploreThinking || spotlight?.thinking) return;
+  previewing = true;
+  if (previewTimer !== null) clearTimeout(previewTimer);
+  board.set({ fen, lastMove: undefined, movable: { color: undefined } });
+  board.setAutoShapes([
+    { orig: uci.slice(0, 2) as Key, dest: uci.slice(2, 4) as Key, brush: 'green' },
+  ]);
+  // a beat to read the arrow, then the move plays itself
+  previewTimer = setTimeout(() => {
+    board?.move(uci.slice(0, 2) as Key, uci.slice(2, 4) as Key);
+  }, 380);
+}
+
+function endPreview(): void {
+  if (previewTimer !== null) {
+    clearTimeout(previewTimer);
+    previewTimer = null;
+  }
+  if (!previewing) return;
+  previewing = false;
+  if (spotlight) renderSpotView();
+  else renderBoardOnly();
 }
 
 function exitSpotlight(): void {
@@ -240,14 +380,10 @@ function exitSpotlight(): void {
   render();
 }
 
-function render(): void {
+/** Board + arrow + badge + eval bar from the current review state only. */
+function renderBoardOnly(): void {
   const r = report!;
   if (!r.moves.length || !board) return;
-  if (spotlight) {
-    // navigating anywhere else dissolves the Spotlight back into the review
-    spotlight = null;
-    document.body.classList.remove('focus-mode');
-  }
   const live = exploreLine.length > 0;
   const m = live ? exploreLine[exploreLine.length - 1] : ply > 0 ? r.moves[ply - 1] : null;
 
@@ -279,11 +415,21 @@ function render(): void {
   });
   board.setAutoShapes(shapes);
 
-  // eval bar
   const ev = m ? m.evalAfter : r.moves[0].evalBefore;
-  const win = m ? m.winPercentAfter : winPercent(ev);
-  ($('#eval-bar .white-fill') as HTMLElement).style.height = `${win}%`;
-  $('#eval-bar .eval-label').textContent = formatEval(ev);
+  setEvalBar(ev, m ? m.winPercentAfter : winPercent(ev));
+}
+
+function render(): void {
+  const r = report!;
+  if (!r.moves.length || !board) return;
+  if (spotlight) {
+    // navigating anywhere else dissolves the Spotlight back into the review
+    spotlight = null;
+    document.body.classList.remove('focus-mode');
+  }
+  const live = exploreLine.length > 0;
+  const m = live ? exploreLine[exploreLine.length - 1] : ply > 0 ? r.moves[ply - 1] : null;
+  renderBoardOnly();
 
   // panels (move list & graph stay anchored to the game while exploring)
   renderSummary($('#summary'), r);
@@ -301,6 +447,7 @@ function render(): void {
       exitExplore();
       render();
     });
+  attachPreviews($('#coach'), startPreview, endPreview);
   renderGraph($('#graph'), r.moves, ply, seek);
   renderMoveList($('#moves'), r.moves, ply, seek);
   renderPlayerBars();
@@ -358,6 +505,12 @@ document.addEventListener('keydown', e => {
   if (!report || screens.review().classList.contains('hidden')) return;
   if (e.target instanceof HTMLTextAreaElement) return;
   if (spotlight) {
+    // try mode first: ← undoes, Esc returns to the line
+    if (spotlight.tryLine.length || spotlight.thinking) {
+      if (e.key === 'ArrowLeft') undoTryMove();
+      else if (e.key === 'Escape') backToLine();
+      return;
+    }
     // focus mode: arrows step the line, Esc returns — nothing else
     if (e.key === 'ArrowRight') {
       if (spotlight.i >= spotlight.steps.length - 1) exitSpotlight();

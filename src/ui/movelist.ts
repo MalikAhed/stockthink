@@ -40,6 +40,19 @@ export function renderMoveList(
   el.querySelector('.mv.current')?.scrollIntoView({ block: 'nearest' });
 }
 
+const NEO = 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150';
+const LETTER_PIECE: Record<string, string> = { K: 'k', Q: 'q', R: 'r', B: 'b', N: 'n' };
+
+/** "Nxf7" → knight image + "xf7" (pawn moves and castles keep their text). */
+const sanWithIcon = (san: string, color: 'white' | 'black'): string => {
+  const c = color.charAt(0);
+  if (san.startsWith('O-O'))
+    return `<img class="mv-piece" src="${NEO}/${c}k.png" alt="" draggable="false">${san}`;
+  const piece = LETTER_PIECE[san.charAt(0)];
+  if (!piece) return `<img class="mv-piece" src="${NEO}/${c}p.png" alt="" draggable="false">${san}`;
+  return `<img class="mv-piece" src="${NEO}/${c}${piece}.png" alt="" draggable="false">${san.slice(1)}`;
+};
+
 const moveCell = (m: AnnotatedMove, currentPly: number): string => {
   const cls = m.ply === currentPly ? ' current' : '';
   const c = m.classification;
@@ -47,5 +60,5 @@ const moveCell = (m: AnnotatedMove, currentPly: number): string => {
     ? `<img class="mv-badge" src="${badgeUrl(c)}" alt="${c}" draggable="false">`
     : '';
   const color = BADGED.includes(c) ? ` style="color:${CLASS_COLORS[c]}"` : '';
-  return `<span class="mv${cls}" data-ply="${m.ply}"${color}>${m.san}${badge}</span>`;
+  return `<span class="mv${cls}" data-ply="${m.ply}"${color}>${sanWithIcon(m.san, m.color)}${badge}</span>`;
 };

@@ -64,11 +64,22 @@
             <div id="graph"></div>
             <div id="deep-review"></div>
             <div class="controls">
-              <button id="btn-start" title="Start (Home)">⏮</button>
-              <button id="btn-prev" title="Previous (←)">◀</button>
-              <button id="btn-next" class="nav-primary" title="Next (→)">▶</button>
-              <button id="btn-end" title="End (End)">⏭</button>
-              <button id="btn-flip" title="Flip board (f)">⇅</button>
+              <button id="btn-start" title="Start of game (Home)" aria-label="Start of game">
+                <svg viewBox="0 0 24 24"><path d="M7 6v12"/><path d="M18 7l-6 5 6 5"/></svg>
+              </button>
+              <button id="btn-prev" title="Previous move (←)" aria-label="Previous move">
+                <svg viewBox="0 0 24 24"><path d="M14.5 6.5 9 12l5.5 5.5"/></svg>
+              </button>
+              <button id="btn-next" class="nav-primary" title="Next move (→)" aria-label="Next move">
+                <svg viewBox="0 0 24 24"><path d="M9.5 5.5 16 12l-6.5 6.5"/></svg>
+              </button>
+              <button id="btn-end" title="End of game (End)" aria-label="End of game">
+                <svg viewBox="0 0 24 24"><path d="M6 7l6 5-6 5"/><path d="M17 6v12"/></svg>
+              </button>
+              <span class="controls-gap"></span>
+              <button id="btn-flip" title="Flip board (f)" aria-label="Flip board">
+                <svg viewBox="0 0 24 24"><path d="M8 7v10M8 17l-3-3M8 17l3-3"/><path d="M16 17V7M16 7l-3 3M16 7l3 3"/></svg>
+              </button>
               <button id="btn-new" title="Review another game">New</button>
             </div>
           </aside>

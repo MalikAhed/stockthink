@@ -15,6 +15,11 @@ import type { NormalMove, Role } from 'chessops/types';
 import type { VariationChip } from '../compose/compose';
 import { createsFork, createsMateThreat, trapsPieces, winsTempo } from '../concepts/detectors';
 import { pinsCreatedEx } from '../concepts/primitives';
+import { composeComment } from '../compose/compose';
+import type { MoveReport } from '../analysis/report';
+import { badgeUrl, CLASS_COLORS } from './badges';
+import { formatEval, headline } from './coach';
+import { renderRich } from './santag';
 
 /** Plies we explain with confidence (3 full moves). */
 export const CONFIDENT_PLIES = 6;
@@ -339,15 +344,15 @@ export function renderSpotlightCard(
         <span class="spot-tag">${kind === 'best' ? '✨ Best move' : '🔍 Why it fails'}</span>
         <button class="spot-exit" title="Back to the game (Esc)">✕</button>
       </div>
-      <div class="spot-title">${esc(title)}</div>
-      <div class="spot-caption ${step.side}">${esc(step.caption)}</div>
+      <div class="spot-title">${renderRich(title, [steps[0].fen])}</div>
+      <div class="spot-caption ${step.side}">${renderRich(step.caption, [i > 0 ? steps[i - 1].fen : steps[0].fen, step.fen])}</div>
       ${step.note ? `<div class="spot-note">${esc(step.note)}</div>` : ''}
       <div class="spot-dots">${dots}</div>
       <div class="spot-controls">
         <button class="spot-btn" data-nav="prev" ${i === 0 ? 'disabled' : ''}>◀ Back</button>
         <button class="spot-btn primary" data-nav="next">${last ? '✓ Got it' : 'Next ▶'}</button>
       </div>
-      <div class="spot-hint">← → to step · Esc to return</div>
+      <div class="spot-hint">← → to step · Esc to return · or just move a piece to try your own idea</div>
     </div>`;
   el.querySelector('.spot-exit')?.addEventListener('click', on.exit);
   el.querySelectorAll<HTMLButtonElement>('.spot-dot').forEach(b =>
@@ -357,4 +362,41 @@ export function renderSpotlightCard(
   el.querySelector('[data-nav="next"]')?.addEventListener('click', () =>
     last ? on.exit() : on.go(i + 1),
   );
+}
+
+/**
+ * "Your move" card inside the Spotlight: the user grabbed a piece mid-
+ * walkthrough and our live engine rated it. Visually distinct (blue) so it
+ * can never be confused with the engine's best line.
+ */
+export function renderTryCard(
+  el: HTMLElement,
+  m: MoveReport | null,
+  san: string,
+  on: { undo: () => void; back: () => void },
+): void {
+  const body = m
+    ? `
+      <div class="spot-verdict">
+        <img class="spot-badge" src="${badgeUrl(m.classification)}" alt="${m.classification}" draggable="false">
+        <span class="spot-verdict-label"><span class="san">${renderRich(m.san, [m.fenBefore])}</span> is <span style="color:${CLASS_COLORS[m.classification]}">${headline(m.classification)}</span></span>
+        <span class="spot-eval">${formatEval(m.evalAfter)}</span>
+      </div>
+      <div class="spot-caption you">${renderRich(composeComment(m).text, [m.fenBefore, m.fenAfter])}</div>`
+    : `
+      <div class="spot-caption intro">Checking ${esc(san)}…</div>`;
+  el.innerHTML = `
+    <div class="spotlight-card trymode">
+      <div class="spot-head">
+        <span class="spot-tag try">🧪 Your move</span>
+      </div>
+      ${body}
+      <div class="spot-controls">
+        <button class="spot-btn" data-nav="undo" ${m ? '' : 'disabled'}>◀ Undo</button>
+        <button class="spot-btn primary" data-nav="back">↩ Back to the best line</button>
+      </div>
+      <div class="spot-hint">keep moving pieces — every move gets rated</div>
+    </div>`;
+  el.querySelector('[data-nav="undo"]')?.addEventListener('click', on.undo);
+  el.querySelector('[data-nav="back"]')?.addEventListener('click', on.back);
 }
