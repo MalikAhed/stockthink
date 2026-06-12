@@ -68,6 +68,8 @@ function ideaClause(i: MissedIdea): string {
       return `taken the ${pieceAt(i.victim)}`;
     case 'removes_checks':
       return 'quietly taken away every check, leaving all the hard decisions to your opponent';
+    case 'counterattack':
+      return `answered the threat to the ${pieceAt(i.threatened)} with a bigger one`;
     case 'prepares':
       switch (i.idea.what) {
         case 'mate_threat':

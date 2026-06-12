@@ -421,3 +421,41 @@ describe('annotateMove — GM-7 abandons a covered square', () => {
     expect(byKind(facts, 'abandons_square')).toBeFalsy();
   });
 });
+
+describe('annotateMove — GM-9 counterattack beats passive defense', () => {
+  // The c3-knight hangs to …bxc3; the best move ignores it — Bg5 hits the
+  // queen (bigger threat). Kh1 (played) just shrugs.
+  const FEN = '3q2k1/6pp/8/8/1p6/2N2N2/8/2BQ2K1 w - - 0 1';
+
+  it('leads the missed idea with the counterattack lesson', () => {
+    const facts = annotateMove(
+      pos(FEN),
+      mv('g1h1'),
+      ctx({
+        evalBefore: { cp: 100 },
+        winDrop: 8,
+        bestUci: 'c1g5',
+        lines: [{ eval: { cp: 100 }, pvUci: ['c1g5', 'd8d7'] }],
+      }),
+    );
+    const idea = byKind(facts, 'missed_idea');
+    expect(idea && idea.kind === 'missed_idea' && idea.ideas[0]?.what).toBe('counterattack');
+  });
+
+  it('no counterattack story when the best move simply saves the piece', () => {
+    const facts = annotateMove(
+      pos(FEN),
+      mv('g1h1'),
+      ctx({
+        evalBefore: { cp: 100 },
+        winDrop: 8,
+        bestUci: 'c3e4',
+        lines: [{ eval: { cp: 100 }, pvUci: ['c3e4'] }],
+      }),
+    );
+    const idea = byKind(facts, 'missed_idea');
+    expect(
+      idea && idea.kind === 'missed_idea' && idea.ideas.some(i => i.what === 'counterattack'),
+    ).toBeFalsy();
+  });
+});
