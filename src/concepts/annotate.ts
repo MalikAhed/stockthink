@@ -523,6 +523,13 @@ export function annotateMove(before: Chess, move: NormalMove, ctx: AnnotateConte
           ideas.push({ what: 'wins_tempo', target: pieceOn(afterBest, tempo) });
         for (const f of positionalPurposes(before, best))
           ideas.push({ what: 'positional', fact: f });
+        // still nothing? the point may be the follow-up one move deeper in
+        // the best line (same machinery as the played-move 'prepares' fact)
+        if (!ideas.length) {
+          const prep = preparedIdea(before, best, ctx);
+          if (prep && prep.kind === 'prepares')
+            ideas.push({ what: 'prepares', move: prep.move, idea: prep.idea });
+        }
         if (ideas.length)
           facts.push({ kind: 'missed_idea', move: bestSan, ideas: ideas.slice(0, 2) });
       }
