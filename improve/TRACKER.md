@@ -42,6 +42,11 @@ trappedPiece→traps_piece · mateIn1→delivers_mate/mate_threat · sacrifice�
 
 ## Daily log (append ONE entry per session, 1–3 lines, newest on top)
 
+- **2026-06-12c** (loop iter 3/6) · 3 units · U3+U4: Deep Review panel now has
+  one-click commentary via user's own Anthropic key AND a fully local WebLLM
+  option (Llama-3.2-1B, ~700 MB, WebGPU-gated, CDN dynamic import — zero bundle
+  cost); both reuse factsheet→verify→fallback. providers.test.ts mocks fetch.
+  Next: U2/U6 PV-plan narration, U5 detector audit, C5/C6 phrasing.
 - **2026-06-12b** (loop iter 2/6) · 3 units · U6/C3 missed_idea: quiet best-move
   suggestions now carry a WHY ("Bxf6 was the better way — it would have defended
   the pawn on e4"); ideas: escapes/defends/trades/tempo/positional, max 2.
