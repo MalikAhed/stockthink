@@ -94,6 +94,39 @@ describe('buildWalkthrough', () => {
   });
 });
 
+describe('step captions carry the WHY (W2)', () => {
+  it('names a fork created by a step move', () => {
+    // Ne7 forks the queen on c8 and the rook on g8 (no check involved)
+    const steps = buildWalkthrough(
+      chip({
+        fen: '2q3r1/8/8/5N2/8/8/8/4K2k w - - 0 1',
+        sanPv: ['Ne7'],
+        uciPv: ['f5e7'],
+      }),
+      null,
+    );
+    expect(steps[1].caption).toContain('forking the queen and the rook');
+  });
+
+  it('names an absolute pin created by a step move', () => {
+    // Re1 pins the black queen on e5 to the king on e8
+    const steps = buildWalkthrough(
+      chip({
+        fen: '4k3/8/8/4q3/8/8/8/R5K1 w - - 0 1',
+        sanPv: ['Re1'],
+        uciPv: ['a1e1'],
+      }),
+      null,
+    );
+    expect(steps[1].caption).toContain('pinning the queen to the king');
+  });
+
+  it('stays quiet when a move proves nothing on the board', () => {
+    const steps = buildWalkthrough(chip({ sanPv: ['Nf3'], uciPv: ['g1f3'] }), null);
+    expect(steps[1].caption).toBe('You play Nf3 — the knight goes to f3.');
+  });
+});
+
 describe('lineOutcome (the WHY proof)', () => {
   it('detects a forced mate with the right move count', () => {
     const o = lineOutcome('r1bqkbnr/pppp1ppp/2n5/4p3/2B1P3/8/PPPP1PPP/RNBQK1NR w KQkq - 2 3', [

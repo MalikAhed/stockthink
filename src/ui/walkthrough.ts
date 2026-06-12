@@ -13,6 +13,8 @@ import { parseUci } from 'chessops/util';
 import { makeSan } from 'chessops/san';
 import type { NormalMove, Role } from 'chessops/types';
 import type { VariationChip } from '../compose/compose';
+import { createsFork, createsMateThreat, trapsPieces, winsTempo } from '../concepts/detectors';
+import { pinsCreatedEx } from '../concepts/primitives';
 
 /** Plies we explain with confidence (3 full moves). */
 export const CONFIDENT_PLIES = 6;
@@ -138,6 +140,34 @@ const OPP_LEADS = [
 ];
 
 /**
+ * The strongest tactical consequence of a move, provable on the board after
+ * it (W2): mate threat > fork > pin > trap > tempo. One clause max — captions
+ * teach one idea per step. Null when the move has no provable sting.
+ */
+function whyClause(before: Chess, move: NormalMove): string | null {
+  const afterPos = before.clone();
+  afterPos.play(move);
+  const board = afterPos.board;
+  const role = (sq: number): string => ROLE_NAME[board.get(sq)?.role ?? 'pawn'];
+
+  if (createsMateThreat(before, move)) return 'threatening checkmate next move';
+  const fork = createsFork(before, move);
+  if (fork.length >= 2) return `forking the ${role(fork[0])} and the ${role(fork[1])}`;
+  const pins = pinsCreatedEx(before, move);
+  if (pins.length) {
+    const p = pins[0];
+    return p.absolute
+      ? `pinning the ${role(p.pinned)} to the king`
+      : `pinning the ${role(p.pinned)} against the ${role(p.against)}`;
+  }
+  const trapped = trapsPieces(before, move);
+  if (trapped.length) return `trapping the ${role(trapped[0])} — it has no safe square`;
+  const tempo = winsTempo(before, move);
+  if (tempo !== null) return `attacking the ${role(tempo)}`;
+  return null;
+}
+
+/**
  * One board-verified sentence for a move: what moved, what it captured,
  * whether it checks or mates. Never speculates beyond the board.
  */
@@ -172,11 +202,14 @@ function describeMove(
   else
     body = `the ${ROLE_NAME[piece?.role ?? 'pawn']} goes to ${SQUARE(move.to)}`;
 
-  let tail = '';
-  if (mate) tail = ' — checkmate, the game would end right here!';
-  else if (check) tail = ' — check!';
+  if (mate) return `${lead} ${san} — ${body} — checkmate, the game would end right here!`;
 
-  return `${lead} ${san} — ${body}${tail}`;
+  // W2: append the strongest board-provable consequence (one idea per step)
+  const why = whyClause(pos, move);
+  if (check && why) return `${lead} ${san} — ${body} — check, and it's ${why}!`;
+  if (check) return `${lead} ${san} — ${body} — check!`;
+  if (why) return `${lead} ${san} — ${body}, ${why}.`;
+  return `${lead} ${san} — ${body}.`;
 }
 
 /**
