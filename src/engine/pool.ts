@@ -44,18 +44,21 @@ export class EnginePool {
   /**
    * Analyze every FEN; resolves with results in input order.
    * Positions are handed to the next free engine (work stealing).
+   * An aborted signal stops handing out new positions; in-flight searches
+   * finish first (seconds), then the call rejects with an AbortError.
    */
   async analyzeAll(
     fens: string[],
     limits: SearchLimits,
     onProgress?: (p: PoolProgress) => void,
+    signal?: AbortSignal,
   ): Promise<PositionAnalysis[]> {
     const results: PositionAnalysis[] = new Array(fens.length);
     let next = 0;
     let done = 0;
 
     const runOn = async (engine: Engine): Promise<void> => {
-      while (next < fens.length) {
+      while (next < fens.length && !signal?.aborted) {
         const index = next++;
         const analysis = await engine.analyze(fens[index], limits);
         results[index] = analysis;
@@ -65,6 +68,7 @@ export class EnginePool {
     };
 
     await Promise.all(this.engines.map(runOn));
+    if (signal?.aborted) throw new DOMException('Analysis aborted', 'AbortError');
     return results;
   }
 

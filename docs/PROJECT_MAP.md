@@ -25,7 +25,7 @@ PGN text
 ### Core analysis
 | File | What it does | Key exports |
 |---|---|---|
-| `src/analyze.ts` (59L) | Browser orchestration: PGN → pool → report; node budgets | `analyzeGame`, `Tier`, `TIER_NODES` (75k/200k/500k), `AnnotatedReport` |
+| `src/analyze.ts` (63L) | Browser orchestration: PGN → pool → report; node budgets; optional AbortSignal | `analyzeGame`, `Tier`, `TIER_NODES` (75k/200k/500k), `AnnotatedReport` |
 | `src/analysis/pgn.ts` (93L) | PGN → headers + per-ply records with FENs (chess.com exports, [%clk], NAGs) | `parseGame`, `Ply`, `ParsedGame` |
 | `src/analysis/report.ts` (206L) | Plies + engine analyses → classified `MoveReport`s + accuracy/ACPL/Elo | `buildMoveReport` (single-move entry — eval & live reuse it), `buildReport`, `MoveReport`, `GameReport` |
 | `src/analysis/classify.ts` (107L) | Win%-drop ladder + fact-aware brilliant/great + decided-position leniency; CAPS2-style scores | `classifyMove`, `Classification`, `classificationScore` |
@@ -37,7 +37,7 @@ PGN text
 | File | What it does | Key exports |
 |---|---|---|
 | `src/engine/engine.ts` (219L) | UCI wrapper (lila protocol patterns); white-POV evals at parse time; `ucinewgame` only at init | `Engine`, `UciTransport`, `WorkerTransport`, `PositionAnalysis`, `SearchLimits`, `parseInfo` |
-| `src/engine/pool.ts` (75L) | N single-threaded engines, work-stealing, results in input order | `EnginePool.create/analyzeAll/dispose` |
+| `src/engine/pool.ts` (79L) | N single-threaded engines, work-stealing, results in input order; AbortSignal stops between positions | `EnginePool.create/analyzeAll/dispose` |
 
 ### Concepts — THE HEART (facts, never prose)
 | File | What it does | Key exports |
@@ -63,10 +63,18 @@ PGN text
 | `src/llm/exchange.ts` (42L) | Parse pasted JSON reply, verify, fallback to Mode A | `importCommentary` |
 | `src/llm/providers.ts` (103L) | Auto transports: user's own Anthropic key / local WebLLM (WebGPU) | `generateViaApi`, `generateViaWebLLM`, `getStoredKey` |
 
+### chess.com import (input tab + background pre-analysis)
+| File | What it does | Key exports |
+|---|---|---|
+| `src/chesscom/api.ts` (222L) | Pub API client (keyless, CORS-open) + pure normalization: archives → `CcGame`s (variants filtered), outcome/result/date/moveCount helpers | `fetchPlayer/Ratings/Archives/Month`, `normalizeGames`, `userOutcome`, `archiveLabel` |
+| `src/chesscom/queue.ts` (225L) | THE single analysis lane for the whole app (one engine pool ever). Background batches; `runNow` preempts (aborts + re-queues the active job, waiters intact); `cancel`; snapshot/subscribe for live chips | `AnalysisQueue`, `analysisQueue`, `QueueJob`, `QueueSnapshot` |
+| `src/chesscom/store.ts` (123L) | IndexedDB report cache keyed `uuid:tier` (in-memory fallback); analyzed games open instantly, survive reloads; LRU prune at 60 | `getReport`, `putReport`, `cachedKeys`, `reportKey` |
+| `src/ui/chesscom.ts` (348L) | The tab UI: username search → player card → monthly list with select-and-pre-analyze; live status chips driven by queue snapshots | `initChesscomTab`, `refreshCached` |
+
 ### UI (done — only walkthrough captions may change, per improve/README)
 | File | What it does | Key exports |
 |---|---|---|
-| `src/main.ts` (551L) | App shell: input → progress → review; chip playback; badge overlay | (entry) |
+| `src/main.ts` (643L) | App shell: input tabs (PGN / chess.com) → progress → review; all analysis routed through `analysisQueue`; topbar queue pill; chip playback; badge overlay | (entry) |
 | `src/live.ts` (95L) | "Try a move": same pipeline on demand, lazy worker, cached | `liveMoveReport`, `seedLiveAnalysis` |
 | `src/ui/coach.ts` (114L) | Coach bubble: verdict row + commentary + variation chips | `renderCoach`, `headline`, `formatEval` |
 | `src/ui/walkthrough.ts` (503L) | Best-move Spotlight: user-paced PV walkthrough, board-verified captions, try-mode | `buildWalkthrough`, `lineOutcome`, `renderSpotlightCard`, `CONFIDENT_PLIES` |
@@ -105,3 +113,4 @@ PGN text
 | Spotlight walkthrough captions | `src/ui/walkthrough.ts` (captions only — layout is frozen) |
 | Eval cases / scoring rubric | `eval/positions.json` / `eval/score.ts` |
 | What counts as "better" | `docs/METRICS.md` |
+| chess.com import (search/list/pre-analysis UX) | `src/ui/chesscom.ts` (tab) + `src/chesscom/api.ts` (data) + `src/chesscom/queue.ts` (scheduling) + `src/chesscom/store.ts` (cache); wiring & tabs `src/main.ts` + `index.html` |

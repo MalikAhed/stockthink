@@ -22,13 +22,17 @@
       <header class="topbar">
         <span class="wordmark">StockTh<span class="wordmark-dot"></span>nk</span>
         <span class="tagline">free in-browser game review</span>
+        <span id="queue-pill" class="queue-pill hidden"></span>
       </header>
 
       <section id="screen-input" class="screen">
         <h1>Game Review</h1>
-        <p class="hint">Paste a PGN (chess.com / lichess export) and let Stockfish 18 review every move — entirely in your browser.</p>
-        <textarea id="pgn-input" spellcheck="false" placeholder='[Event "..."]&#10;&#10;1. e4 e5 2. Nf3 ...'></textarea>
-        <div class="row">
+        <div class="input-tabs" role="tablist">
+          <button id="tab-btn-pgn" class="input-tab active" role="tab" aria-selected="true">Paste PGN</button>
+          <button id="tab-btn-cc" class="input-tab" role="tab" aria-selected="false">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a4 4 0 0 1 4 4c0 1.6-.95 3-2.3 3.6l.8 2.4h-5l.8-2.4A4 4 0 0 1 8 6a4 4 0 0 1 4-4zM8.5 13h7l1.3 5H7.2l1.3-5zM5.5 19.5h13a1 1 0 0 1 1 1V22h-15v-1.5a1 1 0 0 1 1-1z"/></svg>
+            From Chess.com
+          </button>
           <label class="tier-label">Engine time
             <select id="tier">
               <option value="fast">Fast (75k nodes/move)</option>
@@ -36,15 +40,24 @@
               <option value="deep">Deep (500k nodes/move)</option>
             </select>
           </label>
-          <button id="analyze-btn" class="primary">Analyze game</button>
         </div>
-        <p id="input-error" class="error hidden"></p>
+        <div id="tab-pgn" role="tabpanel">
+          <p class="hint">Paste a PGN (chess.com / lichess export) and let Stockfish 18 review every move — entirely in your browser.</p>
+          <textarea id="pgn-input" spellcheck="false" placeholder='[Event "..."]&#10;&#10;1. e4 e5 2. Nf3 ...'></textarea>
+          <div class="row">
+            <button id="analyze-btn" class="primary">Analyze game</button>
+          </div>
+          <p id="input-error" class="error hidden"></p>
+        </div>
+        <div id="tab-cc" role="tabpanel" class="hidden"></div>
       </section>
 
       <section id="screen-progress" class="screen hidden">
         <h1>Analyzing…</h1>
+        <p id="progress-sub" class="hint hidden"></p>
         <div class="progress-track"><div id="progress-fill"></div></div>
         <p id="progress-text">Starting engines…</p>
+        <button id="progress-cancel" class="progress-cancel">Cancel</button>
       </section>
 
       <section id="screen-review" class="screen hidden">

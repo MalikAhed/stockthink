@@ -34,6 +34,7 @@ export async function analyzeGame(
   pgnText: string,
   tier: Tier,
   onProgress: (done: number, total: number) => void,
+  signal?: AbortSignal,
 ): Promise<AnnotatedReport> {
   const game = parseGame(pgnText);
   // MultiPV 3 (literature: ≥3 to measure move "criticality" — the PV1–PV2
@@ -48,8 +49,11 @@ export async function analyzeGame(
     // deep book check (lichess masters) runs alongside the engine — it
     // resolves long before the analysis does and never throws
     const bookPromise = masterBookPlies(game.plies);
-    const analyses = await pool.analyzeAll(game.fens, { nodes: TIER_NODES[tier] }, p =>
-      onProgress(p.done, p.total),
+    const analyses = await pool.analyzeAll(
+      game.fens,
+      { nodes: TIER_NODES[tier] },
+      p => onProgress(p.done, p.total),
+      signal,
     );
     const report = buildReport(game, analyses, await bookPromise);
     return { ...report, initialFen: game.initialFen };
