@@ -76,7 +76,7 @@ fixtures (fires / correctly stays silent) are green AND the e2e gate passed.
 
 - [x] B1 §4.1 The Candidate Move (pp. 372–374) — mined 2026-06-12 → GM-1/2/3
 - [x] B2 §4.2 The Art of Falsifying (pp. 374–379) — mined 2026-06-12 → GM-4/5
-- [ ] B3 §4.3 Why Can't I Play Like a Super-GM? (pp. 379–392)
+- [x] B3 §4.3 (pp. 379–392, Carlsen–Nakamura Kh2 study + think-alouds) — mined 2026-06-12 → GM-6/GM-7
 - [ ] B4 §4.5 How Many Moves Ahead (pp. 395–401)
 - [ ] B5 §4.6 Grandmaster Secrets (pp. 401–416)
 - [ ] B6 §1.6 Tips for Solving the Puzzles (pp. 27–29)
@@ -171,3 +171,45 @@ Source: GM pp. 372–373 (§4.1).
 Proven 2026-06-12 (audit): ONLY_MOVE_GAP=10 win% confirmed sane (book:
   towering candidate = critical moment); voice now opens with "The position
   demanded exactly this". Note: earlier queue note said gap 25 — actual is 10.
+
+### GM-6 quiet improving move / remove-the-checks                     [mined]
+Pattern: when you stand better but nothing forcing works, the strongest move
+  is often a quiet one that improves your worst-placed piece or removes the
+  opponent's resources (especially CHECKS) — "putting the ball in the
+  opponent's court". Club players fixate on forcing candidates (all four
+  sub-GM solvers shortlisted only Qg5/Ne5/Qe7-type moves first); the GM chose
+  Kh2 because every defensive line for the opponent leaned on a check.
+Exceptions: not when a concrete tactic exists (missed_* facts take priority);
+  not in lost positions (improving doesn't apply when you must act).
+Source: GM pp. 383–392 (§ Puzzle 32, Carlsen–Nakamura Baerum 2018, Adams
+  "Deeper Analysis"; think-aloud panel comparison).
+Confirm-gate: engine best is a quiet non-forcing king move (no capture/check/
+  promotion) AND the opponent's checking moves count drops to 0 after it AND
+  mover is better (beforePov ≥ 55). Detector: count opponent checks before/
+  after best move. AUDIT overlap: GM-2 hard_to_find requires a TACTICAL_MISS
+  fact, so quiet-positional misses never soften — extend there.
+Voice: "Not every strong move attacks — {best} quietly takes away every
+  check and leaves all the hard decisions to your opponent."
+Fixture: needs the book diagram FEN (visual page read, p. 384) or a crafted
+  position: quiet Kh2 removing Qa7+/Qf2 resources fires; same position with
+  a winning tactic available stays silent.
+
+### GM-7 walks away from its job                                      [mined]
+Pattern: a move can fail not by what it does but by what it STOPS doing —
+  Adams rejects 1.Ne5?! because the knight on g4 "has an important defensive
+  influence, keeping f2 under control"; after it leaves, ...Qf2 infiltrates.
+  When a mistake's refutation lands on a square the moved piece used to
+  cover from its old square (and no longer does), say that: the piece
+  abandoned its defensive duty.
+Exceptions: only when the refutation CONCRETELY uses the abandoned square
+  (engine reply PV move lands there); never for pawns (they don't have
+  "duties" in this sense); skip if the square is still covered by another
+  defender.
+Source: GM pp. 387–388 (§ Puzzle 32 analysis, 1.Ne5?! refutation).
+Confirm-gate: classification ≥ mistake AND refutation/reply first move's
+  TO-square was attacked by the moved piece from its origin square but not
+  from its destination AND no other friendly piece now covers it.
+Voice: "The {piece} had a job on {from} — covering {square} — and this move
+  walks away from it; {reply} steps straight into the gap."
+Fixture: crafted: knight leaves the only cover of f2, Qf2 infiltrates →
+  fires; same but a bishop still covers f2 → silent.
