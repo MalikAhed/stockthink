@@ -46,8 +46,9 @@ trappedPiece→traps_piece · mateIn1→delivers_mate/mate_threat · sacrifice�
   audit) · PATTERN GM-4 falsify-coaching · GM-5 Lasker miss frame · GM-3
   only_move voice audit · MINE B3→GM-6/7 + B4→GM-8/9 · PATTERN GM-6
   removes-checks · GM-7 abandons_square · GM-8 retreat softener · GM-9
-  counterattack lead. All GM-1..9 proven. Tests 208→220. Next: GM-2 residual
-  (praise side), MINE B5 (§4.6 pp. 401–416, mind 15pp cap), B6.
+  counterattack lead · GM-2b quiet_strength praise (residual closed).
+  All GM-1..9 fully proven. Tests 208→222. Next: MINE B5 (§4.6 pp. 401–416 —
+  over the 15pp cap, split into two chunks), then B6 / puzzle chunks B7+.
 - **2026-06-12l** · 3 units · Spotlight (user directive): focus-mode walkthrough
   replaces autoplay chips (user-paced, friendly CTAs, theme shift) + W1
   lineOutcome WHY-proof intros + W2 step captions (fork/pin/trap/tempo/mate-
