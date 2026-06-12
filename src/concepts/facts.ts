@@ -96,6 +96,9 @@ export type MissedIdea =
   | { what: 'removes_checks' }
   /* GM-9 (book §4.5): best ignores the threat and makes a bigger one */
   | { what: 'counterattack'; threatened: PieceOn }
+  /* GM-10 (book §4.6): with a development lead, the pawn break that rips
+     open lines toward the enemy king — PV-confirmed slider pressure */
+  | { what: 'open_lines' }
   /* the point is the follow-up: best move prepares a tactic one move deeper */
   | { what: 'prepares'; move: SanMove; idea: Extract<Fact, { kind: 'prepares' }>['idea'] }
   /* the best line wins material by force within a few moves */

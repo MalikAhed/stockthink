@@ -112,7 +112,7 @@ const HOME_MINORS: Record<Color, Square[]> = {
   black: ['b8', 'g8', 'c8', 'f8'].map(s => parseSquare(s)!),
 };
 
-function undevelopedMinors(board: Board, color: Color): number {
+export function undevelopedMinors(board: Board, color: Color): number {
   let n = 0;
   for (const sq of HOME_MINORS[color]) {
     const p = board.get(sq);

@@ -10,7 +10,7 @@
  */
 import { Chess } from 'chessops/chess';
 import { makeSan } from 'chessops/san';
-import type { NormalMove, Role, Square } from 'chessops/types';
+import type { Color, NormalMove, Role, Square } from 'chessops/types';
 import { makeSquare, makeUci, opposite, parseUci } from 'chessops/util';
 import type { EvalScore } from '../analysis/winprob';
 import { winPercent } from '../analysis/winprob';
@@ -41,7 +41,8 @@ import {
   pinsHeld,
   seeSquare,
 } from './primitives';
-import { positionalPurposes, positionalRegressions } from './positional';
+import { positionalPurposes, positionalRegressions, undevelopedMinors } from './positional';
+import { kingAttacks } from 'chessops/attacks';
 
 export interface EngineLineInput {
   /** White-POV eval of this line (from the position BEFORE the move). */
@@ -113,6 +114,43 @@ function checkingMoves(pos: Chess): number {
     }
   }
   return n;
+}
+
+/** GM-10: does the piece on `sq` attack at least one enemy pawn (a lever)? */
+function attacksEnemyPawn(pos: Chess, mover: Color, sq: Square): boolean {
+  const p = pos.board.get(sq);
+  if (!p) return false;
+  for (const t of attacks(p, sq, pos.board.occupied)) {
+    const v = pos.board.get(t);
+    if (v && v.color !== mover && v.role === 'pawn') return true;
+  }
+  return false;
+}
+
+/** Mover slider (R/B/Q) attacks into the enemy king's zone (king + ring). */
+function sliderKingZonePressure(pos: Chess, mover: Color): number {
+  const king = pos.board.kingOf(opposite(mover));
+  if (king === undefined) return 0;
+  const zone = kingAttacks(king).with(king);
+  const sliders = pos.board.rook.union(pos.board.bishop).union(pos.board.queen);
+  let n = 0;
+  for (const from of pos.board[mover].intersect(sliders))
+    n += attacks(pos.board.get(from)!, from, pos.board.occupied).intersect(zone).size();
+  return n;
+}
+
+/** GM-10 confirm-gate: walk the engine's best line (≤6 plies); the mover's
+ *  sliders must end up bearing on the enemy king zone harder than before —
+ *  the proof that the break actually OPENS lines toward the king. */
+function opensLinesTowardKing(before: Chess, mover: Color, pvUci: string[] | undefined): boolean {
+  if (!pvUci?.length) return false;
+  const end = before.clone();
+  for (const uci of pvUci.slice(0, 6)) {
+    const m = parseUci(uci);
+    if (!m || !('from' in m) || !end.isLegal(m)) break;
+    end.play(m);
+  }
+  return sliderKingZonePressure(end, mover) > sliderKingZonePressure(before, mover);
 }
 
 function cheapestCapture(pos: Chess, square: Square): NormalMove | null {
@@ -605,6 +643,22 @@ export function annotateMove(before: Chess, move: NormalMove, ctx: AnnotateConte
           checkingMoves(afterBest) === 0
         )
           ideas.push({ what: 'removes_checks' });
+        // GM-10 (book §4.6, Puzzle 34 bayonet): with a clear development
+        // lead, the move to find is often a pawn BREAK toward the enemy
+        // king — a quiet continuation lets the moment pass. The engine's
+        // own line must confirm the lines actually open (slider pressure
+        // on the king zone rises by the end of the PV walk).
+        if (
+          movedRoleBest === 'pawn' &&
+          !bestVictim &&
+          !best.promotion &&
+          !afterBest.isCheck() &&
+          attacksEnemyPawn(afterBest, mover, best.to) &&
+          undevelopedMinors(before.board, opposite(mover)) >=
+            undevelopedMinors(before.board, mover) + 2 &&
+          opensLinesTowardKing(before, mover, ctx.lines[0]?.pvUci)
+        )
+          ideas.push({ what: 'open_lines' });
         for (const f of positionalPurposes(before, best))
           ideas.push({ what: 'positional', fact: f });
         // still nothing? the point may be the follow-up one move deeper in
