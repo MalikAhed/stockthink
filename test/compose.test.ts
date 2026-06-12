@@ -112,6 +112,30 @@ describe('composeComment — bad moves (cause → consequence → better)', () =
     expect(idea).toBeGreaterThan(0);
   });
 
+  it('falsify-coaching names the failed test on a serious mistake with an idea (GM-4)', () => {
+    const c = composeComment(
+      move({
+        classification: 'mistake',
+        facts: [hangFact, { kind: 'positional', fact: { kind: 'develops', role: 'knight', square: 'f3' } }],
+      }),
+    );
+    expect(c.more).toContain('The test this move had to pass was Rxc3');
+    expect(c.more).toContain('before committing');
+  });
+
+  it('falsify-coaching never preaches on inaccuracies or idea-less moves (GM-4)', () => {
+    const inacc = composeComment(
+      move({
+        classification: 'inaccuracy',
+        winDrop: 8,
+        facts: [hangFact, { kind: 'positional', fact: { kind: 'develops', role: 'knight', square: 'f3' } }],
+      }),
+    );
+    expect(inacc.more ?? '').not.toContain('The test this move had to pass');
+    const noIdea = composeComment(move({ classification: 'mistake', facts: [hangFact] }));
+    expect(noIdea.more ?? '').not.toContain('The test this move had to pass');
+  });
+
   it('missed_idea wins_material renders a forcing-line explanation (C8)', () => {
     const c = composeComment(
       move({
