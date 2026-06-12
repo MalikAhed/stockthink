@@ -17,6 +17,7 @@ import { winPercent } from '../analysis/winprob';
 import { attackersTo, attacks, isInBadSpot, PIECE_VALUES } from './board';
 import {
   blocksCheck,
+  attackedPieces,
   capturesFreePiece,
   capturesHigherPiece,
   createsFork,
@@ -579,6 +580,16 @@ export function annotateMove(before: Chess, move: NormalMove, ctx: AnnotateConte
         const tempo = winsTempo(before, best);
         if (tempo !== null && tempoConfirmed(afterBest, mover, best.to, tempo, ctx.lines[0]?.pvUci.slice(1)))
           ideas.push({ what: 'wins_tempo', target: pieceOn(afterBest, tempo) });
+        // GM-9 (book §4.5): the strongest answer to a threat is sometimes a
+        // bigger threat — the best move leaves the attacked piece alone and
+        // wins time elsewhere; lead the explanation with that lesson.
+        if (ideas.some(i => i.what === 'wins_tempo')) {
+          const threatened = attackedPieces(before, mover).find(
+            t => t !== best.from && isInBadSpot(before.board, t) && !saved.includes(t),
+          );
+          if (threatened !== undefined)
+            ideas.unshift({ what: 'counterattack', threatened: pieceOn(before, threatened) });
+        }
         // GM-6 (book §4.3, Carlsen-Nakamura Kh2): a quiet king move that
         // strips EVERY opponent check while standing better — prophylaxis,
         // "putting the ball in the opponent's court"

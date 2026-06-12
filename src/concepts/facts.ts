@@ -92,6 +92,8 @@ export type MissedIdea =
   | { what: 'positional'; fact: PositionalFact }
   /* GM-6 (book §4.3): quiet king move that strips every opponent check */
   | { what: 'removes_checks' }
+  /* GM-9 (book §4.5): best ignores the threat and makes a bigger one */
+  | { what: 'counterattack'; threatened: PieceOn }
   /* the point is the follow-up: best move prepares a tactic one move deeper */
   | { what: 'prepares'; move: SanMove; idea: Extract<Fact, { kind: 'prepares' }>['idea'] }
   /* the best line wins material by force within a few moves */

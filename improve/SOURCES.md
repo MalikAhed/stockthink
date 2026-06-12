@@ -240,7 +240,7 @@ Voice: "To be fair, {best} is a backwards move — the kind even strong
 Proven 2026-06-12: hard_to_find.reason quiet|retreat (retreat = toward own
   back rank, non-king); Ra1 mate-miss fixture; Blackburne Qe2 stays quiet.
 
-### GM-9 meet the threat indirectly                                    [mined]
+### GM-9 meet the threat indirectly                                   [proven]
 Pattern: when a piece is attacked, club players reach for defense/retreat;
   the strong choice often IGNORES the threat and creates a bigger one
   (Adams: "meeting the threat to the knight indirectly, by attacking one of
@@ -256,3 +256,7 @@ Confirm-gate: a mover piece is attacked before the move AND best move
   threat with a bigger one").
 Fixture: crafted: knight attacked, best traps a rook instead of retreating
   → fires; best retreats the knight → silent.
+Proven 2026-06-12: MissedIdea `counterattack` (unshifted to lead) when a
+  mover piece is in a bad spot, best neither moves nor defends it, and a
+  confirmed wins_tempo idea exists. Voice: "answered the threat to the
+  knight with a bigger one". Fixtures: Bg5-vs-queen fires / Ne4 escape silent.
