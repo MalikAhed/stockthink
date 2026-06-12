@@ -149,6 +149,8 @@ export function renderFact(f: Fact): string | null {
       return 'The only legal move.';
     case 'only_move':
       return 'The only move that holds everything together — anything else falls apart.';
+    case 'second_candidate':
+      return `One of the main candidate moves here — only ${f.best.san} promised a bit more.`;
     case 'wins_free_piece':
       return `This wins the ${pieceAt(f.victim)} for nothing — no recapture works.`;
     case 'captures_higher':

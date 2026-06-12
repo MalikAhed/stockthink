@@ -37,7 +37,7 @@ const MISSED_KINDS: Fact['kind'][] = [
   'missed_mate_threat',
   'missed_idea',
 ];
-const CONTEXT_KINDS: Fact['kind'][] = ['only_move', 'forced'];
+const CONTEXT_KINDS: Fact['kind'][] = ['only_move', 'forced', 'second_candidate'];
 
 const isBad = (f: Fact): boolean => BAD_KINDS.includes(f.kind) || f.kind === 'regression';
 const isMissed = (f: Fact): boolean => MISSED_KINDS.includes(f.kind);
@@ -127,6 +127,9 @@ export function composeComment(m: MoveReport): Comment {
     }
     // a bad move with no concrete facts at all: name the better move, say no more (R3)
     if (parts.length === 0 && m.bestSan) parts.push(`${m.bestSan} was stronger here.`);
+    // GM-1: the move sat on the engine's own shortlist — soften the verdict
+    if (facts.some(f => f.kind === 'second_candidate'))
+      parts.push('A natural candidate, but it falls just short.');
   } else {
     // good move: purpose (top 2 facts max)
     const lead = facts.find(f => f.kind === 'only_move');
@@ -140,8 +143,15 @@ export function composeComment(m: MoveReport): Comment {
       used.push(f);
     }
     if (parts.length === 0) {
-      const pool = NEUTRAL[m.classification];
-      if (pool) parts.push(pool[Math.floor(m.ply / 2) % pool.length]);
+      // GM-1: candidate framing beats a generic neutral line
+      const sc = !m.wasBest && facts.find(f => f.kind === 'second_candidate');
+      if (sc) {
+        parts.push(sentence(sc)!);
+        used.push(sc);
+      } else {
+        const pool = NEUTRAL[m.classification];
+        if (pool) parts.push(pool[Math.floor(m.ply / 2) % pool.length]);
+      }
     }
   }
 

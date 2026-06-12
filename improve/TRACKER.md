@@ -42,6 +42,11 @@ trappedPiece→traps_piece · mateIn1→delivers_mate/mate_threat · sacrifice�
 
 ## Daily log (append ONE entry per session, 1–3 lines, newest on top)
 
+- **2026-06-12h** · 3 units · FIRST V3 SESSION: MINE B1 (§4.1 Candidate Move →
+  GM-1/2/3 mined, GM-3 is an only_move audit) + PATTERN GM-1 second_candidate
+  proven (fact + candidate framing: replaces neutral praise on near-best moves,
+  softens inaccuracy verdicts; gate shows it on Opera 8.Nc3). Tests 183→186.
+  Next: PATTERN GM-2 (hard-to-find best move) or MINE B2 (falsifying).
 - **2026-06-12g** · cleanup + workflow v3 · Pruned consumed research (12MB
   arXiv PDFs, raw JSON, external .py — all distilled already), 4 dead exports;
   doc maps refreshed. Built v3: improve/SOURCES.md (pattern-mining queue,

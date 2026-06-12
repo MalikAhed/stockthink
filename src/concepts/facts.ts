@@ -74,6 +74,9 @@ export type Fact =
   | { kind: 'missed_idea'; move: SanMove; ideas: MissedIdea[] }
   /* context */
   | { kind: 'only_move' }
+  /* the played move was the engine's own second candidate (GM-1: candidate
+     framing instead of generic praise/criticism) */
+  | { kind: 'second_candidate'; best: SanMove }
   | { kind: 'forced' };
 
 export type MissedIdea =
@@ -127,6 +130,7 @@ const PRIORITY: Record<FactKind, number> = {
   regression: 23,
   positional: 24,
   only_move: 25,
+  second_candidate: 25.5,
   forced: 26,
 };
 
