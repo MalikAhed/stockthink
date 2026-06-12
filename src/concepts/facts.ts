@@ -57,6 +57,8 @@ export type Fact =
   | { kind: 'positional'; fact: PositionalFact }
   /* what the played move concedes (bad) */
   | { kind: 'hangs_piece'; piece: PieceOn; capture: SanMove }
+  /* a piece was ALREADY under attack and this move did nothing about it */
+  | { kind: 'ignores_threat'; piece: PieceOn; capture: SanMove }
   | { kind: 'allows_mate'; mateIn: number; firstMove: SanMove | null }
   | { kind: 'allows_fork'; forkMove: SanMove; targets: PieceOn[] }
   | { kind: 'refutation'; moves: SanMove[]; lossRole: Role | null }
@@ -85,6 +87,7 @@ const PRIORITY: Record<FactKind, number> = {
   allows_mate: 1,
   missed_mate: 2,
   hangs_piece: 3,
+  ignores_threat: 3.5,
   allows_fork: 4,
   refutation: 5,
   missed_free_piece: 6,

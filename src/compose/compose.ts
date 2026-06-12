@@ -27,7 +27,7 @@ export interface Comment {
   chips: VariationChip[];
 }
 
-const BAD_KINDS: Fact['kind'][] = ['hangs_piece', 'allows_mate', 'allows_fork', 'refutation'];
+const BAD_KINDS: Fact['kind'][] = ['hangs_piece', 'ignores_threat', 'allows_mate', 'allows_fork', 'refutation'];
 const MISSED_KINDS: Fact['kind'][] = [
   'missed_mate',
   'missed_free_piece',

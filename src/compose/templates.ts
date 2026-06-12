@@ -131,6 +131,8 @@ export function renderFact(f: Fact): string | null {
       return renderRegression(f.fact);
     case 'hangs_piece':
       return `This leaves the ${pieceAt(f.piece)} hanging — ${f.capture.san} simply takes it.`;
+    case 'ignores_threat':
+      return `The ${pieceAt(f.piece)} was already under attack, and this move does nothing about it — ${f.capture.san} now wins it.`;
     case 'allows_mate':
       return f.firstMove
         ? `This allows a forced mate: after ${f.firstMove.san} there is no defense (mate in ${inWords(f.mateIn)}).`

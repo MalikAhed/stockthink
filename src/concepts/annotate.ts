@@ -14,7 +14,7 @@ import type { NormalMove, Role, Square } from 'chessops/types';
 import { makeSquare, makeUci, opposite, parseUci } from 'chessops/util';
 import type { EvalScore } from '../analysis/winprob';
 import { winPercent } from '../analysis/winprob';
-import { attackersTo, PIECE_VALUES } from './board';
+import { attackersTo, isInBadSpot, PIECE_VALUES } from './board';
 import {
   blocksCheck,
   capturesFreePiece,
@@ -403,6 +403,24 @@ export function annotateMove(before: Chess, move: NormalMove, ctx: AnnotateConte
         : cheapestCapture(after, sq);
     if (!capMove) continue;
     facts.push({ kind: 'hangs_piece', piece: pieceOn(after, sq), capture: sanMove(after, capMove) });
+  }
+
+  // ignored threat: the engine reply captures a mover piece that was ALREADY
+  // loose before the move (hangsPieces excludes those by design) — the deeper
+  // story is "you were under attack and did nothing about it"
+  if (ctx.winDrop >= 5 && replyMove && after.isLegal(replyMove)) {
+    const sq = replyMove.to;
+    const victim = after.board.get(sq);
+    if (
+      victim &&
+      victim.color === mover &&
+      victim.role !== 'king' &&
+      sq !== move.to &&
+      !hung.includes(sq) &&
+      isInBadSpot(before.board, sq) &&
+      seeSquare(after, sq) > 0
+    )
+      facts.push({ kind: 'ignores_threat', piece: pieceOn(after, sq), capture: sanMove(after, replyMove) });
   }
 
   if (ctx.winDrop >= 5 && replyMove && after.isLegal(replyMove)) {
