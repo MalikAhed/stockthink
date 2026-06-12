@@ -31,8 +31,10 @@ export interface Comment {
   chips: VariationChip[];
 }
 
-const BAD_KINDS: Fact['kind'][] = ['hangs_piece', 'abandons_square', 'ignores_threat', 'allows_mate', 'allows_fork', 'refutation'];
-const MISSED_KINDS: Fact['kind'][] = [
+// exported for eval/score.ts — the truth harness must judge with the same
+// kind sets the composer speaks with (drift here would corrupt the eval)
+export const BAD_KINDS: Fact['kind'][] = ['hangs_piece', 'abandons_square', 'ignores_threat', 'allows_mate', 'allows_fork', 'refutation'];
+export const MISSED_KINDS: Fact['kind'][] = [
   'missed_mate',
   'missed_free_piece',
   'missed_fork',
@@ -41,7 +43,7 @@ const MISSED_KINDS: Fact['kind'][] = [
   'missed_mate_threat',
   'missed_idea',
 ];
-const CONTEXT_KINDS: Fact['kind'][] = ['only_move', 'forced', 'second_candidate', 'hard_to_find', 'quiet_strength'];
+export const CONTEXT_KINDS: Fact['kind'][] = ['only_move', 'forced', 'second_candidate', 'hard_to_find', 'quiet_strength'];
 
 const isBad = (f: Fact): boolean => BAD_KINDS.includes(f.kind) || f.kind === 'regression';
 const isMissed = (f: Fact): boolean => MISSED_KINDS.includes(f.kind);
