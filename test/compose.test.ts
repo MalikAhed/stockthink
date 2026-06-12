@@ -153,9 +153,15 @@ describe('composeComment — good moves (purpose)', () => {
     assertNoEvalSpeak(c.text);
   });
 
-  it('fact-less good move gets one short neutral sentence (R3)', () => {
+  it('fact-less good move gets one short neutral sentence, rotated deterministically (R3/C6)', () => {
     const c = composeComment(move({ classification: 'good', winDrop: 3, facts: [] }));
-    expect(c.text).toBe('A reasonable continuation.');
+    expect(c.text.length).toBeGreaterThan(0);
+    expect(c.text.length).toBeLessThan(60);
+    // deterministic: same ply → same sentence
+    expect(composeComment(move({ classification: 'good', winDrop: 3, facts: [] })).text).toBe(c.text);
+    // rotating: a different move number gets a different variant
+    const other = composeComment(move({ ply: 11, classification: 'good', winDrop: 3, facts: [] }));
+    expect(other.text).not.toBe(c.text);
     assertNoEvalSpeak(c.text);
   });
 

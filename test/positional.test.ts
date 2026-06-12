@@ -145,3 +145,17 @@ describe('positionalRegressions', () => {
     expect(positionalRegressions(p, mv('e2e4'))).toEqual([]);
   });
 });
+
+describe('early queen (C5)', () => {
+  const pos2 = (fen: string) => Chess.fromSetup(parseFen(fen).unwrap()).unwrap();
+  it('2.Qh5 fires early_queen', () => {
+    const p = pos2('rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2');
+    const facts = positionalRegressions(p, { from: parseSquare('d1')!, to: parseSquare('h5')! });
+    expect(facts.some(f => f.kind === 'early_queen')).toBe(true);
+  });
+  it('a queen move in the middlegame does not', () => {
+    const p = pos2('r1bq1rk1/pppp1ppp/2n2n2/2b1p3/2B1P3/2NP1N2/PPP2PPP/R1BQ1RK1 w - - 6 9');
+    const facts = positionalRegressions(p, { from: parseSquare('d1')!, to: parseSquare('e2')! });
+    expect(facts.some(f => f.kind === 'early_queen')).toBe(false);
+  });
+});

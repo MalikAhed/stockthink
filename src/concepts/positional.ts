@@ -37,6 +37,7 @@ export type RegressionFact =
   | { kind: 'isolated_pawn'; file: number }
   | { kind: 'rim_knight'; square: string }
   | { kind: 'lags_development' }
+  | { kind: 'early_queen' }
   | { kind: 'cedes_center' };
 
 const fileOf = (sq: Square): number => sq & 7;
@@ -342,6 +343,17 @@ export function positionalRegressions(posBefore: Chess, mv: NormalMove): Regress
     const developed = HOME_MINORS[mover].includes(mv.from);
     if (own >= theirs + 2 && !developed) out.push({ kind: 'lags_development' });
   }
+
+  // opening principle (C5): the queen ventures out before the minors are ready
+  const QUEEN_HOME = { white: 3, black: 59 } as const; // d1 / d8
+  if (
+    posBefore.fullmoves <= 8 &&
+    b1.get(mv.to)?.role === 'queen' &&
+    mv.from === QUEEN_HOME[mover] &&
+    rankOf(mv.to) !== rankOf(QUEEN_HOME[mover]) &&
+    undevelopedMinors(b1, mover) >= 2
+  )
+    out.push({ kind: 'early_queen' });
 
   if (centerControl(b1, mover) <= centerControl(b0, mover) - 2) out.push({ kind: 'cedes_center' });
 
