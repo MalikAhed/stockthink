@@ -98,6 +98,22 @@ const mateAgainst = (mover: 'white' | 'black', ev: EvalScore): number | null =>
   mateFor(opposite(mover), ev);
 
 /** Cheapest legal capture onto `square`, for hang rendering. */
+/** Legal moves by the side to move that give check (GM-6 prophylaxis gate). */
+function checkingMoves(pos: Chess): number {
+  let n = 0;
+  for (const [from, dests] of pos.allDests()) {
+    for (const to of dests) {
+      const role = pos.board.get(from)?.role;
+      const move: NormalMove =
+        role === 'pawn' && (to >= 56 || to < 8) ? { from, to, promotion: 'queen' } : { from, to };
+      const probe = pos.clone();
+      probe.play(move);
+      if (probe.isCheck()) n++;
+    }
+  }
+  return n;
+}
+
 function cheapestCapture(pos: Chess, square: Square): NormalMove | null {
   let best: NormalMove | null = null;
   let bestValue = Infinity;
@@ -540,6 +556,21 @@ export function annotateMove(before: Chess, move: NormalMove, ctx: AnnotateConte
         const tempo = winsTempo(before, best);
         if (tempo !== null && tempoConfirmed(afterBest, mover, best.to, tempo, ctx.lines[0]?.pvUci.slice(1)))
           ideas.push({ what: 'wins_tempo', target: pieceOn(afterBest, tempo) });
+        // GM-6 (book §4.3, Carlsen-Nakamura Kh2): a quiet king move that
+        // strips EVERY opponent check while standing better — prophylaxis,
+        // "putting the ball in the opponent's court"
+        const beforePovPct =
+          mover === 'white' ? winPercent(ctx.evalBefore) : 100 - winPercent(ctx.evalBefore);
+        if (
+          movedRoleBest === 'king' &&
+          !bestVictim &&
+          Math.abs((best.from & 7) - (best.to & 7)) <= 1 && // not castling
+          !afterBest.isCheck() &&
+          beforePovPct >= 55 &&
+          checkingMoves(after) > 0 &&
+          checkingMoves(afterBest) === 0
+        )
+          ideas.push({ what: 'removes_checks' });
         for (const f of positionalPurposes(before, best))
           ideas.push({ what: 'positional', fact: f });
         // still nothing? the point may be the follow-up one move deeper in

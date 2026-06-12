@@ -172,7 +172,7 @@ Proven 2026-06-12 (audit): ONLY_MOVE_GAP=10 win% confirmed sane (book:
   towering candidate = critical moment); voice now opens with "The position
   demanded exactly this". Note: earlier queue note said gap 25 — actual is 10.
 
-### GM-6 quiet improving move / remove-the-checks                     [mined]
+### GM-6 quiet improving move / remove-the-checks                    [proven]
 Pattern: when you stand better but nothing forcing works, the strongest move
   is often a quiet one that improves your worst-placed piece or removes the
   opponent's resources (especially CHECKS) — "putting the ball in the
@@ -193,6 +193,13 @@ Voice: "Not every strong move attacks — {best} quietly takes away every
 Fixture: needs the book diagram FEN (visual page read, p. 384) or a crafted
   position: quiet Kh2 removing Qa7+/Qf2 resources fires; same position with
   a winning tactic available stays silent.
+Proven 2026-06-12: MissedIdea variant `removes_checks` in the missed_idea
+  machinery (annotate.ts): best is quiet non-castle king move, mover ≥55%
+  before, opponent checking-move count goes ≥1 (after played) → 0 (after
+  best). Crafted Kh2 fixtures (rook: fires / queen keeps Qg3+: silent).
+  Voice via ideaClause: "quietly taken away every check, leaving all the
+  hard decisions to your opponent." Residual: GM-2 hard_to_find still skips
+  quiet-positional misses (needs non-tactical softener decision).
 
 ### GM-7 walks away from its job                                      [mined]
 Pattern: a move can fail not by what it does but by what it STOPS doing —

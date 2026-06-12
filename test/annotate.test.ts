@@ -347,3 +347,36 @@ describe('annotateMove — what the move achieves', () => {
     );
   });
 });
+
+describe('annotateMove — GM-6 removes-checks prophylaxis', () => {
+  // White is clearly better; Kh2 strips Black's only check (…Rb1+), while
+  // the played rook shuffle leaves it available.
+  const FEN = '1r4k1/6pp/8/8/R7/3Q3P/5PP1/6K1 w - - 0 1';
+  const lines = [{ eval: { cp: 300 }, pvUci: ['g1h2'] }];
+
+  it('missed quiet king move that strips every check → removes_checks idea', () => {
+    const facts = annotateMove(
+      pos(FEN),
+      mv('a4a5'),
+      ctx({ evalBefore: { cp: 300 }, winDrop: 8, bestUci: 'g1h2', lines }),
+    );
+    const idea = byKind(facts, 'missed_idea');
+    expect(idea).toBeTruthy();
+    expect(idea && idea.kind === 'missed_idea' && idea.ideas.some(i => i.what === 'removes_checks')).toBe(
+      true,
+    );
+  });
+
+  it('stays silent when checks remain after the king move', () => {
+    // a queen on b8 still finds …Qg3+ after Kh2 — no clean prophylaxis story
+    const facts = annotateMove(
+      pos('1q4k1/6pp/8/8/R7/3Q3P/5PP1/6K1 w - - 0 1'),
+      mv('a4a5'),
+      ctx({ evalBefore: { cp: 300 }, winDrop: 8, bestUci: 'g1h2', lines }),
+    );
+    const idea = byKind(facts, 'missed_idea');
+    expect(
+      idea && idea.kind === 'missed_idea' && idea.ideas.some(i => i.what === 'removes_checks'),
+    ).toBeFalsy();
+  });
+});
