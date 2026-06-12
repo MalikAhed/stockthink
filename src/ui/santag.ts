@@ -61,12 +61,24 @@ const tagText = (token: string, role: Role): string =>
   token.startsWith('O-O') || role === 'pawn' ? token : token.slice(1);
 
 /**
+ * A bare destination square ("c6", "d2", "e6+") is indistinguishable from a
+ * pawn-push SAN, and our prose uses such squares as plain COORDINATES far more
+ * often than as moves ("the knight goes to c6", "covering e6"). chessops will
+ * happily read "c6" as a legal pawn move and we'd stamp a bogus pawn pill on a
+ * coordinate — the bug this guards against. So we never tag a bare square; a
+ * real pawn move still tags when written as a capture (exd5) or promotion
+ * (e8=Q). Piece moves and castles are unaffected.
+ */
+const isBareSquare = (token: string): boolean => /^[a-h][1-8][+#]?$/.test(token);
+
+/**
  * Escape `text` and wrap every SAN token that is a legal move in one of
- * `fens` in a `.san-tag` pill (piece image + move). Unparseable tokens are
- * left as plain text — never guess a piece.
+ * `fens` in a `.san-tag` pill (piece image + move). Unparseable tokens — and
+ * bare square coordinates — are left as plain text; never guess a piece.
  */
 export function renderRich(text: string, fens: string[]): string {
   return esc(text).replace(SAN_RE, token => {
+    if (isBareSquare(token)) return token;
     const p = parseToken(token, fens);
     if (!p) return token;
     return (
