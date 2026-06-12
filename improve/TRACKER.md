@@ -42,6 +42,11 @@ trappedPiece→traps_piece · mateIn1→delivers_mate/mate_threat · sacrifice�
 
 ## Daily log (append ONE entry per session, 1–3 lines, newest on top)
 
+- **2026-06-12k** · 2 units · chess.com alignment (user request): game accuracy
+  → CAPS2-style classification-score average (book/forced=1, blunder=0; was
+  lichess harmonic — read too low) + decided-position leniency in classify
+  (afterPov≥80 or beforePov≤20 softens one step, never into forced mate).
+  Tests 194→196. Next: user re-compares vs chess.com; then PATTERN GM-4.
 - **2026-06-12j** · 3 units · v3 session 2: MINE B2 (§4.2 Falsifying → GM-4
   falsify-coaching, GM-5 Lasker-frame-for-miss audit) + PATTERN GM-2 proven
   (hard_to_find: quiet missed tactic softens the verdict; gate: Blackburne

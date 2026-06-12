@@ -97,6 +97,29 @@ describe('classifyMove special classes', () => {
     expect(classifyMove(m, false)).toBe('miss');
   });
 
+  it('softens one step when the mover is still completely winning after (chess.com leniency)', () => {
+    // 99% → 91%: drop 8 would be "inaccuracy", but the game is still decided
+    const m = move({ wasBest: false, winDrop: 8, winPercentAfter: 91, evalBefore: { cp: 900 } });
+    expect(classifyMove(m, false)).toBe('good');
+  });
+
+  it('softens one step in an already-lost position', () => {
+    // 15% → 3%: a "mistake"-sized drop changes nothing — soften to inaccuracy
+    const m = move({ wasBest: false, winDrop: 12, winPercentAfter: 3, evalBefore: { cp: -450 } });
+    expect(classifyMove(m, false)).toBe('inaccuracy');
+  });
+
+  it('never softens a move that walks into a forced mate', () => {
+    const m = move({
+      wasBest: false,
+      winDrop: 12,
+      winPercentAfter: 0.1,
+      evalBefore: { cp: -450 },
+      evalAfter: { mate: -3 },
+    });
+    expect(classifyMove(m, false)).toBe('mistake');
+  });
+
   it('missing a resource AND ending up lost is just a blunder', () => {
     const m = move({
       facts: [{ kind: 'missed_free_piece', move: { san: 'Qxd5', uci: 'd2d5' }, victim: { role: 'knight', square: 'd5' } }],

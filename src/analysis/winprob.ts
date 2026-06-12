@@ -4,7 +4,10 @@
  * Formulas verified against primary sources (2026-06):
  *  - lichess lila ui/lib/src/ceval/winningChances.ts (sigmoid, clamps, mate mapping)
  *  - https://lichess.org/page/accuracy (move accuracy curve)
- *  - lila modules/analyse AccuracyPercent (game accuracy: weighted + harmonic mean)
+ *
+ * Game accuracy is NOT lichess's formula — it is the CAPS2-style
+ * classification-score average (see classify.ts:classificationScore), which
+ * tracks chess.com's numbers far more closely.
  *
  * Everything downstream (eval bar, classification ladder, accuracy, graph)
  * speaks win-probability, never raw centipawns. All evals are stored from
@@ -73,38 +76,6 @@ export const moveAccuracy = (winDrop: number): number => {
   if (winDrop <= 0) return 100;
   const raw = 103.1668100711649 * Math.exp(-0.04354415386753951 * winDrop) - 3.166924740191411;
   return clamp(raw + 1, 0, 100);
-};
-
-const mean = (xs: number[]): number => xs.reduce((a, b) => a + b, 0) / xs.length;
-
-const stdDev = (xs: number[]): number => {
-  const m = mean(xs);
-  return Math.sqrt(mean(xs.map(x => (x - m) * (x - m))));
-};
-
-const harmonicMean = (xs: number[]): number =>
-  xs.length / xs.reduce((a, b) => a + 1 / Math.max(b, 1e-9), 0);
-
-/**
- * Game accuracy for one player — lichess method:
- * mean of (volatility-weighted mean, harmonic mean) of per-move accuracies.
- *
- * @param accuracies   per-move accuracy values for this player's moves, in order
- * @param winPercents  Win% (this player's POV) BEFORE each of the player's moves,
- *                     plus the final position — used to compute volatility windows
- */
-export const gameAccuracy = (accuracies: number[], winPercents: number[]): number => {
-  if (accuracies.length === 0) return 100;
-  const windowSize = clamp(Math.floor(winPercents.length / 10), 2, 8);
-  // sliding-window stddev of win% = "volatility" weight per move
-  const weights = accuracies.map((_, i) => {
-    const start = Math.max(0, i + 1 - windowSize);
-    const window = winPercents.slice(start, Math.max(i + 1, start + windowSize) + 1);
-    return clamp(stdDev(window), 0.5, 12);
-  });
-  const weighted =
-    accuracies.reduce((s, a, i) => s + a * weights[i], 0) / weights.reduce((a, b) => a + b, 0);
-  return clamp((weighted + harmonicMean(accuracies)) / 2, 0, 100);
 };
 
 /**
