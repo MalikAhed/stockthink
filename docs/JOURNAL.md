@@ -6,6 +6,13 @@ for /work sessions). Past ~300 lines, /reflect compresses the oldest half into
 LESSONS.md. Entries below 2026-06-12p were migrated verbatim from
 improve/TRACKER.md's daily log (2026-06-12) — history is not rewritten.
 
+- **2026-06-12q** · 3 units · MINE B6 (§1.6 pp. 27–30: mostly logistics; 1
+  candidate → GM-13 calibrated eval-vocabulary audit, backlog 2/6) · PATTERN
+  GM-10 proven: MissedIdea `open_lines` — dev-lead pawn lever + PV-walk
+  king-zone slider-pressure gate; f4-f5 fires/no-lead silent fixtures. Tests
+  231→233, gate green. Gap spotted in gate read-through → U7 ("The problem
+  is…" framing on a BEST move, Opera 15.Bxd7+). Next: PATTERN GM-11
+  (guarded-target/deflection, ties R17/R18/DS1) or GM-13; chunk B7.
 - **2026-06-12p** · BOOTSTRAP: the self-aware arc. Built the brain (CLAUDE.md
   constitution + PROJECT_MAP/ROADMAP/BACKLOG/JOURNAL/LESSONS/METRICS), the
   rituals (/work /audit /reflect), and eval v1: 18 engine-verified cases +
