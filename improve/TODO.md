@@ -63,10 +63,9 @@ Take items top-down. Move finished items to Done (bottom) with date + commit.
 
 - [ ] **C2 · Escapes-attack** — "This steps the {piece} out of danger."
 - [ ] **C4 · Pressure stacking** — "A new attacker joins the pressure on the {piece}."
-- [ ] **C5 · Opening principles** — early queen · same piece twice · luft ·
-  opens line for own piece · trade offer · plain check.
-- [ ] **C6 · Widen praise pools** — ≥6 rotating variants per tier (see
-  `../docs/knowledge/chesscom-templates.md` §9), deterministic rotation.
+- [ ] **C5 · Opening principles (residual)** — _(early_queen shipped 2026-06-12.)_
+  Remaining: same piece twice + luft + opens-line + trade offer + plain check —
+  same-piece-twice needs `ctx.lastMove` plumbed into AnnotateContext first.
 - [ ] **C7 · Opening idea lines** — one-sentence idea for top ~50 book openings.
 
 ## Datasets (ground-truth expansion — wire each into a harness before relying on it)
@@ -93,6 +92,7 @@ Take items top-down. Move finished items to Done (bottom) with date + commit.
 _(items land here with the open question attached)_
 
 ## Done
+- [x] C6 · Praise pools — 2026-06-12 (6 variants × best/excellent/good, rotated by ply, deterministic)
 - [x] P3 · Lost-position mate framing — 2026-06-12 ("The game could not be saved either way — …")
 - [x] C1 · Recapture/capture suggestion phrasing — 2026-06-12 (subsumed by C8 'captures' idea)
 - [x] U3 · API-key LLM commentary — 2026-06-12 (src/llm/providers.ts generateViaApi: direct browser call to api.anthropic.com with user's own key in localStorage; haiku; R4 verify + silent fallback)

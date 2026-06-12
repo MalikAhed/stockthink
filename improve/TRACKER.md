@@ -42,6 +42,13 @@ trappedPiece→traps_piece · mateIn1→delivers_mate/mate_threat · sacrifice�
 
 ## Daily log (append ONE entry per session, 1–3 lines, newest on top)
 
+- **2026-06-12f** (loop iter 6/6 — OVERNIGHT LOOP COMPLETE) · 2 units · C6
+  praise rotation (6/tier by ply) · C5 early_queen regression.
+  NIGHT TOTAL: 18 units / 6 sessions — U1 praise-on-bad-moves bug fixed ·
+  ignores_threat + missed_idea facts (suggestions & threats now carry WHYs at
+  winDrop≥5) · U3 API-key + U4 WebLLM one-click commentary · P3 lost-position
+  framing · C1/C3/C6 phrasing · tests 173→183. NEXT ERA: project cleanup, then
+  workflow v3 (book-driven: think-like-a-super-gm patterns verified by engine).
 - **2026-06-12e** (loop iter 5/6) · 4 units · C8: missed_idea now fires for
   inaccuracies too (idea gate 5, accusatory missed-tactics keep gate 10) + new
   wins_material (mirrored refutation walk) and plain-captures ideas — nearly all
