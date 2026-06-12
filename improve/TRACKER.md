@@ -42,6 +42,11 @@ trappedPiece→traps_piece · mateIn1→delivers_mate/mate_threat · sacrifice�
 
 ## Daily log (append ONE entry per session, 1–3 lines, newest on top)
 
+- **2026-06-12j** · 3 units · v3 session 2: MINE B2 (§4.2 Falsifying → GM-4
+  falsify-coaching, GM-5 Lasker-frame-for-miss audit) + PATTERN GM-2 proven
+  (hard_to_find: quiet missed tactic softens the verdict; gate: Blackburne
+  7.Be2 "Qe2 is a quiet move — the hardest kind to spot"). Tests 190→193.
+  Next: PATTERN GM-4 or GM-3/GM-5 audits; backlog 4/6.
 - **2026-06-12i** · 1 unit (user-reported) · BOOK DEPTH FIX: chess.com marks
   ~6 more book moves than us — the EPD map only knows *named* positions. New
   src/analysis/explorer.ts: lichess masters explorer (keyless, CORS) walks the

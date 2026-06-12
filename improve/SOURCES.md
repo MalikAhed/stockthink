@@ -75,7 +75,7 @@ fixtures (fires / correctly stays silent) are green AND the e2e gate passed.
 ## Chunk queue (book)
 
 - [x] B1 §4.1 The Candidate Move (pp. 372–374) — mined 2026-06-12 → GM-1/2/3
-- [ ] B2 §4.2 The Art of Falsifying (pp. 374–379)
+- [x] B2 §4.2 The Art of Falsifying (pp. 374–379) — mined 2026-06-12 → GM-4/5
 - [ ] B3 §4.3 Why Can't I Play Like a Super-GM? (pp. 379–392)
 - [ ] B4 §4.5 How Many Moves Ahead (pp. 395–401)
 - [ ] B5 §4.6 Grandmaster Secrets (pp. 401–416)
@@ -106,7 +106,7 @@ Proven 2026-06-12: fact `second_candidate` (annotate.ts, gate winDrop<10) +
   composer weaving (neutral-pool replacement on good moves, verdict softener
   on inaccuracies). Gate shows it live on Opera Game 8.Nc3.
 
-### GM-2 hard-to-find best move                                       [mined]
+### GM-2 hard-to-find best move                                      [proven]
 Pattern: in complex/irrational positions even GMs take 4× longer and club
   players find the best move only ~40% of the time — a missed best move that
   was "unnatural" (quiet move, sacrifice, retreat) deserves softened
@@ -118,7 +118,42 @@ Confirm-gate: needs a board-checkable "unnatural" predicate (sacrifice via
   in a PATTERN unit. AUDIT overlap: `only_move` fact + brilliant/great
   classifications already cover part of this; extend their voice, don't
   duplicate.
-Fixture: TBD at spec time.
+Fixture: quiet Qf6 mate-threat miss fires; checking mate move Rd8# stays
+  silent (annotate.test.ts).
+Proven 2026-06-12 (miss side): fact `hard_to_find` — best move quiet (no
+  capture/check/promotion, EP-aware) + a missed_* tactic at MISS_GATE →
+  softener appended to the verdict. Gate shows it on Blackburne 7.Be2 (missed
+  quiet pin Qe2). RESIDUAL: praise side (escalate brilliant/great voice when
+  the PLAYER finds a quiet tactical move) — needs quietness fact on played
+  moves; queue as PATTERN follow-up.
+
+### GM-4 falsify-before-committing coaching                           [mined]
+Pattern: strength correlates directly with time spent trying to REFUTE your
+  own candidate move (GMs ~85% of thinking time; club players ~38% and they
+  only check confirming lines). When a move with a clear point fails to a
+  concrete reply, coach the habit: name the test the move had to pass.
+Exceptions: don't preach on inaccuracies (drop <10) or when no concrete
+  refutation fact exists — the coaching must point at a real, engine-verified
+  reply, never at a vibe.
+Source: GM pp. 374–377 (§4.2); Lasker's "when you see a good move, look for
+  a better one" (public domain) quoted there.
+Confirm-gate: classification mistake/blunder AND ≥1 purpose fact (the move
+  had an idea) AND a bad fact carrying a concrete reply (hangs_piece.capture
+  / refutation.moves[0] / allows_mate.firstMove).
+Voice (in "explain more"): "The test this move had to pass was {reply} —
+  strong players spend most of their time looking for exactly this kind of
+  answer before committing."
+Fixture: compose unit — purpose+hang mistake → coaching line appears; same
+  facts at inaccuracy → absent.
+
+### GM-5 Lasker frame for Miss                                        [mined]
+Pattern: weaker players stop at the first good-looking move; GMs keep looking
+  for a better one. A move that keeps the win but skips a clean knockout is
+  the classic case.
+AUDIT: the `miss` classification + missed_* facts already detect this —
+  extend the miss-class voice with the Lasker frame ("A good move — but the
+  position offered more: …"), don't add detection.
+Source: GM pp. 377–379 (§4.2, "relentless determination").
 
 ### GM-3 single-candidate positions                                   [mined]
 Pattern: when one candidate towers over the rest, the position is critical —

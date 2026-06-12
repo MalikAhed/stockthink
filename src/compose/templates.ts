@@ -151,6 +151,8 @@ export function renderFact(f: Fact): string | null {
       return 'The only move that holds everything together — anything else falls apart.';
     case 'second_candidate':
       return `One of the main candidate moves here — only ${f.best.san} promised a bit more.`;
+    case 'hard_to_find':
+      return `To be fair, ${f.move.san} is a quiet move — the hardest kind to spot.`;
     case 'wins_free_piece':
       return `This wins the ${pieceAt(f.victim)} for nothing — no recapture works.`;
     case 'captures_higher':
