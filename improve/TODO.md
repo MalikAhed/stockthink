@@ -38,6 +38,11 @@ Take items top-down. Move finished items to Done (bottom) with date + commit.
   weaker than why-good. Use the engine PV after the bad move to narrate the
   punishment/intention ("this drops the bishop to …", "ignores the threat of …",
   "weakens the king after …"). Symmetric depth with the good-move side.
+- [ ] **U7 · "The problem is …" framing on BEST moves** — gate read-through
+  2026-06-12: Opera 15.Bxd7+ is [best] yet its explain-more says "The problem
+  is Nxd7 (and after Qb7) — the bishop is lost by force" — refutation-walk
+  prose leaking onto a sound trade. The walk result on a best/good move should
+  render as the trade's point (or stay silent), never as "the problem".
 - [ ] **U5 · Geometry & wrong-trigger audit** — sweep detectors for geometric
   bugs and facts firing on coincidental (non-causal) cases; add precision
   fixtures for each fix found.
