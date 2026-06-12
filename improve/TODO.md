@@ -55,6 +55,13 @@ Take items top-down. Move finished items to Done (bottom) with date + commit.
 
 ## Precision (stop over-triggering — facts must be the REASON, not coincidence)
 
+- [ ] **P3 · Lost-position phrasing** — in already-lost positions the best try
+  still gets "This allows a forced mate…" in its expansion (gate: Opera 16…Qb8).
+  Acknowledge context: "the position was beyond saving; this at least…".
+- [ ] **C8 · Bare better-way cases** — extend missed_idea: checks that win
+  material ("it would have given check, then won the …"), broader defends
+  (defending attacked-but-not-hanging pieces), recapture phrasing (absorbs C1).
+
 ## Phrasing & composer (after a concept's detector is solid, make it SPEAK well)
 
 - [ ] **C1 · Recapture phrasing** — "A straightforward recapture." / "Takes back."

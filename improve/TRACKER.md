@@ -42,6 +42,10 @@ trappedPiece→traps_piece · mateIn1→delivers_mate/mate_threat · sacrifice�
 
 ## Daily log (append ONE entry per session, 1–3 lines, newest on top)
 
+- **2026-06-12d** (loop iter 4/6) · 3 units · U6 deeper: missed_idea now walks
+  the best PV one move in ("Nb2 was the better way — it would have prepared Qd4,
+  forking…") · U5 audit: logged P3 (lost-position phrasing) + C8 (bare
+  better-way). Next: C8, P3, C5/C6 phrasing, R-list.
 - **2026-06-12c** (loop iter 3/6) · 3 units · U3+U4: Deep Review panel now has
   one-click commentary via user's own Anthropic key AND a fully local WebLLM
   option (Llama-3.2-1B, ~700 MB, WebGPU-gated, CDN dynamic import — zero bundle
