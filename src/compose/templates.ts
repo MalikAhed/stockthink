@@ -62,6 +62,10 @@ function ideaClause(i: MissedIdea): string {
       return `defended the ${pieceAt(i.piece)}`;
     case 'trades':
       return `traded off the ${pieceAt(i.victim)}`;
+    case 'wins_material':
+      return i.role ? `won the ${i.role} by force` : `won material by force`;
+    case 'captures':
+      return `taken the ${pieceAt(i.victim)}`;
     case 'prepares':
       switch (i.idea.what) {
         case 'mate_threat':

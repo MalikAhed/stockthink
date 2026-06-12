@@ -83,7 +83,11 @@ export type MissedIdea =
   | { what: 'wins_tempo'; target: PieceOn }
   | { what: 'positional'; fact: PositionalFact }
   /* the point is the follow-up: best move prepares a tactic one move deeper */
-  | { what: 'prepares'; move: SanMove; idea: Extract<Fact, { kind: 'prepares' }>['idea'] };
+  | { what: 'prepares'; move: SanMove; idea: Extract<Fact, { kind: 'prepares' }>['idea'] }
+  /* the best line wins material by force within a few moves */
+  | { what: 'wins_material'; role: Role | null }
+  /* plain capture whose soundness the engine itself vouches for */
+  | { what: 'captures'; victim: PieceOn };
 
 export type FactKind = Fact['kind'];
 

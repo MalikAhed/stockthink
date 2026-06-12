@@ -453,17 +453,19 @@ export function annotateMove(before: Chess, move: NormalMove, ctx: AnnotateConte
   }
 
   /* ---- what the best move would have done ------------------------------- */
-  if (ctx.winDrop >= MISS_GATE && ctx.bestUci && ctx.bestUci !== playedUci) {
+  // gentle "better way" ideas from winDrop>=5 (inaccuracies); accusatory
+  // missed-tactic facts keep the stricter MISS_GATE
+  if (ctx.winDrop >= 5 && ctx.bestUci && ctx.bestUci !== playedUci) {
     const best = parseUci(ctx.bestUci) as NormalMove | undefined;
     if (best && before.isLegal(best)) {
       const bestSan = sanMove(before, best);
       const missedMate = mateFor(mover, ctx.lines[0]?.eval ?? ctx.evalBefore);
-      if (missedMate !== null)
+      if (ctx.winDrop >= MISS_GATE && missedMate !== null)
         facts.push({ kind: 'missed_mate', mateIn: missedMate, move: bestSan });
 
       const bestTarget = before.board.get(best.to);
       const bestVictim = bestTarget && bestTarget.color !== mover ? bestTarget : undefined;
-      if (bestVictim && capturesFreePiece(before, best))
+      if (ctx.winDrop >= MISS_GATE && bestVictim && capturesFreePiece(before, best))
         facts.push({
           kind: 'missed_free_piece',
           move: bestSan,
@@ -473,6 +475,7 @@ export function annotateMove(before: Chess, move: NormalMove, ctx: AnnotateConte
       const afterBest = play(before, best);
       const missedForks = createsFork(before, best);
       if (
+        ctx.winDrop >= MISS_GATE &&
         missedForks.length &&
         forkConfirmed(afterBest, mover, best.to, missedForks, ctx.lines[0]?.pvUci.slice(1))
       )
@@ -487,14 +490,15 @@ export function annotateMove(before: Chess, move: NormalMove, ctx: AnnotateConte
       const missedPins = pinsCreatedEx(before, best).filter(
         p => pinSignificance(afterBest, mover, p, ctx.lines[0]?.pvUci.slice(1)).keep,
       );
-      if (missedPins.length)
+      if (ctx.winDrop >= MISS_GATE && missedPins.length)
         facts.push({ kind: 'missed_pin', move: bestSan, pinned: pieceOn(afterBest, missedPins[0].pinned) });
 
       const missedTraps = trapsPieces(before, best);
-      if (missedTraps.length)
+      if (ctx.winDrop >= MISS_GATE && missedTraps.length)
         facts.push({ kind: 'missed_trap', move: bestSan, piece: pieceOn(afterBest, missedTraps[0]) });
 
       if (
+        ctx.winDrop >= MISS_GATE &&
         missedMate === null &&
         !missedForks.length &&
         !bestVictim &&
@@ -530,6 +534,20 @@ export function annotateMove(before: Chess, move: NormalMove, ctx: AnnotateConte
           if (prep && prep.kind === 'prepares')
             ideas.push({ what: 'prepares', move: prep.move, idea: prep.idea });
         }
+        // last resort: the best line simply wins material by force (the same
+        // walk used for refutations, mirrored onto the opponent)
+        if (!ideas.length) {
+          const pv = ctx.lines[0]?.pvUci;
+          if (pv && pv.length > 1) {
+            const gain = refutationWalk(afterBest, pv.slice(1), opposite(mover));
+            if (gain && gain.kind === 'refutation')
+              ideas.push({ what: 'wins_material', role: gain.lossRole });
+          }
+        }
+        // a capture the static SEE couldn't bless: the engine vouches for it,
+        // so at least say WHAT it takes (covers recaptures — C1/C8)
+        if (!ideas.length && bestVictim)
+          ideas.push({ what: 'captures', victim: { role: bestVictim.role, square: makeSquare(best.to) } });
         if (ideas.length)
           facts.push({ kind: 'missed_idea', move: bestSan, ideas: ideas.slice(0, 2) });
       }
