@@ -14,6 +14,8 @@ import { renderFact } from './templates';
 
 export interface VariationChip {
   label: string;
+  /** What this line shows — drives the walkthrough intro & button styling. */
+  kind: 'best' | 'refutation';
   sanPv: string[];
   uciPv: string[];
   /** Position the line starts from. */
@@ -201,6 +203,7 @@ function buildChips(m: MoveReport): VariationChip[] {
   if (!m.wasBest && m.bestSan && m.lines[0]?.sanPv.length)
     chips.push({
       label: `Best: ${m.bestSan}`,
+      kind: 'best',
       sanPv: m.lines[0].sanPv,
       uciPv: m.lines[0].uciPv,
       fen: m.fenBefore,
@@ -209,6 +212,7 @@ function buildChips(m: MoveReport): VariationChip[] {
   if (refutation && refutation.kind === 'refutation')
     chips.push({
       label: `Why it fails: ${refutation.moves[0].san}`,
+      kind: 'refutation',
       sanPv: refutation.moves.map(x => x.san),
       uciPv: refutation.moves.map(x => x.uci),
       fen: m.fenAfter,
