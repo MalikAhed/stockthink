@@ -4,7 +4,7 @@
  * tied to numbers (R1); at most the first move or two of any line, always
  * with its purpose stated (R2).
  */
-import type { Fact, PieceOn } from '../concepts/facts';
+import type { Fact, MissedIdea, PieceOn } from '../concepts/facts';
 import type { PositionalFact, RegressionFact } from '../concepts/positional';
 
 const FILES = 'abcdefgh';
@@ -52,6 +52,53 @@ function renderPositional(f: PositionalFact): string {
       return 'This strengthens the grip on the center.';
     case 'mobility_gain':
       return `The ${f.role} gains real scope from its new square.`;
+  }
+}
+
+/** Verb phrase for what the missed best move WOULD have done. */
+function ideaClause(i: MissedIdea): string {
+  switch (i.what) {
+    case 'defends':
+      return `defended the ${pieceAt(i.piece)}`;
+    case 'trades':
+      return `traded off the ${pieceAt(i.victim)}`;
+    case 'escapes':
+      return `stepped the ${i.role} out of danger`;
+    case 'wins_tempo':
+      return `gained time by attacking the ${pieceAt(i.target)}`;
+    case 'positional':
+      return positionalIdea(i.fact);
+  }
+}
+
+function positionalIdea(f: PositionalFact): string {
+  switch (f.kind) {
+    case 'castles':
+      return 'brought the king to safety';
+    case 'passed_pawn':
+      return `created a passed pawn on ${f.square}`;
+    case 'simplifies_ahead':
+      return 'traded down while ahead in material';
+    case 'releases_pin':
+      return `freed the ${f.role} from the pin`;
+    case 'rook_open_file':
+      return `taken the open ${FILES[f.file]}-file`;
+    case 'rook_seventh':
+      return 'planted the rook on the seventh rank';
+    case 'knight_outpost':
+      return `settled the knight on the ${f.square} outpost`;
+    case 'file_battery':
+      return `doubled the heavy pieces on the ${FILES[f.file]}-file`;
+    case 'fianchetto':
+      return 'put the bishop on the long diagonal';
+    case 'develops':
+      return `developed the ${f.role}`;
+    case 'improves_shield':
+      return "shored up the king's pawn cover";
+    case 'center_gain':
+      return 'strengthened the grip on the center';
+    case 'mobility_gain':
+      return `given the ${f.role} more scope`;
   }
 }
 
@@ -153,6 +200,8 @@ export function renderFact(f: Fact): string | null {
       return `${f.move.san} would have pinned the ${pieceAt(f.pinned)} against the king.`;
     case 'missed_trap':
       return `${f.move.san} would have trapped the ${pieceAt(f.piece)}.`;
+    case 'missed_idea':
+      return `${f.move.san} was the better way — it would have ${f.ideas.map(ideaClause).join(' and ')}.`;
     case 'missed_mate_threat':
       return `${f.move.san} would have set up a direct mating threat.`;
   }

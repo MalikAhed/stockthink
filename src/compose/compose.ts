@@ -35,6 +35,7 @@ const MISSED_KINDS: Fact['kind'][] = [
   'missed_pin',
   'missed_trap',
   'missed_mate_threat',
+  'missed_idea',
 ];
 const CONTEXT_KINDS: Fact['kind'][] = ['only_move', 'forced'];
 

@@ -83,6 +83,33 @@ describe('annotateMove — what the move concedes', () => {
     expect(byKind(facts, 'ignores_threat')).toBeUndefined();
   });
 
+  it('missed_idea: a quiet best move is explained by its own purpose (U6/C3)', () => {
+    // White wastes time with a3 while the engine wanted the rescuing Nd5
+    // (knight on c3 is attacked by b4 and undefended → best move escapes).
+    const p = pos('6k1/6pp/8/8/1p6/2N5/P6P/6K1 w - - 0 1');
+    const facts = annotateMove(
+      p,
+      mv('h2h3'),
+      ctx({ winDrop: 25, bestUci: 'c3d5', lines: [{ eval: { cp: 0 }, pvUci: ['c3d5'] }], replyPv: ['b4c3'] }),
+    );
+    const idea = byKind(facts, 'missed_idea') as Extract<Fact, { kind: 'missed_idea' }>;
+    expect(idea).toBeTruthy();
+    expect(idea.move.san).toBe('Nd5');
+    expect(idea.ideas.some(i => i.what === 'escapes' && i.role === 'knight')).toBe(true);
+  });
+
+  it('missed_idea does not fire when a concrete tactical miss already explains it', () => {
+    // best move wins a hanging queen → missed_free_piece, no idea fact needed
+    const p = pos('6k1/8/8/3q4/8/8/8/3R2K1 w - - 0 1');
+    const facts = annotateMove(
+      p,
+      mv('g1h1'),
+      ctx({ winDrop: 30, bestUci: 'd1d5', lines: [{ eval: { cp: 900 }, pvUci: ['d1d5'] }] }),
+    );
+    expect(byKind(facts, 'missed_free_piece')).toBeTruthy();
+    expect(byKind(facts, 'missed_idea')).toBeUndefined();
+  });
+
   it('allows mate-in-1 (fool’s mate pattern) with the mating reply named', () => {
     const p = pos('rnbqkbnr/pppp1ppp/8/4p3/8/5P2/PPPPP1PP/RNBQKBNR w KQkq - 0 2');
     const facts = annotateMove(
