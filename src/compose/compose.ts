@@ -50,6 +50,13 @@ const NEUTRAL: Partial<Record<MoveReport['classification'], string>> = {
   good: 'A reasonable continuation.',
 };
 
+/** "Develops the knight toward the center." → "develops the knight toward the center"
+ *  (keeps the capital when the sentence starts with a SAN token or square). */
+const asClause = (s: string): string => {
+  const t = s.replace(/\.\s*$/, '');
+  return /^[A-Z][a-z]/.test(t) ? t.charAt(0).toLowerCase() + t.slice(1) : t;
+};
+
 export function composeComment(m: MoveReport): Comment {
   const facts = m.facts;
   const chips = buildChips(m);
@@ -111,11 +118,27 @@ export function composeComment(m: MoveReport): Comment {
     }
   }
 
-  // "explain more": every remaining fact, one sentence each
-  const rest = facts
-    .filter(f => !used.includes(f) && !CONTEXT_KINDS.includes(f.kind))
-    .map(renderFact)
-    .filter((s): s is string => s !== null && !parts.includes(s));
+  // "explain more": remaining facts, one sentence each — but classification-aware.
+  // On a bad move, purpose facts must read as the (failed) intent, never as praise.
+  const remaining = facts.filter(f => !used.includes(f) && !CONTEXT_KINDS.includes(f.kind));
+  let rest: string[];
+  if (isBadMove) {
+    rest = remaining
+      .filter(f => !isPurpose(f))
+      .map(renderFact)
+      .filter((s): s is string => s !== null && !parts.includes(s));
+    const intent = remaining
+      .filter(isPurpose)
+      .map(renderFact)
+      .filter((s): s is string => s !== null)
+      .map(asClause);
+    if (intent.length)
+      rest.push(`The idea — ${intent.join('; ')} — doesn't make up for what this concedes.`);
+  } else {
+    rest = remaining
+      .map(renderFact)
+      .filter((s): s is string => s !== null && !parts.includes(s));
+  }
 
   return {
     text: parts.join(' '),

@@ -75,6 +75,43 @@ describe('composeComment — bad moves (cause → consequence → better)', () =
     assertNoEvalSpeak(c.text);
   });
 
+  it('"explain more" on a bad move never recites purpose facts as praise (U1)', () => {
+    const c = composeComment(
+      move({
+        facts: [
+          hangFact,
+          { kind: 'positional', fact: { kind: 'develops', role: 'knight', square: 'f3' } },
+          { kind: 'defends_piece', piece: { role: 'bishop', square: 'd3' } } as Fact,
+        ],
+      }),
+    );
+    // purpose facts may only appear inside the concessive "The idea —" frame
+    expect(c.more).not.toBeNull();
+    expect(c.more!).toMatch(/^The idea — /);
+    expect(c.more!).toContain("doesn't make up for");
+    // and never as standalone praise sentences
+    expect(c.more!).not.toMatch(/(^|\. )Develops /);
+    expect(c.more!).not.toMatch(/(^|\. )Defends /);
+    assertNoEvalSpeak(c.text + ' ' + c.more!);
+  });
+
+  it('"explain more" on a bad move leads with remaining negative facts', () => {
+    const c = composeComment(
+      move({
+        facts: [
+          hangFact,
+          missedFact,
+          { kind: 'missed_mate', move: { san: 'Qh7#', uci: 'h6h7' } } as Fact,
+          { kind: 'positional', fact: { kind: 'center_gain' } },
+        ],
+      }),
+    );
+    // hang + missed_fork go to the main text; missed_mate must come before the intent frame
+    expect(c.more).not.toBeNull();
+    const idea = c.more!.indexOf('The idea —');
+    expect(idea).toBeGreaterThan(0);
+  });
+
   it('non-best moves carry a Best-line chip instead of a PV in prose', () => {
     const c = composeComment(move({ facts: [hangFact] }));
     expect(c.chips.some(ch => ch.label === 'Best: Qe3')).toBe(true);

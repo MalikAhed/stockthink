@@ -15,6 +15,34 @@ the same treatment, top-down, one item per session unit:
 
 Take items top-down. Move finished items to Done (bottom) with date + commit.
 
+## TONIGHT — user directive 2026-06-12 (take these FIRST, top-down)
+
+- [ ] **U1 · Fix "explain more" positive bias (BUG)** — the expanded explanation
+  praises bad moves ("develops the piece and protects…") even when Stockfish
+  classified the move as a mistake/blunder. The composer must be
+  classification-aware: for bad moves, explain WHY IT'S BAD (what it hangs,
+  what it ignores, what got weaker) — never recite the move's positive facts
+  as if they justified it. Add regression tests: a known blunder must produce
+  zero praise phrasing in "explain more".
+- [ ] **U2 · Deeper why-bad explanations** — the why-a-move-is-bad side is much
+  weaker than why-good. Use the engine PV after the bad move to narrate the
+  punishment/intention ("this drops the bishop to …", "ignores the threat of …",
+  "weakens the king after …"). Symmetric depth with the good-move side.
+- [ ] **U3 · LLM commentary, option A: zero-install API mode** — opt-in toggle
+  on the upload screen that sends position + facts to a hosted LLM (user pastes
+  their own API key, stored locally; nothing server-side — keeps zero-budget
+  constraint) and gets rephrased commentary back. Silent fallback to templates
+  on any failure.
+- [ ] **U4 · LLM commentary, option B: WebLLM local (~600 MB)** — experimental
+  opt-in WebLLM rephrase toggle (verify.ts-gated, downloads model in-browser,
+  silent fallback to templates). Both U3/U4 share one rephrase interface.
+- [ ] **U5 · Geometry & wrong-trigger audit** — sweep detectors for geometric
+  bugs and facts firing on coincidental (non-causal) cases; add precision
+  fixtures for each fix found.
+- [ ] **U6 · Stockfish intention narration** — explain the IDEA behind the
+  engine's best move (what the PV is trying to achieve), not just its first
+  move's surface facts.
+
 ## Concepts — from zero (chessprogramming.org reading list)
 
 - [ ] **R1 · Hanging piece** — https://www.chessprogramming.org/Hanging_Piece
