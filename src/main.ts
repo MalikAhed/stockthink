@@ -21,6 +21,7 @@ import { disposeLive, liveMoveReport, seedLiveAnalysis } from './live';
 import { badgeSvg } from './ui/badges';
 import { formatEval, renderCoach, renderCoachThinking } from './ui/coach';
 import { renderDeepReview } from './ui/deepreview';
+import { buildWalkthrough, renderSpotlightCard, type WalkthroughStep } from './ui/walkthrough';
 import { renderGraph } from './ui/graph';
 import { renderMoveList } from './ui/movelist';
 import { renderSummary } from './ui/summary';
@@ -33,7 +34,13 @@ let report: AnnotatedReport | null = null;
 let ply = 0; // 0 = initial position, n = after move n
 let board: Api | null = null;
 let orientation: 'white' | 'black' = 'white';
-let previewTimer: ReturnType<typeof setInterval> | null = null;
+/** Best-move Spotlight (focus mode): user-paced engine-line walkthrough. */
+let spotlight: {
+  steps: WalkthroughStep[];
+  i: number;
+  title: string;
+  kind: 'best' | 'refutation';
+} | null = null;
 let aiComments: Map<number, string> = new Map();
 /** Live "try a move" line played by the user from the current ply. */
 let exploreLine: AnnotatedMove[] = [];
@@ -127,8 +134,7 @@ function seedFromReport(fen: string): void {
 
 /** User dropped a piece: run the move through the normal analysis pipeline. */
 function onUserMove(orig: Key, dest: Key): void {
-  if (!report || exploreThinking) return;
-  stopPreview();
+  if (!report || exploreThinking || spotlight) return;
   const fenBefore = shownFen();
   const pos = Chess.fromSetup(parseFen(fenBefore).unwrap()).unwrap();
   const from = parseSquare(orig);
@@ -177,34 +183,68 @@ function displaySquares(m: AnnotatedMove): [Key, Key] {
   return [m.uci.slice(0, 2) as Key, m.uci.slice(2, 4) as Key];
 }
 
-function stopPreview(): void {
-  if (previewTimer !== null) {
-    clearInterval(previewTimer);
-    previewTimer = null;
-  }
+/* ------------------------------------------- best-move Spotlight --- */
+
+/** Chip click → enter focus mode and walk the line at the user's pace. */
+function enterSpotlight(chip: VariationChip): void {
+  if (!board || !report) return;
+  const m = exploreLine.length
+    ? exploreLine[exploreLine.length - 1]
+    : ply > 0
+      ? report.moves[ply - 1]
+      : null;
+  const steps = buildWalkthrough(chip, m?.san ?? null);
+  if (steps.length < 2) return;
+  spotlight = {
+    steps,
+    i: 0,
+    title:
+      chip.kind === 'best'
+        ? `The best move was ${chip.sanPv[0] ?? ''}`
+        : `Why ${m?.san ?? 'that move'} falls short`,
+    kind: chip.kind,
+  };
+  document.body.classList.add('focus-mode');
+  renderSpotlight();
 }
 
-/** Play an engine line on the board, move by move (variation chip click). */
-function playChip(chip: VariationChip): void {
-  if (!board) return;
-  stopPreview();
-  board.set({ fen: chip.fen, lastMove: undefined, movable: { color: undefined } });
-  board.setAutoShapes([]);
-  let i = 0;
-  previewTimer = setInterval(() => {
-    if (!board || i >= chip.uciPv.length) {
-      stopPreview();
-      return;
-    }
-    const uci = chip.uciPv[i++];
-    board.move(uci.slice(0, 2) as Key, uci.slice(2, 4) as Key);
-  }, 700);
+function renderSpotlight(): void {
+  if (!board || !spotlight) return;
+  const { steps, i, title, kind } = spotlight;
+  const step = steps[i];
+  board.set({
+    fen: step.fen,
+    lastMove: step.lastMove as Key[] | undefined,
+    movable: { color: undefined },
+  });
+  board.setAutoShapes(
+    step.arrow ? [{ orig: step.arrow.orig as Key, dest: step.arrow.dest as Key, brush: step.arrow.brush }] : [],
+  );
+  renderSpotlightCard($('#coach'), title, kind, steps, i, {
+    go: n => {
+      if (!spotlight) return;
+      spotlight.i = Math.max(0, Math.min(steps.length - 1, n));
+      renderSpotlight();
+    },
+    exit: exitSpotlight,
+  });
+}
+
+function exitSpotlight(): void {
+  if (!spotlight) return;
+  spotlight = null;
+  document.body.classList.remove('focus-mode');
+  render();
 }
 
 function render(): void {
   const r = report!;
   if (!r.moves.length || !board) return;
-  stopPreview();
+  if (spotlight) {
+    // navigating anywhere else dissolves the Spotlight back into the review
+    spotlight = null;
+    document.body.classList.remove('focus-mode');
+  }
   const live = exploreLine.length > 0;
   const m = live ? exploreLine[exploreLine.length - 1] : ply > 0 ? r.moves[ply - 1] : null;
 
@@ -248,7 +288,7 @@ function render(): void {
     $('#coach'),
     r,
     m,
-    playChip,
+    enterSpotlight,
     m && !live ? (aiComments.get(m.ply) ?? null) : null,
     live,
   );
@@ -304,6 +344,8 @@ $('#btn-flip').addEventListener('click', () => {
 });
 $('#btn-new').addEventListener('click', () => {
   report = null;
+  spotlight = null;
+  document.body.classList.remove('focus-mode');
   exitExplore();
   disposeLive();
   show('input');
@@ -312,6 +354,20 @@ $('#btn-new').addEventListener('click', () => {
 document.addEventListener('keydown', e => {
   if (!report || screens.review().classList.contains('hidden')) return;
   if (e.target instanceof HTMLTextAreaElement) return;
+  if (spotlight) {
+    // focus mode: arrows step the line, Esc returns — nothing else
+    if (e.key === 'ArrowRight') {
+      if (spotlight.i >= spotlight.steps.length - 1) exitSpotlight();
+      else {
+        spotlight.i++;
+        renderSpotlight();
+      }
+    } else if (e.key === 'ArrowLeft' && spotlight.i > 0) {
+      spotlight.i--;
+      renderSpotlight();
+    } else if (e.key === 'Escape') exitSpotlight();
+    return;
+  }
   switch (e.key) {
     case 'ArrowLeft':
       if (exploreLine.length) {

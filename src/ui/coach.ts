@@ -68,11 +68,20 @@ export function renderCoach(
   }
   const c = move.classification;
   const comment = composeComment(move);
+  const isBadMove = c === 'inaccuracy' || c === 'mistake' || c === 'blunder' || c === 'miss';
+  // Friendly Spotlight CTAs — no raw engine lines on buttons; the walkthrough
+  // explains the moves one step at a time instead.
+  const ctaLabel = (chip: (typeof comment.chips)[number]): string =>
+    chip.kind === 'refutation'
+      ? '🔍 See why it fails'
+      : isBadMove
+        ? '✨ Show me the best move'
+        : '✨ What did the engine prefer?';
   const chipsHtml = comment.chips
     .map(
       (chip, i) => `
-      <button class="var-chip" data-chip="${i}" title="${esc(chip.sanPv.join(' '))}">
-        ${esc(chip.label)} <span class="chip-line">${esc(chip.sanPv.slice(0, 4).join(' '))}${chip.sanPv.length > 4 ? '…' : ''}</span>
+      <button class="var-chip cta-${chip.kind}" data-chip="${i}">
+        ${ctaLabel(chip)}
       </button>`,
     )
     .join('');
