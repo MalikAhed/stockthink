@@ -30,6 +30,7 @@ jobs:
           mv dist/index.html dist/app.html
           cp landing/index.html dist/index.html
           cp -r landing/vendor dist/vendor
+          cp -r landing/pieces dist/pieces
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
