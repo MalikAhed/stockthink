@@ -98,13 +98,15 @@ export function renderCoach(
         <div class="commentary-text">${renderRich(aiComment ?? comment.text, [move.fenBefore, move.fenAfter])}</div>
         ${chipsHtml ? `<div class="chips-row">${chipsHtml}</div>` : ''}
         ${
+          // "Explain more" (comment.more expansion) intentionally not rendered —
+          // removed per user request; a better follow-up feature is planned.
+          // The underlying comment.more is still composed + tested, so it's a
+          // one-line re-add when that feature lands. "Quick take" (AI mode only)
+          // is a separate thing and stays.
           aiComment
             ? `<details class="coach-more"><summary>Quick take</summary>
                <div class="commentary-text">${renderRich(comment.text, [move.fenBefore, move.fenAfter])}</div></details>`
-            : comment.more
-              ? `<details class="coach-more"><summary>Explain more</summary>
-               <div class="commentary-text">${renderRich(comment.more, [move.fenBefore, move.fenAfter])}</div></details>`
-              : ''
+            : ''
         }
       </div>
     </div>`;
