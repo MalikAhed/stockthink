@@ -26,7 +26,11 @@ export interface VariationChip {
 
 export interface Comment {
   text: string;
-  /** "Explain more" expansion — remaining facts, one sentence each. */
+  /**
+   * Expansion tail — remaining facts, one sentence each. Formerly shown as an
+   * "Explain more" toggle; that UI was removed per user request (a better
+   * feature is planned). Still composed + tested so re-adding it is trivial.
+   */
   more: string | null;
   chips: VariationChip[];
 }
