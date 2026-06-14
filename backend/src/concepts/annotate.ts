@@ -545,6 +545,24 @@ export function annotateMove(before: Chess, move: NormalMove, ctx: AnnotateConte
     if (ref) facts.push(ref);
   }
 
+  // U2 — symmetric why-bad: the move walked a piece/pawn onto an EMPTY square and
+  // the engine's best reply captures it right there. Name the punishing reply
+  // (no material claim — the cost can be positional, e.g. 9...b5? 10.Nxb5!).
+  // Last resort: only when no concrete material story already led.
+  if (
+    !hasConcreteBad &&
+    !facts.some(f => f.kind === 'refutation') &&
+    ctx.winDrop >= 5 &&
+    replyMove &&
+    after.isLegal(replyMove) &&
+    replyMove.to === move.to &&
+    !before.board.get(move.to)
+  ) {
+    const taken = after.board.get(move.to);
+    if (taken && taken.color === mover && taken.role !== 'king')
+      facts.push({ kind: 'invites_capture', reply: sanMove(after, replyMove), piece: pieceOn(after, move.to) });
+  }
+
   /* ---- what the best move would have done ------------------------------- */
   // gentle "better way" ideas from winDrop>=5 (inaccuracies); accusatory
   // missed-tactic facts keep the stricter MISS_GATE

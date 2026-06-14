@@ -37,7 +37,7 @@ export interface Comment {
 
 // exported for self-improvement/eval/score.ts — the truth harness must judge with the same
 // kind sets the composer speaks with (drift here would corrupt the eval)
-export const BAD_KINDS: Fact['kind'][] = ['hangs_piece', 'abandons_square', 'ignores_threat', 'allows_mate', 'allows_fork', 'refutation'];
+export const BAD_KINDS: Fact['kind'][] = ['hangs_piece', 'abandons_square', 'ignores_threat', 'allows_mate', 'allows_fork', 'refutation', 'invites_capture'];
 export const MISSED_KINDS: Fact['kind'][] = [
   'missed_mate',
   'missed_free_piece',

@@ -33,11 +33,17 @@ Take items top-down. Move finished items to Done (bottom) with date + commit.
 
 ## TONIGHT — user directive 2026-06-12 (take these FIRST, top-down)
 
-- [ ] **U2 · Deeper why-bad explanations** — _(partial: `ignores_threat` fact
-  shipped 2026-06-12 — already-attacked piece + move ignores it.)_ Remaining: the why-a-move-is-bad side is much
-  weaker than why-good. Use the engine PV after the bad move to narrate the
-  punishment/intention ("this drops the bishop to …", "ignores the threat of …",
-  "weakens the king after …"). Symmetric depth with the good-move side.
+- [ ] **U2 · Deeper why-bad explanations** — _(partial: `ignores_threat`
+  2026-06-12; `invites_capture` 2026-06-14 — move walks a piece/pawn onto an
+  empty square the engine reply takes right there, e.g. 9...b5? 10.Nxb5!; closed
+  opera-09-b5 C0→C1, eval TOTAL 90.8→92.1.)_ Remaining: "weakens the king after …"
+  PV narration; broader symmetric depth with the good-move side.
+- [ ] **U2b · Double-attack reply narration** — blk-04-nxe5 (PARTIAL): the
+  refuting reply is a non-capture double attack (...Qg5! hits g2 + the e5 knight),
+  not a capture of the moved piece, so `invites_capture` can't fire and the lead
+  falls back to a center-regression platitude. Needs a fact for "the reply forks/
+  double-attacks" from the engine reply PV (cousin of `allows_fork`, but the
+  targets are pre-existing pieces, no material won by force).
 - [ ] **U7 · "The problem is …" framing on BEST moves** — gate read-through
   2026-06-12: Opera 15.Bxd7+ is [best] yet its explain-more says "The problem
   is Nxd7 (and after Qb7) — the bishop is lost by force" — refutation-walk
