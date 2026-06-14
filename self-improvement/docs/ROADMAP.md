@@ -9,6 +9,24 @@ that teaches why bad moves are bad, stays quiet otherwise, and never says
 anything the engine line doesn't support — wrapped in a system that improves
 itself every single session.
 
+## Parallel arc: THE UX ARC (started 2026-06-14)
+The repo was reorganized into three zones (`frontend/` · `backend/` ·
+`self-improvement/`) and a live design workflow was wired up: `npm run dev` + the
+Chrome DevTools / Playwright MCPs let a session SEE the page, iterate, and commit
+only on the user's approval (CLAUDE.md → "The UX loop"). With that in place,
+interface/UX redesign is back in scope — the old "UI is frozen" rule is retired.
+Direction: the homepage moves toward an AI-generated-video hero; design references
+live in `~/stockthink-design-archive/` (user hands over the script).
+
+### UX-M1 — foundation ✅ 2026-06-14
+3-zone reorg (no behaviour change: build green, 246 tests, eval TOTAL 90.8%),
+`@frontend`/`@backend` aliases, `.mcp.json` browser MCPs, `vite-plugin-checker`
+overlay, `release.yml` + CHANGELOG. **Exit met.**
+
+### UX-M2 — first redesign pass  ← NEXT
+One surface redesigned end-to-end in the new loop (home hero the likely first),
+screenshot-approved by the user. **Exit: a merged UI change shipped via the loop.**
+
 ## Milestones
 
 ### M1 — Eval v1 baseline ✅ 2026-06-12
