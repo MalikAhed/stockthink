@@ -214,6 +214,8 @@ export function renderFact(f: Fact): string | null {
       return `This leaves the ${pieceAt(f.piece)} hanging — ${f.capture.san} simply takes it.`;
     case 'ignores_threat':
       return `The ${pieceAt(f.piece)} was already under attack, and this move does nothing about it — ${f.capture.san} now wins it.`;
+    case 'invites_capture':
+      return `This runs into ${f.reply.san}, taking the ${pieceAt(f.piece)}.`;
     case 'allows_mate':
       return f.firstMove
         ? `This allows a forced mate: after ${f.firstMove.san} there is no defense (mate in ${inWords(f.mateIn)}).`

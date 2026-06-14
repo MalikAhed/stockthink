@@ -103,6 +103,33 @@ describe('annotateMove — what the move concedes', () => {
     expect(byKind(facts, 'ignores_threat')).toBeUndefined();
   });
 
+  it('invites_capture: a pawn pushed onto an empty square the reply takes (U2, the 9...b5? 10.Nxb5! motif)', () => {
+    // Black pushes ...b5 onto an empty square. It is NOT hanging (the c6 pawn
+    // defends it, so Nxb5 cxb5 loses a knight for a pawn by SEE) — yet the
+    // engine still plays Nxb5 (a positional sac). We name the reply without any
+    // material claim.
+    const p = pos('6k1/1p3ppp/2p5/8/8/2N5/P6P/6K1 b - - 0 1');
+    const facts = annotateMove(p, mv('b7b5'), ctx({ winDrop: 8, replyPv: ['c3b5'] }));
+    expect(byKind(facts, 'invites_capture')).toMatchObject({
+      reply: { san: 'Nxb5' },
+      piece: { role: 'pawn', square: 'b5' },
+    });
+    // SEE saw the pawn as defended → no false "hanging" report
+    expect(byKind(facts, 'hangs_piece')).toBeUndefined();
+  });
+
+  it('invites_capture stays silent when the move was sound (winDrop < 5)', () => {
+    const p = pos('6k1/1p3ppp/2p5/8/8/2N5/P6P/6K1 b - - 0 1');
+    const facts = annotateMove(p, mv('b7b5'), ctx({ winDrop: 0, replyPv: ['c3b5'] }));
+    expect(byKind(facts, 'invites_capture')).toBeUndefined();
+  });
+
+  it('invites_capture stays silent when the reply does not take the moved pawn', () => {
+    const p = pos('6k1/1p3ppp/2p5/8/8/2N5/P6P/6K1 b - - 0 1');
+    const facts = annotateMove(p, mv('b7b5'), ctx({ winDrop: 8, replyPv: ['c3a4'] }));
+    expect(byKind(facts, 'invites_capture')).toBeUndefined();
+  });
+
   it('missed_idea: a quiet best move is explained by its own purpose (U6/C3)', () => {
     // White wastes time with a3 while the engine wanted the rescuing Nd5
     // (knight on c3 is attacked by b4 and undefended → best move escapes).

@@ -1,5 +1,5 @@
 {
-  "date": "2026-06-12",
+  "date": "2026-06-14",
   "defaults": {
     "nodes": 60000,
     "multiPv": 3,
@@ -7,9 +7,9 @@
   },
   "totals": {
     "causal": {
-      "pts": 16,
+      "pts": 17,
       "max": 20,
-      "pct": "80.0%"
+      "pct": "85.0%"
     },
     "grounded": {
       "pts": 31,
@@ -22,9 +22,9 @@
       "pct": "100.0%"
     },
     "total": {
-      "pts": 69,
+      "pts": 70,
       "max": 76,
-      "pct": "90.8%"
+      "pct": "92.1%"
     }
   },
   "cases": [
@@ -36,15 +36,16 @@
         "grounded"
       ],
       "classification": "inaccuracy",
-      "leadKind": "regression",
+      "leadKind": "invites_capture",
       "factKinds": [
+        "invites_capture",
         "wins_tempo",
         "regression"
       ],
-      "text": "It falls further behind in development while the opponent brings pieces out. Qc7 was the better way.",
-      "more": "The idea — this gains time by attacking the bishop on c4, forcing an immediate answer — doesn't make up for what this concedes.",
+      "text": "This runs into Nxb5, taking the pawn on b5. Qc7 was the better way.",
+      "more": "It falls further behind in development while the opponent brings pieces out. The idea — this gains time by attacking the bishop on c4, forcing an immediate answer — doesn't make up for what this concedes.",
       "checks": {
-        "mentionsOk": false,
+        "mentionsOk": true,
         "factsOk": false,
         "leadOk": false,
         "forbiddenHits": [],
@@ -54,7 +55,7 @@
         "falseAlarm": false
       },
       "scores": {
-        "causal": 0,
+        "causal": 1,
         "grounded": 1
       }
     },

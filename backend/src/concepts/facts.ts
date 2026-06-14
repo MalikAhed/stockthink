@@ -61,6 +61,10 @@ export type Fact =
   | { kind: 'abandons_square'; role: Role; from: string; square: string; reply: SanMove }
   /* a piece was ALREADY under attack and this move did nothing about it */
   | { kind: 'ignores_threat'; piece: PieceOn; capture: SanMove }
+  /* the move walked a piece/pawn onto an empty square and the engine's best
+     reply captures it right there — name the punishing reply (no material claim:
+     the cost may be positional, e.g. a sac like 9...b5? 10.Nxb5!) */
+  | { kind: 'invites_capture'; reply: SanMove; piece: PieceOn }
   | { kind: 'allows_mate'; mateIn: number; firstMove: SanMove | null }
   | { kind: 'allows_fork'; forkMove: SanMove; targets: PieceOn[] }
   | { kind: 'refutation'; moves: SanMove[]; lossRole: Role | null }
@@ -123,6 +127,7 @@ const PRIORITY: Record<FactKind, number> = {
   ignores_threat: 3.5,
   allows_fork: 4,
   refutation: 5,
+  invites_capture: 5.5,
   missed_free_piece: 6,
   missed_fork: 7,
   missed_trap: 8,

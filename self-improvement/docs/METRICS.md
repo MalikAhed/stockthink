@@ -39,5 +39,6 @@ a moved number below is a feeling, not a fact (Laws of the Loop).
 | Date | Causal | Grounded | Economy | Total | Cases | Tests | Recall avg | src LOC |
 |---|---|---|---|---|---|---|---|---|
 <!-- eval-history -->
+| 2026-06-14 | 85.0% | 91.2% | 100.0% | 92.1% | 18 | — | 94.8% | 6831 |
 | 2026-06-12 | 80.0% | 91.2% | 100.0% | 90.8% | 18 | 233/234 | 94.8% | 5624 |
 | 2026-06-12 | 80.0% | 85.3% | 81.8% | 82.9% | 18 | 231/232 | 94.8% | 5561 |
