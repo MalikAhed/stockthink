@@ -12,7 +12,7 @@ patterns are recorded in our own words with a short reference.
 |---|---|---|---|
 | GM | *Think Like a Super-GM* (Adams/Hurtado, QC 2022) | PDF: `~/think-like-a-super-gm-9781784831677-9781784831684_compress.pdf` · text: `pdftotext` it to `/tmp/supergm.txt` (NOT into the repo — copyright) | thought-process patterns (Part IV pp. 372–416), GM phrasing voice, 48 puzzle positions as fixtures with verbalized GM reasoning |
 | CPW | chessprogramming.org | WebFetch per item | detector algorithms, evaluation patterns |
-| LIP | lichess puzzle DB | `scripts/puzzles/fetch-fixtures.mjs` | ground-truth fixtures per theme (recall tests) |
+| LIP | lichess puzzle DB | `self-improvement/scripts/puzzles/fetch-fixtures.mjs` | ground-truth fixtures per theme (recall tests) |
 | CCT | `self-improvement/docs/knowledge/chesscom-templates.md` | repo | target phrasing |
 
 ## Pattern item format (append under "Mined queue")

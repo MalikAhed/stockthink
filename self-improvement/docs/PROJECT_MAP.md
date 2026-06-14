@@ -96,10 +96,10 @@ PGN text
 ### Scripts & assets
 | File | What it does |
 |---|---|
-| `scripts/build-openings.mjs` | Bakes lichess chess-openings TSVs → `backend/src/analysis/openings.json` |
-| `scripts/puzzles/fetch-fixtures.mjs` | Lichess puzzle DB (HF /rows scan) → `self-improvement/test/fixtures/puzzles/<theme>.csv` |
-| `public/engine/` | Stockfish 18 Lite single-threaded WASM (7.3 MB, committed) |
-| `public/badges/` | chess.com classification badges |
+| `self-improvement/scripts/build-openings.mjs` | Bakes lichess chess-openings TSVs → `backend/src/analysis/openings.json` |
+| `self-improvement/scripts/puzzles/fetch-fixtures.mjs` | Lichess puzzle DB (HF /rows scan) → `self-improvement/test/fixtures/puzzles/<theme>.csv` |
+| `frontend/public/engine/` | Stockfish 18 Lite single-threaded WASM (7.3 MB, committed) |
+| `frontend/public/badges/` | chess.com classification badges |
 
 ## To change X, edit here
 

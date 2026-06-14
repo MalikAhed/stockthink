@@ -8,7 +8,7 @@
 // filtering client-side until every theme bucket is full. Deterministic for
 // a given dataset revision.
 //
-// Usage: node scripts/puzzles/fetch-fixtures.mjs [theme ...]
+// Usage: node self-improvement/scripts/puzzles/fetch-fixtures.mjs [theme ...]
 // Output: self-improvement/test/fixtures/puzzles/<theme>.csv  (deterministic, capped)
 //
 // CSV columns: PuzzleId,FEN,Moves,Rating,Themes
@@ -21,7 +21,7 @@ import { writeFile, mkdir } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 const OUT_DIR = join(ROOT, 'self-improvement', 'test', 'fixtures', 'puzzles');
 const API = 'https://datasets-server.huggingface.co/rows';
 const DATASET = 'Lichess/chess-puzzles';

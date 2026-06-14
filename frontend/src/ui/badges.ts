@@ -1,6 +1,6 @@
 /**
  * Classification visual vocabulary — official chess.com badge images
- * (self-hosted in public/badges/) + matched palette + glyph fallbacks.
+ * (self-hosted in frontend/public/badges/) + matched palette + glyph fallbacks.
  */
 import type { Classification } from '@backend/analysis/classify';
 

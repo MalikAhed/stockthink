@@ -33,9 +33,9 @@ export class ChildProcessTransport implements UciTransport {
  * "type":"module") with the wasm alongside. Returns the runnable .cjs path.
  */
 export function setupEngineFiles(): string {
-  // public/ stays at the repo root; anchor to cwd (always the repo root when
-  // vitest / vite-node run via npm scripts) so test-file depth never matters.
-  const engineDir = join(process.cwd(), 'public', 'engine');
+  // engine assets now live at frontend/public/; anchor to cwd (always the repo
+  // root when vitest / vite-node run via npm scripts) so depth never matters.
+  const engineDir = join(process.cwd(), 'frontend', 'public', 'engine');
   const dir = mkdtempSync(join(tmpdir(), 'stockthink-sf-'));
   const enginePath = join(dir, 'stockfish.cjs');
   copyFileSync(join(engineDir, 'stockfish-18-lite-single.js'), enginePath);

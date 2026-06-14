@@ -2,7 +2,7 @@
  * Recall harness (I2): replay lichess puzzle fixtures and measure how often
  * the mapped detector fires on the tactic move.
  *
- * Fixture semantics (see scripts/puzzles/fetch-fixtures.mjs): `FEN` is the
+ * Fixture semantics (see self-improvement/scripts/puzzles/fetch-fixtures.mjs): `FEN` is the
  * position BEFORE the opponent's setup move; `Moves[0]` is that setup move;
  * the tactic our detectors must fire on is `Moves[1]`.
  *
@@ -123,7 +123,7 @@ const themes = existsSync(FIXTURE_DIR)
   : [];
 
 describe('puzzle recall', () => {
-  it.skipIf(themes.length > 0)('fixtures missing — run scripts/puzzles/fetch-fixtures.mjs', () => {});
+  it.skipIf(themes.length > 0)('fixtures missing — run self-improvement/scripts/puzzles/fetch-fixtures.mjs', () => {});
 
   for (const theme of themes) {
     const det = DETECTORS[theme];

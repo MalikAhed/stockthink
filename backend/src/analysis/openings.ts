@@ -1,6 +1,6 @@
 /**
  * Opening book: lichess-org/chess-openings (CC0), baked to an EPD-keyed map
- * by scripts/build-openings.mjs. EPD matching is transposition-safe.
+ * by self-improvement/scripts/build-openings.mjs. EPD matching is transposition-safe.
  */
 import rawOpenings from './openings.json';
 
