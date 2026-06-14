@@ -6,6 +6,16 @@ for /work sessions). Past ~300 lines, /reflect compresses the oldest half into
 LESSONS.md. Entries below 2026-06-12p were migrated verbatim from
 self-improvement/improve/TRACKER.md's daily log (2026-06-12) — history is not rewritten.
 
+- **2026-06-14d** · /chess · 1 unit (U2) · New `invites_capture` fact: when a
+  move walks a piece/pawn onto an empty square the engine reply takes right there
+  (9...b5? 10.Nxb5!), name the punishing reply WITHOUT a material claim — honest
+  when the cost is positional (SEE sees the pawn defended, so it never read as
+  hanging). Closed opera-09-b5 C0→C1; eval CAUSAL 80.0→85.0, TOTAL 90.8→92.1, no
+  regressions; gate comments read true; +3 fixtures (249 pass). SURPRISE: blk-04
+  stayed partial — its refutation is a non-capture double attack (...Qg5!), not a
+  capture, so it needs a separate "reply double-attacks" fact (filed U2b). Next:
+  U2b, then U7 ("The problem is…" leaking onto sound best moves).
+
 - **2026-06-14c** · Root cleanup: folded `public/` → `frontend/public/` (Vite
   `publicDir`; runtime URLs unchanged, WASM still copied to `dist/engine/`) and
   `scripts/` → `self-improvement/scripts/` (path math `..` → `../..`/`../../..` fixed).
