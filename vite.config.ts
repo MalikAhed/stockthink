@@ -6,6 +6,9 @@ import checker from 'vite-plugin-checker';
 // production (build AND preview) uses that base; only the dev server is '/'.
 export default defineConfig(({ mode }) => ({
   base: mode === 'development' ? '/' : '/stockthink/',
+  // Static assets (engine WASM, badges) moved under frontend/; Vite still serves
+  // them at the base URL root, so their runtime URLs are unchanged.
+  publicDir: 'frontend/public',
   // Zone aliases: @frontend → frontend/src, @backend → backend/src. Only
   // cross-zone and test + eval imports use these; intra-zone stays relative.
   resolve: {
@@ -24,7 +27,7 @@ export default defineConfig(({ mode }) => ({
   server: { host: true, open: false, hmr: { overlay: true } },
   build: {
     target: 'es2022',
-    // keep the engine wasm out of inlining/hashing concerns: it lives in public/
+    // keep the engine wasm out of inlining/hashing concerns: it lives in frontend/public/
   },
   worker: {
     format: 'es' as const,

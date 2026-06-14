@@ -3,7 +3,7 @@
  * bake src/analysis/openings.json — a { epd: [eco, name] } map for Book
  * detection (EPD matching is transposition-safe).
  *
- * Run: node scripts/build-openings.mjs
+ * Run: node self-improvement/scripts/build-openings.mjs
  */
 import { writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -47,6 +47,6 @@ for (const file of FILES) {
   console.log(`${file}: done (${total} cumulative)`);
 }
 
-const dest = join(dirname(fileURLToPath(import.meta.url)), '../backend/src/analysis/openings.json');
+const dest = join(dirname(fileURLToPath(import.meta.url)), '../../backend/src/analysis/openings.json');
 writeFileSync(dest, JSON.stringify(out));
 console.log(`wrote ${total} openings to ${dest}`);

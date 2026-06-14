@@ -56,7 +56,7 @@ npm run build                            # production build (Pages deploys on pu
 ```
 
 Stack: Vite 5 + TypeScript, chessops, chessground, Stockfish 18 Lite WASM
-(single-thread, 7.3 MB, committed in `public/engine/`). Project map in
+(single-thread, 7.3 MB, committed in `frontend/public/engine/`). Project map in
 `CLAUDE.md`; docs index in `self-improvement/docs/README.md`.
 
 License: GPL-3.0 (Stockfish is GPL). Opening book CC0 (lichess). Badge images

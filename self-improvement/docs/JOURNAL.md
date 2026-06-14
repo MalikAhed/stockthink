@@ -6,6 +6,12 @@ for /work sessions). Past ~300 lines, /reflect compresses the oldest half into
 LESSONS.md. Entries below 2026-06-12p were migrated verbatim from
 self-improvement/improve/TRACKER.md's daily log (2026-06-12) — history is not rewritten.
 
+- **2026-06-14c** · Root cleanup: folded `public/` → `frontend/public/` (Vite
+  `publicDir`; runtime URLs unchanged, WASM still copied to `dist/engine/`) and
+  `scripts/` → `self-improvement/scripts/` (path math `..` → `../..`/`../../..` fixed).
+  Root is now just the 3 zones + required config/docs. Verified: build green +
+  WASM in dist, vitest 246/1-skip, eval TOTAL 90.8% unchanged.
+
 - **2026-06-14b** · Added 4 intent-scoped session modes (`.claude/commands/`):
   `/ui` · `/chess` · `/research` · `/rethink`, plus a "Session modes" menu in
   CLAUDE.md. Each mode tells a fresh session its purpose, the exact slice to read,

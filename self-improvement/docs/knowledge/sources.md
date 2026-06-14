@@ -9,7 +9,7 @@
   first move is the OPPONENT's, the solution starts at move 2.
   Mirror with API access: https://huggingface.co/datasets/Lichess/chess-puzzles
   (parquet; filterable via https://datasets-server.huggingface.co/filter).
-  **Use**: per-theme recall fixtures → `scripts/puzzles/fetch-fixtures.mjs`
+  **Use**: per-theme recall fixtures → `self-improvement/scripts/puzzles/fetch-fixtures.mjs`
   → `self-improvement/test/fixtures/puzzles/*.csv` → `self-improvement/test/recall.test.ts`.
 - **Lichess open game DBs** — https://database.lichess.org/ (full games, PGN,
   with [%eval] annotations on many) — future source for classification calibration.
