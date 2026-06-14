@@ -9,7 +9,7 @@ READ-and-WRITE-BRAIN ritual: **no `src/` edits** — findings become work items,
 not hotfixes.
 
 ## Procedure
-1. **Scope** from `docs/PROJECT_MAP.md`: list the subsystem's files; read every
+1. **Scope** from `self-improvement/docs/PROJECT_MAP.md`: list the subsystem's files; read every
    one of them FULLY (this is the one ritual where reading whole files is the job).
 2. **Hostile checklist** — assume the worst model wrote it:
    - Could this ever say something FALSE to a user? (R1–R5 risk paths,

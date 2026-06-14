@@ -47,6 +47,6 @@ for (const file of FILES) {
   console.log(`${file}: done (${total} cumulative)`);
 }
 
-const dest = join(dirname(fileURLToPath(import.meta.url)), '../src/analysis/openings.json');
+const dest = join(dirname(fileURLToPath(import.meta.url)), '../backend/src/analysis/openings.json');
 writeFileSync(dest, JSON.stringify(out));
 console.log(`wrote ${total} openings to ${dest}`);

@@ -7,13 +7,13 @@ JOURNAL grows past ~300 lines, when priorities feel stale, or roughly weekly.
 
 ## Procedure
 1. **Compress JOURNAL** (only if > ~300 lines): take the OLDEST half; distill
-   anything with lasting value into `docs/LESSONS.md` (anti-pattern form, dated)
-   or `docs/knowledge/` (chess knowledge); then DELETE those entries from
+   anything with lasting value into `self-improvement/docs/LESSONS.md` (anti-pattern form, dated)
+   or `self-improvement/docs/knowledge/` (chess knowledge); then DELETE those entries from
    JOURNAL, leaving one line: "Entries before DATE compressed into LESSONS
    (DATE)." History lives in git; the journal is a working set, not an archive.
 2. **Prune CLAUDE.md**: delete stale lines, tighten wording, verify pointers
    still resolve. `wc -l CLAUDE.md` must stay ≤ 150. If a rule has been
-   superseded by an enforced test/gate, the prose rule can shrink to a pointer.
+   superseded by an enforced self-improvement/test/gate, the prose rule can shrink to a pointer.
 3. **Spot-check PROJECT_MAP**: pick 3 rows, grep the named exports/constants in
    the code. Any drift → fix the map now; 2+ drifted rows → add a BACKLOG item
    to re-verify the whole map.
@@ -23,8 +23,8 @@ JOURNAL grows past ~300 lines, when priorities feel stale, or roughly weekly.
    in the commit message, not in the file).
 5. **Verify the truth instruments**: every METRICS column still measurable by
    the stated command? Every LESSONS rule still true (delete ones now enforced
-   by code, note which test enforces them)? `eval/positions.json` cases still
-   match `eval/results/latest.json` behavior?
+   by code, note which test enforces them)? `self-improvement/eval/positions.json` cases still
+   match `self-improvement/eval/results/latest.json` behavior?
 6. **Write**: JOURNAL entry (what was pruned/moved/re-ranked, line counts
    before→after) · commit (`reflect: brain compression + re-rank`) · push · STOP.
 

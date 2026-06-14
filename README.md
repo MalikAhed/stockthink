@@ -21,7 +21,7 @@ PGN → 1. Stockfish 18 Lite WASM (fixed nodes per tier, MultiPV 3)
     → 5. UI — badges, eval bar/graph, clickable variation chips, "explain more"
 ```
 
-Hard rules the commentary can never break (`docs/specs/ANALYSIS-SYSTEM-V2.md`):
+Hard rules the commentary can never break (`self-improvement/docs/specs/ANALYSIS-SYSTEM-V2.md`):
 
 - **R1 — no eval numbers in prose.** Win% and centipawns live in the bar, the
   graph and the chips — never in a sentence.
@@ -43,7 +43,7 @@ JSON reply back, and every sentence is checked against a whitelist of real
 squares/pieces/moves — hallucinated analysis is rejected per-move and falls
 back to the built-in explanation. The prompt design follows the CCC paper
 (arXiv:2410.20811) and C1/Master Distillation (arXiv:2603.20510); notes in
-`docs/research/LAST-RESEARCH-NOTES.md`.
+`self-improvement/docs/research/LAST-RESEARCH-NOTES.md`.
 
 ## Develop
 
@@ -51,13 +51,13 @@ back to the built-in explanation. The prompt design follows the CCC paper
 npm install
 npm run dev                              # vite dev server
 npm test                                 # 142 tests incl. real-engine integration
-npx vitest run test/gate.e2e.test.ts     # quality gate: full games, zero eval-speak
+npx vitest run self-improvement/test/gate.e2e.test.ts     # quality gate: full games, zero eval-speak
 npm run build                            # production build (Pages deploys on push)
 ```
 
 Stack: Vite 5 + TypeScript, chessops, chessground, Stockfish 18 Lite WASM
 (single-thread, 7.3 MB, committed in `public/engine/`). Project map in
-`CLAUDE.md`; docs index in `docs/README.md`.
+`CLAUDE.md`; docs index in `self-improvement/docs/README.md`.
 
 License: GPL-3.0 (Stockfish is GPL). Opening book CC0 (lichess). Badge images
 and Neo pieces © Chess.com, used for a free fan project.

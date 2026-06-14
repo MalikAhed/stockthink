@@ -9,7 +9,7 @@
 // a given dataset revision.
 //
 // Usage: node scripts/puzzles/fetch-fixtures.mjs [theme ...]
-// Output: test/fixtures/puzzles/<theme>.csv  (deterministic, capped)
+// Output: self-improvement/test/fixtures/puzzles/<theme>.csv  (deterministic, capped)
 //
 // CSV columns: PuzzleId,FEN,Moves,Rating,Themes
 // NOTE on semantics: FEN is the position BEFORE the opponent's setup move.
@@ -22,7 +22,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
-const OUT_DIR = join(ROOT, 'test', 'fixtures', 'puzzles');
+const OUT_DIR = join(ROOT, 'self-improvement', 'test', 'fixtures', 'puzzles');
 const API = 'https://datasets-server.huggingface.co/rows';
 const DATASET = 'Lichess/chess-puzzles';
 

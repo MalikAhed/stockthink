@@ -6,9 +6,9 @@ Run ONE loop of the daily ritual. One block per loop — stop when it's done,
 even with appetite left. The Laws of the Loop (CLAUDE.md) govern every step.
 
 ## 1 · BOOT
-Read, in order, NOTHING else: `docs/PROJECT_MAP.md` → `docs/ROADMAP.md`
-(the arc ORIENT must name) → top ~30 lines of `docs/JOURNAL.md` →
-`docs/BACKLOG.md` → `docs/METRICS.md`. (CLAUDE.md is already loaded.)
+Read, in order, NOTHING else: `self-improvement/docs/PROJECT_MAP.md` → `self-improvement/docs/ROADMAP.md`
+(the arc ORIENT must name) → top ~30 lines of `self-improvement/docs/JOURNAL.md` →
+`self-improvement/docs/BACKLOG.md` → `self-improvement/docs/METRICS.md`. (CLAUDE.md is already loaded.)
 
 ## 2 · ORIENT
 Output exactly 5 lines: where the project is (arc + milestone) · the top
@@ -18,7 +18,7 @@ number or JOURNAL evidence · the predicted proof · the files you expect to tou
 brain file is this loop's block, and it preempts the backlog.
 
 ## 3 · TYPE DISPATCH
-- Top item tagged **[T1]** → execute `improve/README.md` exactly (its unit
+- Top item tagged **[T1]** → execute `self-improvement/improve/README.md` exactly (its unit
   budget, gates, and bookkeeping apply) as your BUILD+PROVE block, then resume
   at step 7.
 - **[T2] / [SYS]** → continue below.
@@ -33,7 +33,7 @@ That block only. No drive-by refactors, no new dependencies. Every new flaw
 you notice becomes ONE line in BACKLOG.md with a severity — never chased now.
 
 ## 6 · PROVE
-Run what the change touches: `npx vitest run test/gate.e2e.test.ts` ·
+Run what the change touches: `npx vitest run self-improvement/test/gate.e2e.test.ts` ·
 `npx vitest run` · `npm run eval`. Show before vs after numbers.
 **No evidence = not done**: say so plainly, journal it as failed, revert
 anything left broken. A red gate twice on the same block → revert, journal as
@@ -46,10 +46,10 @@ printed comments — a wrong-sounding one is a bug even if assertions pass.
 Fix or revert what you find; file the rest in BACKLOG.
 
 ## 8 · REFLECT & WRITE
-- ONE entry in `docs/JOURNAL.md` (newest on top): date · block · evidence ·
+- ONE entry in `self-improvement/docs/JOURNAL.md` (newest on top): date · block · evidence ·
   failures · surprises. A delegated T1 session journals once — here.
-- Re-rank `docs/BACKLOG.md`; name tomorrow's top item.
-- `docs/PROJECT_MAP.md` if structure changed · `docs/LESSONS.md` only for a
+- Re-rank `self-improvement/docs/BACKLOG.md`; name tomorrow's top item.
+- `self-improvement/docs/PROJECT_MAP.md` if structure changed · `self-improvement/docs/LESSONS.md` only for a
   real burn · `npm run eval -- --tests N/M` if anything metric-relevant moved.
 
 ## 9 · UPGRADE — mandatory, never skipped, never doubled
@@ -63,6 +63,6 @@ Commit (repo conventions; gate green) and **push** — a session that doesn't
 push didn't happen. Tell the user: block done, evidence, what's next. STOP.
 
 **Hard bounds:** one block per loop · needs a user decision → write the
-question into BACKLOG "Blocked", skip, stop · never touch `src/ui/`
-(walkthrough captions excepted), `src/llm/`, `index.html` unless the block
+question into BACKLOG "Blocked", skip, stop · never touch `frontend/src/ui/`
+(walkthrough captions excepted), `backend/src/llm/`, `index.html` unless the block
 explicitly says so.
