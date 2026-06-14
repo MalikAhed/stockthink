@@ -5,7 +5,7 @@ description: Run one bounded daily improvement session on the StockThink analysi
 
 # Daily improvement session
 
-Open `improve/README.md` and follow it EXACTLY. That file is the complete,
+Open `self-improvement/improve/README.md` and follow it EXACTLY. That file is the complete,
 self-contained protocol: orientation (TRACKER.md + TODO.md), hard budget limits
 (default 3 / max 5 work units), per-item procedure, the quality gate, and the
 mandatory end-of-session bookkeeping + commit + **git push** (Pages deploy).

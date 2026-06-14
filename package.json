@@ -10,7 +10,7 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "eval": "vite-node eval/score.ts --"
+    "eval": "vite-node self-improvement/eval/score.ts --"
   },
   "dependencies": {
     "@mlc-ai/web-llm": "^0.2.84",
