@@ -22,6 +22,7 @@
     "happy-dom": "^20.10.2",
     "typescript": "^5.5.4",
     "vite": "^5.4.11",
+    "vite-plugin-checker": "^0.14.1",
     "vitest": "^1.6.0"
   }
 }

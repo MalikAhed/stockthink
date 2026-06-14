@@ -6,6 +6,23 @@ for /work sessions). Past ~300 lines, /reflect compresses the oldest half into
 LESSONS.md. Entries below 2026-06-12p were migrated verbatim from
 self-improvement/improve/TRACKER.md's daily log (2026-06-12) — history is not rewritten.
 
+- **2026-06-14** · USER ARC: reorganized the flat repo into 3 zones — `frontend/`
+  (UI/UX), `backend/` (engine+analysis), `self-improvement/` (docs+improve+eval+
+  test) — and stood up a live UI/UX design workflow. Mechanics: `@frontend`/
+  `@backend` aliases (vite+tsconfig); only cross-zone & test/eval imports use them.
+  `score.ts` ROOT now = the self-improvement dir (data paths self-corrected), LOC
+  walk → frontend/src+backend/src; `transport.ts` WASM anchored to `process.cwd()`.
+  Tooling: `.mcp.json` (Chrome DevTools primary + Playwright MCPs), `vite-plugin-checker`
+  dev overlay (enableBuild:false → build stays ~4s), `release.yml`+CHANGELOG; archived
+  the WIP homepage sandbox to `~/stockthink-design-archive/`. Opened the UX arc —
+  retired "UI is frozen", added "The UX loop" to CLAUDE.md + ROADMAP UX-M1/M2.
+  EVIDENCE: build green (byte-identical bundle every step) · vitest 246/1-skip ·
+  eval TOTAL 90.8% (69/76) UNCHANGED · dev serves /frontend/src/main.ts 200 +
+  checker "0 errors". SURPRISE: nearly everything self-corrected — only `src` (LOC
+  walk) and `public/engine` (transport) broke, the two targets that stayed at repo
+  root while their referrers moved. On branch `reorg/three-zones`; NOT merged —
+  awaiting user go (main auto-deploys).
+
 - **2026-06-13b** · USER FEATURE: site-wide visual facelift (index.html +
   style.css ONLY — zero TS). chess.com signature raised 3D buttons (hard
   `--green-edge` bottom edge, press-down :active) on every `.primary`; brand

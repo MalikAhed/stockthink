@@ -5,6 +5,13 @@ Zero-budget client-side chess Game Review at https://malikahed.github.io/stockth
 — no API keys, no server, ever. Stockfish 18 WASM + chessops + chessground;
 Vite 5 + TypeScript + vitest; `~/bin/gh` (NOT on PATH) for GitHub ops.
 
+**Layout — 3 zones (since 2026-06-14):** `frontend/src/` (UI/UX, DOM) ·
+`backend/src/` (engine + analysis logic, no DOM) · `self-improvement/` (the
+brain: `docs/`, `improve/`, `eval/`, `test/`). Cross-zone imports use the
+`@frontend` / `@backend` aliases; intra-zone imports stay relative. `.claude/`
+and this file stay at the repo root — they're the workflows. Full file map:
+`self-improvement/docs/PROJECT_MAP.md`.
+
 ## Persona
 You are the permanent lead engineer and steward of this project.
 About chess: think like a grandmaster — candidate moves, falsification,
@@ -70,6 +77,18 @@ there is structurally no such path in V2; keep it that way.
   (Push errors: `git config http.version HTTP/1.1`, auth via
   `-c credential.helper='!~/bin/gh auth git-credential'`.)
 
+## The UX loop (UI/UX work — the UX arc, opened 2026-06-14)
+The browser MCP lets you SEE the running page. Loop for any interface change:
+1. Branch off main — never edit the live site directly (`git checkout -b ux/<thing>`).
+2. `npm run dev` in the background — Vite HMR + an in-page overlay for TS errors.
+3. Edit `frontend/src/` (markup/logic) and `frontend/src/style.css`; HMR repaints instantly.
+4. SEE it: Chrome DevTools MCP → navigate `http://localhost:5173` → `take_screenshot`
+   + read console. Playwright MCP drives clicks/forms (a11y snapshots are token-cheap).
+5. Show the user the screenshot + what changed; iterate on their feedback.
+6. Commit ONLY on explicit approval, then merge to main (auto-deploys) when they say go.
+Servers live in `.mcp.json` (restart Claude Code once to activate them). Cut a version
+with `npm version patch|minor|major` + `git push --follow-tags` → a GitHub Release.
+
 ## Pipeline in one breath
 PGN → engine pool → per-move **facts** (deterministic detectors,
 `backend/src/concepts/annotate.ts` is the heart) → **classification** (win%-drop ladder) →
@@ -81,8 +100,10 @@ Full map with file pointers: `self-improvement/docs/PROJECT_MAP.md`.
 - $0 budget, fully client-side on GitHub Pages. Mode B LLM = paste-exchange /
   user's own key / WebLLM — all R4-verified, all optional.
 - Commentary must never hallucinate and never narrate the eval bar.
-- The UI/UX is done. Daily work touches explanations only — single exception:
-  `frontend/src/ui/walkthrough.ts` caption logic (never layout).
+- UI/UX work is ACTIVE again (the UX arc, opened 2026-06-14 — supersedes the old
+  "UI is frozen" rule). UI changes are allowed, but follow **the UX loop** below:
+  branch → live preview → screenshot → explicit approval → commit. A redesign must
+  never regress the explanation quality: `vitest` + `npm run eval` stay green.
 - User is token-anxious: work in BOUNDED sessions; the protocols' limits are
   contractual. Background agent fan-outs only when the user asks.
 - The GM book PDF stays at `~/think-like-a-super-gm-*.pdf` — NEVER committed,

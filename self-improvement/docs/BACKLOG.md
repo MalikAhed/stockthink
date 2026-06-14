@@ -4,8 +4,16 @@ Rules: the TOP item is what /work does next. Coarse-grained only — [T1] items
 are umbrellas; their fine-grained order lives in `self-improvement/improve/TODO.md` +
 `self-improvement/improve/SOURCES.md` (never duplicate items here). Re-rank in /work step 7.
 Tags: [T1] chess content (runs via self-improvement/improve/ protocol) · [T2] explanation
-brain / eval · [SYS] system & tooling. Severity: S1 blocks quality · S2
-visible flaw · S3 hygiene.
+brain / eval · [UX] interface/design (runs via the UX loop) · [SYS] system &
+tooling. Severity: S1 blocks quality · S2 visible flaw · S3 hygiene.
+
+## Active arc — UX redesign (opened 2026-06-14)
+Foundation shipped (3-zone reorg + live MCP design loop — ROADMAP UX-M1).
+**Next UX block:** first redesign pass in the new loop — pick ONE surface (home
+hero is the likely first, heading toward the AI-video direction), branch, iterate
+live via the browser MCP, and get the user's screenshot approval before
+committing. Run all UI work through CLAUDE.md → "The UX loop". The chess-quality
+queue below (self-aware arc) continues in parallel via /work and "improve analysis".
 
 | # | Tag | Item | Sev | Payoff / evidence |
 |---|---|---|---|---|
