@@ -6,6 +6,13 @@ for /work sessions). Past ~300 lines, /reflect compresses the oldest half into
 LESSONS.md. Entries below 2026-06-12p were migrated verbatim from
 self-improvement/improve/TRACKER.md's daily log (2026-06-12) — history is not rewritten.
 
+- **2026-06-14b** · Added 4 intent-scoped session modes (`.claude/commands/`):
+  `/ui` · `/chess` · `/research` · `/rethink`, plus a "Session modes" menu in
+  CLAUDE.md. Each mode tells a fresh session its purpose, the exact slice to read,
+  its loop, and its gates — so a session knows what it's for without re-explaining,
+  and stays scoped (only `/rethink` reads broadly). Pure workflow files; no app
+  code, no build/eval impact. Goal: every future session = one clear intent.
+
 - **2026-06-14** · USER ARC: reorganized the flat repo into 3 zones — `frontend/`
   (UI/UX), `backend/` (engine+analysis), `self-improvement/` (docs+improve+eval+
   test) — and stood up a live UI/UX design workflow. Mechanics: `@frontend`/

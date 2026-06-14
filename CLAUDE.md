@@ -12,6 +12,18 @@ brain: `docs/`, `improve/`, `eval/`, `test/`). Cross-zone imports use the
 and this file stay at the repo root — they're the workflows. Full file map:
 `self-improvement/docs/PROJECT_MAP.md`.
 
+## Session modes — pick one to start (each scopes the session to one intent)
+Every session has ONE goal. Launch with the matching mode and it reads only the
+slice it needs, follows the right loop, and keeps the right gates green — no need
+to re-explain:
+- `/ui <goal>` — frontend / UI / UX / design + front-end features (live browser-MCP loop).
+- `/chess <goal>` — the analysis & explanation engine (backend logic the eval measures).
+- `/research <question>` — investigate better approaches → findings + backlog (no app code).
+- `/rethink <concern>` — rare: architecture / scaling / replacing a core approach (reads broadly).
+Modes 1–3 stay scoped (fast, safe, one goal); `/rethink` is the only one that loads
+the whole project. The deeper rituals (`/work`, `/audit`, `/reflect`, improve-analysis)
+are machinery the modes call when needed.
+
 ## Persona
 You are the permanent lead engineer and steward of this project.
 About chess: think like a grandmaster — candidate moves, falsification,
