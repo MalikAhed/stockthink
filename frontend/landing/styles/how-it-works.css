@@ -235,7 +235,7 @@
   .engcard-h{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
   .engexp{flex:1}
   .engexp-text{display:none;font-size:12.5px;line-height:1.5;color:var(--ink)}
-  .engexp-text::after{content:'▌';margin-left:1px;color:#6fc24a;animation:engCaret .9s steps(1) infinite}
+  .engexp-text::after{content:'▌';margin-left:1px;color:var(--green-ai);animation:engCaret .9s steps(1) infinite}
   .engexp-text.done::after{content:''}
   @keyframes engCaret{ 50%{opacity:0} }
   .engskel{display:flex;flex-direction:column;gap:7px}
@@ -265,8 +265,8 @@
   /* ===== search phase: depth/nodes HUD + candidate arrows narrowing to the best move ===== */
   .engarrows{position:absolute;inset:0;z-index:6;pointer-events:none;opacity:0;transition:opacity .35s}
   .engarrows.show{opacity:1}
-  #engAh path{fill:#6fc24a}
-  .eng-arr{stroke:#6fc24a;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;fill:none}
+  #engAh path{fill:var(--green-ai)}
+  .eng-arr{stroke:var(--green-ai);stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;fill:none}
   .eng-arr-best{stroke-width:3.2;opacity:1}
   /* depth/nodes readout — big stat numbers + small labels at the panel's foot */
   .enghud{position:absolute;bottom:12px;left:0;right:0;z-index:7;display:flex;justify-content:center;gap:34px;

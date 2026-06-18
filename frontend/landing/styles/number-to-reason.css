@@ -8,7 +8,7 @@
   .n2r-stage{position:absolute;top:0;left:50%;transform-origin:top center;transform:translateX(-50%) scale(1);
     width:960px;height:540px;border-radius:14px;overflow:hidden;opacity:0;
     --bg:#0b0f0d;--ink:#e8efe9;--mute:#5d6b62;--line:#222c27;--card:rgba(255,255,255,.028);
-    --accent:#6fc24a;--accent-soft:#8fe06a;--accent-dim:rgba(111,194,74,.14);--white:#f7f8f5;
+    --accent:var(--green-ai);--accent-soft:#8fe06a;--accent-dim:rgba(111,194,74,.14);--white:#f7f8f5;
     --sans:'Inter',system-ui,sans-serif;
     --eo:cubic-bezier(.22,1,.36,1);--eio:cubic-bezier(.65,0,.35,1);--snap:cubic-bezier(.34,1.56,.64,1);
     background:var(--bg);color:var(--ink);font-family:ui-monospace,"SF Mono",Menlo,monospace;

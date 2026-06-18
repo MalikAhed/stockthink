@@ -18,7 +18,7 @@
 
 <nav>
   <div class="brand">StockThink</div>
-  <div class="links"><a href="#">Product</a><a href="#hookSec">How it works</a><a href="#">Pricing</a></div>
+  <div class="links"><a href="#useSec">Product</a><a href="#hookSec">How it works</a></div>
   <button id="navThemeToggle" aria-label="Toggle theme"><span class="nav-toggle-icon">☀️</span><span id="navToggleLabel">Light</span></button>
 </nav>
 
@@ -28,12 +28,12 @@
   <canvas id="cBack"></canvas>
   <canvas id="c"></canvas>
   <div id="hero">
-    <div class="wordmark"><span class="w">STOCK</span><span class="w">THINK</span></div>
+    <h1 class="wordmark"><span class="w">STOCK</span><span class="w">THINK</span></h1>
     <div id="tagline"><span class="dot"></span>The why behind every move<span class="dot"></span></div>
   </div>
 </section>
 <!-- ===================== SECTION 1: How it works ===================== -->
-<section class="sec s1sec" data-step="0">
+<section class="sec s1sec" id="useSec" data-step="0">
 <div class="s1step s1intro active" data-step="0">
           <div class="introposter">
               <div class="chainwrap">
@@ -41,9 +41,12 @@
           </div>
               <h2 class="lead">The <span class="why" id="whyWord">&ldquo;why&rdquo;</span><br>behind every Stockfish move.</h2>
               <div class="kick">Open source &middot; runs in your browser</div>
+              <!-- TODO(landing): the real "ohhh" reaction photo goes here. Kept hidden until the
+                   asset exists — a visible placeholder above the fold undercut the premium feel.
+                   Restore by un-commenting and dropping the <img> into .ohh-img.
               <div class="ohh-img" id="ohhImg">
-                <span class="ohh-ph">your &ldquo;ohhh&rdquo; photo</span>
-              </div>
+                <img src="" alt="A player reacting to a StockThink explanation">
+              </div> -->
               <p class="by">Built by <span class="name">Malik Abuallatta</span> &mdash; to make you go <span class="ohh">&ldquo;ohhh.&rdquo;</span></p>
           </div>
         </div>

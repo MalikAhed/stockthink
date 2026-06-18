@@ -2,7 +2,11 @@
 /* StockThink landing — all styles (was the inline <style> block) */
   :root{
     --bg:#0a0a0a; --bg2:#111110; --ink:#f5f3ee; --muted:#8a8a84;
-    --green:#769656; --green-bright:#8ab86a; --amber:#fdb153; --cream:#d8cdb5;
+    /* Two intentional greens: --green is the CHESS brand accent; --green-ai is the
+       AI / engine / "learning" accent used by the engine demo, Beat-2 cinematic and the
+       coach. Same hue family, different jobs — keep them as tokens so the split stays deliberate. */
+    --green:#769656; --green-bright:#8ab86a; --green-ai:#6fc24a; --amber:#fdb153; --cream:#d8cdb5;
+    --focus:#8ab86a;
     --line:rgba(245,243,238,0.08); --wm-color-default:#f5f3ee;
     /* adjustable layout vars */
     --wm-size:15.8vw; --wm-gap:10.2vw; --wm-y:0px; --wm-weight:800; --wm-spacing:-0.054em;
@@ -10,7 +14,15 @@
     --wm-color:#f5f3ee; --wm-shadow:0 26px 32px rgba(0,0,0,0.34); --dot-color:#ffffff; --dot-glow:rgba(255,255,255,0.5); --load-ink:#f5f3ee; --load-bg:#0a0a0a;
   }
   *{margin:0;padding:0;box-sizing:border-box}
+  /* Keyboard focus ring — visible for keyboard/AT users, invisible to mouse clicks (WCAG 2.4.7). */
+  :focus-visible{outline:2px solid var(--focus);outline-offset:2px}
   html{scroll-behavior:smooth}
+  /* Global reduced-motion guard: drop smooth-scroll + the loader's rise animation for users
+     who ask for less motion. (Per-section demos already branch on reduced-motion in JS/CSS.) */
+  @media (prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto}
+    #load .lw span{animation:none;transform:none}
+  }
   body{background:var(--bg);color:var(--ink);font-family:'Inter',system-ui,sans-serif;overflow-x:hidden}
   /* subtle film-grain + vignette for cinematic depth (no blobs) */
   #grain{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:0.04;
@@ -30,7 +42,7 @@
   #hero{position:absolute;inset:0;z-index:3;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;transform:translateY(var(--hero-y))}
   /* hero hidden until intro runs (prevents flash) */
   .pre-intro .wordmark .w, .pre-intro #tagline, .pre-intro nav, .pre-intro .meta{opacity:0}
-  .wordmark{display:flex;align-items:center;justify-content:center;gap:var(--wm-gap);
+  .wordmark{margin:0;display:flex;align-items:center;justify-content:center;gap:var(--wm-gap);
     font-family:'Bricolage Grotesque',sans-serif;font-weight:var(--wm-weight);font-size:var(--wm-size);
     line-height:0.9;letter-spacing:var(--wm-spacing);color:var(--wm-color);text-shadow:var(--wm-shadow);position:relative}
   .wordmark .w{position:relative}
@@ -86,7 +98,7 @@
   @keyframes fade{0%,100%{opacity:.3}50%{opacity:.85}}
 
   /* LIGHT THEME */
-  body.light{--bg:#faf8f4;--bg2:#fff;--ink:#16150f;--muted:#6b6a62;--line:rgba(22,21,15,0.1);--wm-color:#1a1a1a;--wm-shadow:0 26px 32px rgba(0,0,0,0.34);--dot-color:#1a1a1a;--dot-glow:rgba(20,20,20,0.4);--load-ink:#1a1a1a;--load-bg:#faf8f4}
+  body.light{--bg:#faf8f4;--bg2:#fff;--ink:#16150f;--muted:#6b6a62;--line:rgba(22,21,15,0.1);--wm-color:#1a1a1a;--wm-shadow:0 26px 32px rgba(0,0,0,0.34);--dot-color:#1a1a1a;--dot-glow:rgba(20,20,20,0.4);--load-ink:#1a1a1a;--load-bg:#faf8f4;--focus:#5d7a3e}
   body.light #vignette{background:radial-gradient(ellipse 80% 70% at 50% 45%,transparent 45%,rgba(120,110,90,0.12) 100%)}
   body.light #grain{opacity:0.03}
 

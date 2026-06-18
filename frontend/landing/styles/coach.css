@@ -24,7 +24,7 @@
   background:rgba(0,0,0,.35); border:1px solid var(--line); border-radius:7px; padding:6px 11px;
   opacity:.55; transition:opacity .2s,color .2s;
 }
-.coach-replay:hover{ opacity:1; color:#6fc24a; }
+.coach-replay:hover{ opacity:1; color:var(--green-ai); }
 body.light .coach-replay{ background:rgba(255,255,255,.4); }
 
 /* code-file panel (Act 5 — 2D overlay over the canvas) */
@@ -42,7 +42,7 @@ body.light .coach-replay{ background:rgba(255,255,255,.4); }
 .coach-code .cc-body{ padding:14px 16px; color:#c9d1d9; white-space:pre; }
 .coach-code .cc-line{ opacity:0; transition:opacity .25s; }
 .coach-code .cc-line.on{ opacity:1; }
-.coach-code .cc-add{ color:#6fc24a; }
+.coach-code .cc-add{ color:var(--green-ai); }
 
 /* "Claude" — fades in beneath the logo as it arrives */
 .coach-name{
