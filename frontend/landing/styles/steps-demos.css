@@ -1,0 +1,369 @@
+/* per-step demo styling: step 1 paste, step 2 chess.com, step 3 review, step 4 best-move */
+  /* ===================== STEP 1: combined "get your game ready" demo ===================== */
+  .demo-stack{display:flex;flex-direction:column;align-items:flex-start;width:min(100%,478px)}
+  .demo-stack .pgnwrap{width:100%}
+  .demo-stack .pgnbox{width:100%}
+  .demo-stack .anwrap{margin-top:16px}
+  .anbtn{transition:transform .14s ease, box-shadow .32s ease, filter .35s ease, background .35s ease, color .3s ease}
+  .anbtn-ico{width:18px;height:18px;flex:0 0 auto}
+  .anbtn[disabled]{cursor:default;background:linear-gradient(180deg,#39383f,#2f2e34);color:#74737d;
+    box-shadow:0 5px 0 #232228,0 10px 18px rgba(0,0,0,0.25);filter:saturate(.25)}
+  .anbtn[disabled] .anbtn-ico{opacity:.55}
+  .anbtn.lit{filter:none;animation:anbtnPop .5s cubic-bezier(.2,.8,.2,1)}
+  .anbtn.lit:not(.press){box-shadow:0 6px 0 var(--green-edge),0 0 0 4px rgba(129,182,76,0.18),0 16px 34px rgba(129,182,76,0.4)}
+  @keyframes anbtnPop{0%{transform:scale(.95)}55%{transform:scale(1.045)}100%{transform:scale(1)}}
+  .anbtn.done{background:linear-gradient(180deg,#7cb04a,#6b9d3f);box-shadow:0 4px 0 var(--green-edge),0 10px 22px rgba(0,0,0,0.3)}
+  /* progress panel reveal — smooth height via grid-template-rows */
+  .progwrap{display:grid;grid-template-rows:0fr;opacity:0;margin-top:0;width:100%;
+    transition:grid-template-rows .55s cubic-bezier(.2,.8,.2,1), opacity .45s ease, margin-top .45s ease}
+  .progwrap.show{grid-template-rows:1fr;opacity:1;margin-top:16px}
+  .progpanel{overflow:hidden;min-height:0;background:var(--bg2);border:1px solid var(--line);
+    border-radius:14px;padding:16px 18px;box-shadow:0 22px 54px rgba(0,0,0,0.22)}
+  .progtop{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:12px}
+  .progpct{font-family:ui-monospace,monospace;font-variant-numeric:tabular-nums;font-size:34px;font-weight:800;
+    letter-spacing:-0.03em;color:var(--ink);line-height:1}
+  .progbadge{display:inline-flex;align-items:center;gap:6px;font-family:'Inter';font-weight:700;font-size:12.5px;
+    color:#8ec165;background:rgba(129,182,76,0.15);border-radius:100px;padding:5px 12px;
+    opacity:0;transform:translateY(5px);transition:opacity .45s ease, transform .45s cubic-bezier(.2,.8,.2,1)}
+  .progbadge svg{width:14px;height:14px}
+  .progbadge.show{opacity:1;transform:none}
+  .progtrack{height:6px;background:#403d39;border-radius:100px;overflow:hidden}
+  .progfill{height:100%;width:0%;background:linear-gradient(90deg,#7cb04a,#8fc25c);border-radius:100px;transition:width .12s linear}
+  .progtext{font-family:'Inter';font-size:13px;color:var(--muted);margin-top:11px}
+  .progquip{font-family:'Inter';font-size:12.5px;font-style:italic;color:var(--muted);opacity:.75;
+    margin-top:4px;min-height:18px;transition:opacity .18s ease}
+  .progquip.q-out{opacity:0}
+
+  /* ===================== STEP 2: chess.com connect demo (scoped app window) ===================== */
+  .ccapp{--ccs:#312e2b;--ccs2:#3c3936;--ccs3:#4a4744;--cct:#f5f4f0;--cct2:#b8b3a8;--cct3:#7a7670;
+    --ccg:#81b64c;--ccgl:rgba(129,182,76,0.32);--ccge:#4e7837;
+    --ccbd:rgba(255,255,255,0.08);--ccbds:rgba(255,255,255,0.16);--ccbsub:rgba(255,255,255,0.06);
+    width:min(100%,478px);background:#272522;border:1px solid var(--ccbd);border-radius:16px;
+    padding:13px;box-shadow:0 30px 70px rgba(0,0,0,0.32);font-family:'Inter',sans-serif;color:var(--cct)}
+  .ccapp .cc-search{display:flex;gap:10px;position:relative}
+  .ccapp .cc-search-box{flex:1;display:flex;align-items:center;gap:9px;background:var(--ccs);
+    border:2px solid var(--ccbd);border-radius:12px;padding:0 12px;transition:border-color .15s,box-shadow .15s}
+  .ccapp .cc-search-box.focus{border-color:var(--ccg);box-shadow:0 0 0 4px var(--ccgl)}
+  .ccapp .cc-search-box svg{width:16px;height:16px;color:var(--cct3);flex-shrink:0}
+  .ccapp .cc-search-box input{flex:1;min-width:0;background:none;border:none;outline:none;color:var(--cct);
+    font-family:'Inter';font-size:14.5px;padding:9px 0;cursor:default}
+  .ccapp .cc-search-box input::placeholder{color:var(--cct3)}
+  .ccapp .cc-find{font-size:14px;padding:0 18px;border-radius:10px;white-space:nowrap;min-height:42px}
+  .ccapp .cc-find-spin{width:13px;height:13px;border-radius:50%;border:2px solid rgba(255,255,255,0.4);
+    border-top-color:#fff;display:none;animation:ccspin .8s linear infinite}
+  .ccapp .cc-find.finding .cc-find-spin{display:inline-block}
+  @keyframes ccspin{to{transform:rotate(360deg)}}
+  .cc-reveal{display:grid;grid-template-rows:0fr;opacity:0;margin-top:0;
+    transition:grid-template-rows .5s cubic-bezier(.2,.8,.2,1), opacity .4s ease, margin-top .4s ease}
+  .cc-reveal.show{grid-template-rows:1fr;opacity:1;margin-top:12px}
+  .cc-reveal > *{overflow:hidden;min-height:0}
+  .ccapp .cc-player{display:flex;align-items:center;gap:14px;background:var(--ccs);border-radius:14px;
+    padding:10px 14px;box-shadow:0 1px 2px rgba(0,0,0,0.4)}
+  .ccapp .cc-avatar{width:44px;height:44px;border-radius:8px;background:var(--ccs2);display:flex;
+    align-items:center;justify-content:center;flex-shrink:0}
+  .ccapp .cc-avatar-letter{font-size:20px;font-weight:800;color:var(--cct2)}
+  .ccapp .cc-player-main{min-width:0}
+  .ccapp .cc-player-name{display:flex;align-items:center;gap:8px;font-size:16px;font-weight:700;flex-wrap:wrap}
+  .ccapp .cc-realname{color:var(--cct3);font-size:13px;font-weight:500}
+  .ccapp .cc-ratings{display:flex;gap:14px;margin-top:5px;flex-wrap:wrap}
+  .ccapp .cc-rating{display:inline-flex;align-items:center;gap:5px;font-family:ui-monospace,monospace;
+    font-size:13px;font-weight:700;color:var(--cct2)}
+  .ccapp .cc-tc{display:inline-flex;flex-shrink:0}
+  .ccapp .cc-tc svg{width:16px;height:16px}
+  .ccapp .cc-tc-bullet{color:#e3852b}.ccapp .cc-tc-blitz{color:#fad541}.ccapp .cc-tc-rapid{color:#81b64c}
+  .ccapp .cc-toolbar{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+  .ccapp .cc-month{font-size:12.5px;font-weight:700;color:var(--cct2);background:var(--ccs2);border-radius:8px;padding:5px 10px}
+  .ccapp .cc-count{color:var(--cct3);font-size:12.5px}
+  .ccapp .cc-list{background:var(--ccs);border-radius:14px;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,0.4)}
+  .ccapp .cc-row{display:flex;align-items:center;gap:12px;padding:7px 13px;
+    border-bottom:1px solid var(--ccbsub);transition:background .14s, box-shadow .14s;cursor:pointer}
+  .ccapp .cc-row:last-child{border-bottom:none}
+  .ccapp .cc-row.hot{background:var(--ccs2);box-shadow:inset 3px 0 0 var(--ccg)}
+  .ccapp .cc-row.hot .cc-go{color:var(--ccg);transform:translateX(2px)}
+  .ccapp .cc-game{flex:1;min-width:0}
+  .ccapp .cc-players{display:flex;align-items:center;gap:6px;font-size:13.5px;font-weight:600;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ccapp .cc-dot{width:9px;height:9px;border-radius:3px;flex-shrink:0}
+  .ccapp .cc-dot.white{background:#f0f0f0}
+  .ccapp .cc-dot.black{background:#1f1d1b;border:1px solid var(--ccbds)}
+  .ccapp .cc-name{overflow:hidden;text-overflow:ellipsis}
+  .ccapp .cc-name.me{color:var(--ccg)}
+  .ccapp .cc-elo{color:var(--cct3);font-size:11.5px;font-family:ui-monospace,monospace}
+  .ccapp .cc-vs{color:var(--cct3);font-size:11px;font-weight:500}
+  .ccapp .cc-meta{color:var(--cct3);font-size:11.5px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ccapp .cc-res{width:18px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;
+    font-size:13px;font-weight:800;color:#fff;flex-shrink:0}
+  .ccapp .cc-res.win{background:var(--ccg)}.ccapp .cc-res.loss{background:#ca3431}.ccapp .cc-res.draw{background:#7a7670}
+  .ccapp .cc-go{width:16px;height:16px;color:var(--cct3);flex-shrink:0;transition:color .14s, transform .16s}
+  .ccapp .cc-row .cc-go{display:none}                       /* arrow not needed in multi-select */
+  .ccapp .cc-status{display:none}                           /* state lives in the left indicator now */
+  .ccapp .cc-res{margin-left:auto}                          /* win/loss/draw sits on the right side of the card */
+  /* left state indicator (pseudo-element → no per-row markup):
+     empty box -> green check (selected) -> spinner (analysing) -> play (ready to view) */
+  .ccapp .cc-row::before{content:'\2713';flex:0 0 auto;width:20px;height:20px;border-radius:6px;box-sizing:border-box;
+    border:2px solid var(--ccs3);background:transparent;color:transparent;
+    display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;
+    transition:background .16s,border-color .16s,color .16s,border-radius .2s}
+  .ccapp .cc-row.sel::before{background:var(--ccg);border-color:var(--ccg);color:#fff}
+  .ccapp .cc-row.loading::before{content:'';border-radius:50%;background:transparent;
+    border:2px solid var(--ccgl);border-top-color:var(--ccg);animation:ccspin .7s linear infinite}
+  .ccapp .cc-row.ready::before{content:'\25B6';border-radius:50%;background:var(--ccg);border-color:var(--ccg);
+    color:#fff;font-size:9px;padding-left:2px;animation:none}
+  .ccapp .cc-row.sel{background:var(--ccs2)}
+  .ccapp .cc-row.ready{cursor:pointer}
+  /* action bar under the games list */
+  .ccapp .cc-actionbar{display:flex;align-items:center;justify-content:space-between;gap:12px;
+    margin-top:12px;padding-top:13px;border-top:1px solid var(--ccbd)}
+  .ccapp .cc-selcount{font-family:ui-monospace,monospace;font-size:12px;letter-spacing:.03em;color:var(--cct3)}
+  .ccapp .cc-analyse{min-height:42px;font-size:14px;padding:0 18px;border-radius:10px;white-space:nowrap}
+  .ccapp .cc-analyse[disabled]{opacity:.5}
+  .ccapp .cc-analyse.finding .cc-find-spin{display:inline-block}
+  .ccapp .cc-analyse.done{background:linear-gradient(180deg,#7cb04a,#6b9d3f)}
+  .ccapp .cc-status .chip{display:inline-flex;align-items:center;gap:6px;border-radius:100px;padding:3px 10px;
+    font-size:11px;font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums}
+  .ccapp .chip.busy{background:var(--ccs3);color:var(--cct);font-family:ui-monospace,monospace}
+  .ccapp .chip.done{background:rgba(129,182,76,0.16);color:var(--ccg)}
+  .ccapp .cc-spin{width:11px;height:11px;flex-shrink:0;border-radius:50%;border:2px solid var(--ccgl);
+    border-top-color:var(--ccg);animation:ccspin .8s linear infinite}
+  @media (max-width:820px){ .ccapp,.demo-stack{width:100%} }
+
+
+  /* ===================== STEP 3: live blunder review ===================== */
+  /* wider demo column so the board + comment card sit side by side comfortably */
+  .reviewrow{display:flex;gap:16px;align-items:center;width:100%}
+  .rev-boardwrap{display:flex;gap:14px;width:100%;align-items:stretch;
+    background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:14px;
+    box-shadow:0 30px 70px rgba(0,0,0,0.22)}
+  .rev-evalbar{width:12px;border-radius:6px;background:#26241f;overflow:hidden;position:relative;flex:0 0 auto}
+  .rev-evalfill{position:absolute;left:0;right:0;bottom:0;height:50%;background:#f3f1ea;
+    transition:height 1s cubic-bezier(.4,0,.2,1)}
+  .revboard{width:min(38vh,300px);max-width:46vw;aspect-ratio:1;border-radius:8px;overflow:hidden;
+    position:relative;box-shadow:0 8px 24px rgba(0,0,0,0.2);background:#ebecd0}
+  .rev-sq{position:absolute;width:12.5%;height:12.5%}
+  .rev-hi{position:absolute;width:12.5%;height:12.5%;background:rgba(255,235,90,0.5);opacity:0;
+    transition:opacity .3s ease;z-index:1;pointer-events:none}
+  .rev-hi.on{opacity:1}
+  .rev-cap{position:absolute;width:12.5%;height:12.5%;box-shadow:inset 0 0 0 3px #e0726a;border-radius:2px;
+    opacity:0;transition:opacity .25s ease;z-index:3;pointer-events:none}
+  .rev-cap.on{opacity:1}
+  .rp{position:absolute;width:12.5%;height:12.5%;background-size:90%;background-position:center;
+    background-repeat:no-repeat;z-index:2;
+    transition:left .55s cubic-bezier(.3,.7,.3,1), top .55s cubic-bezier(.3,.7,.3,1), opacity .3s ease;
+    will-change:left,top}
+  /* the move-classification badge that pops onto the destination square (like chess.com) */
+  .rev-sqbadge{position:absolute;width:12.5%;height:12.5%;z-index:6;pointer-events:none;opacity:0;
+    transform:scale(.4);transform-origin:75% 25%;
+    transition:opacity .25s ease, transform .45s cubic-bezier(.34,1.56,.64,1)}
+  .rev-sqbadge.show{opacity:1;transform:scale(1)}
+  .rev-sqbadge img{position:absolute;top:-10%;right:-10%;width:58%;height:58%;
+    filter:drop-shadow(0 2px 5px rgba(0,0,0,0.45))}
+  /* the white comment card on the side of the board */
+  .rev-card{flex:1;min-width:200px;align-self:center;background:#fbfaf8;color:#1c1b18;border-radius:14px;
+    padding:16px 18px;box-shadow:0 22px 54px rgba(0,0,0,0.32);border:1px solid rgba(0,0,0,0.05)}
+  /* explanation card head: badge icon + "Blunder" label + move pill — animates in */
+  .rev-card-head{display:flex;align-items:center;flex-wrap:wrap;gap:6px 8px;
+    padding-bottom:8px;border-bottom:1px solid var(--line);
+    opacity:0;transform:translateY(-3px);
+    transition:opacity .35s ease, transform .35s ease}
+  .rev-card-head.show{opacity:1;transform:none}
+  .rev-card-ico{width:22px;height:22px;flex:0 0 auto}
+  .rev-card-title{font-family:'Bricolage Grotesque';font-weight:800;font-size:15px;color:#c0392b;letter-spacing:-.01em}
+  .rev-card-move{display:inline-flex;align-items:center;gap:2px;font-family:ui-monospace,monospace;font-size:12px;
+    color:var(--muted);background:rgba(0,0,0,0.06);padding:2px 7px;border-radius:6px}
+  /* card body: idle → analysing → typed explanation */
+  .rev-card-body{margin-top:0;font-family:'Inter';font-size:13px;line-height:1.6;color:var(--ink);min-height:0;flex:1}
+  .rev-idle{color:var(--muted);font-size:12.5px}
+  .rev-analysing{display:inline-flex;align-items:center;gap:8px;color:var(--muted);font-size:12.5px}
+  .rev-analysing .cc-spin{width:12px;height:12px;flex:0 0 auto;border:2px solid rgba(129,182,76,0.3);
+    border-top-color:#81b64c;border-radius:50%;animation:ccspin .8s linear infinite}
+  .rev-analysing.hide,.rev-idle.hide{display:none}
+  .rev-text{color:var(--ink)}
+  .rev-caret{display:inline-block;width:2px;height:1em;background:#c0392b;vertical-align:-2px;
+    margin-left:1px;opacity:0;animation:pgnblink 1s steps(1) infinite}
+  .rev-caret.on{opacity:1}
+  /* move log piece icons and blunder badge */
+  .ml-w,.ml-b{display:inline-flex;align-items:center;gap:2px}
+  .ml-pico{width:15px;height:15px;flex:0 0 auto;vertical-align:middle}
+  .ml-badge{width:13px;height:13px;flex:0 0 auto;margin-left:3px;vertical-align:middle}
+  @media (max-width:880px){
+    .s1sec .s1step.s1review{grid-template-columns:1fr}
+    .rev-boardwrap{flex-wrap:wrap}
+    .revboard{width:min(54vw,260px)}
+    .rev-comment{flex:1 1 100%;min-height:80px}
+  }
+
+  /* ---- NAV THEME TOGGLE ---- */
+  #navThemeToggle{
+    display:inline-flex;align-items:center;gap:7px;
+    background:rgba(245,243,238,0.08);backdrop-filter:blur(12px);
+    border:1px solid rgba(245,243,238,0.14);border-radius:100px;
+    color:var(--ink);font-family:'Inter';font-size:12px;font-weight:500;
+    padding:7px 16px;letter-spacing:.04em;cursor:pointer;
+    transition:background .25s, border-color .25s, color .25s;pointer-events:auto;
+    mix-blend-mode:normal
+  }
+  #navThemeToggle:hover{background:rgba(245,243,238,0.15);border-color:rgba(245,243,238,0.3)}
+  body.light #navThemeToggle{background:rgba(22,21,15,0.07);border-color:rgba(22,21,15,0.14);color:var(--ink)}
+  body.light #navThemeToggle:hover{background:rgba(22,21,15,0.13)}
+  .nav-toggle-icon{font-size:14px;line-height:1;transition:transform .4s ease}
+  #navThemeToggle:hover .nav-toggle-icon{transform:rotate(20deg)}
+
+  /* ---- step 3: text left · chess.com-style review panel RIGHT ---- */
+  .s1step.s1review{display:grid;grid-template-columns:1fr 1.7fr;align-items:center;
+    gap:clamp(24px,4vw,60px);max-width:1280px;margin:0 auto}
+  .s1review .s1left{align-self:center}
+  .s1review .s1sub{max-width:42ch}
+  /* outer panel card — board is fixed width, sidebar flex-fills the rest */
+  .rev-panel{display:flex;flex-direction:row;align-items:stretch;
+    background:var(--bg2);border:1px solid var(--line);border-radius:16px;
+    overflow:hidden;box-shadow:0 30px 70px rgba(0,0,0,0.22);width:100%;
+    padding:10px 10px 10px 0}
+  .s1review .rev-evalcol{flex:0 0 auto;padding:0 6px 0 10px}
+  /* board: triple-locked at 300px — never shrinks or grows regardless of sidebar content */
+  .s1review .revboard{flex:0 0 300px;width:300px;min-width:300px;max-width:300px;
+    height:300px;align-self:center;
+    border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,0.25);margin-right:10px}
+  /* sidebar: flex column, cards fill top-down; graph is always last (bottom) */
+  .rev-sidebar{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px;justify-content:space-between}
+  /* card 1 — white explanation card (no accent line; clean rounded card) */
+  .rev-explain-card{flex:1;min-height:0;
+    background:#f8f7f5 !important;--ink:#26241f;--muted:#8a8780;--line:rgba(0,0,0,0.09);
+    border:1px solid rgba(0,0,0,0.1);border-radius:14px;
+    padding:11px 13px;display:flex;flex-direction:column;gap:7px;overflow:hidden;
+    box-shadow:0 2px 10px rgba(0,0,0,0.18)}
+  /* cancel old bubble show/hide — but KEEP flex:1 so long text clips inside the card
+     instead of expanding it above the board */
+  .s1review #revComment{opacity:1 !important;transform:none !important;transition:none !important;
+    position:static;flex:1 1 0;min-height:0;width:auto}
+  .s1review .rev-sidebar{height:300px;overflow:hidden}
+  /* body: line-height tall enough that inline move-pills never grow a line (kills the
+     vertical "shift" when a pill types in); content top-anchored so text never recenters */
+  .s1review .rev-card-body{margin-top:5px;font-size:12.5px;line-height:1.85;min-height:0;
+    overflow:hidden;align-self:stretch}
+  /* card 2 — move log: fixed height = 4 rows */
+  .rev-moves-card{flex:0 0 auto;
+    background:#272522;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  body.light .rev-moves-card{background:var(--bg2)}
+  .rev-moves-hdr{padding:4px 9px 3px;font-size:9px;font-family:'Inter',sans-serif;font-weight:700;
+    letter-spacing:.07em;text-transform:uppercase;color:var(--muted);
+    border-bottom:1px solid var(--line)}
+  .rev-movelog{height:88px;overflow:hidden}
+  .ml-row{display:grid;grid-template-columns:20px 1fr 1fr;gap:0 2px;
+    padding:2px 9px;font-size:12px;font-family:ui-monospace,monospace;line-height:1.7;align-items:center}
+  .ml-num{color:var(--muted);font-size:10.5px;user-select:none}
+  .ml-w,.ml-b{padding:1px 4px;border-radius:3px;transition:background .12s,color .12s}
+  .ml-row.ml-active .ml-w,.ml-row.ml-active .ml-b{background:rgba(255,255,255,0.12)}
+  body.light .ml-row.ml-active .ml-w,body.light .ml-row.ml-active .ml-b{background:rgba(0,0,0,0.08)}
+  .ml-blunder{color:#e05a56 !important;background:rgba(202,52,49,0.18) !important}
+  /* card 3 — eval graph */
+  .rev-graph-card{flex:0 0 auto;
+    background:#272522;border:1px solid var(--line);border-radius:10px;
+    padding:5px 9px 7px}
+  body.light .rev-graph-card{background:var(--bg2)}
+  .rev-graph-label{font-size:9px;font-family:'Inter',sans-serif;font-weight:700;
+    letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
+  .rev-graph{width:100%;height:30px;display:block}
+  .rev-graph-mid{stroke:var(--line);stroke-width:.8}
+  .rev-graph-fill{fill:rgba(129,182,76,0.15)}
+  .rev-graph-line{fill:none;stroke:#81b64c;stroke-width:1.5;stroke-linejoin:round;stroke-linecap:round}
+  .rev-graph-dot{fill:#ca3431;stroke:#fbfaf8;stroke-width:1.5;opacity:0;transition:opacity .4s ease}
+  /* move tags in explanation text */
+  .rev-mv,.rev-card-move{display:inline-flex;align-items:center;gap:1px;vertical-align:-4px;
+    background:rgba(0,0,0,0.06);padding:1px 6px;border-radius:6px}
+  .rev-mv-ico{width:17px;height:17px}
+  .rev-card-move .rev-mv-ico{width:19px;height:19px}
+  .rev-hi.rev-guard{background:rgba(224,114,106,0.5)}
+  .rev-evalcol{display:flex;flex-direction:column;align-items:center;gap:7px;flex:0 0 auto}
+  .rev-evalcol .rev-evalbar{flex:1;width:14px}
+  .rev-evalnum{font-family:ui-monospace,monospace;font-size:12px;font-weight:700;color:var(--muted);
+    font-variant-numeric:tabular-nums;transition:color .4s ease}
+  .rev-evalnum.lead{color:var(--ink)}
+  /* board coordinates (coloured to contrast the square, chess.com style) */
+  .rev-coord{position:absolute;font-family:ui-monospace,monospace;font-size:9.5px;font-weight:700;
+    line-height:1;pointer-events:none;z-index:3}
+  .rev-rank{left:3px;margin-top:3px}                          /* top-left of the square */
+  .rev-file{bottom:2px;transform:translateX(-100%);margin-left:-3px}   /* bottom-right of the square */
+
+  /* ---- MISTAKE WORD GLOW RED ---- */
+  .glow-mistake{
+    color:#ca3431;
+    text-shadow:0 0 22px rgba(202,52,49,0.7),0 0 44px rgba(202,52,49,0.4);
+    animation:mistakeGlow 2.8s ease-in-out infinite;
+    display:inline-flex;align-items:center;gap:8px;
+  }
+  .inline-blunder-ico{
+    width:.85em;height:.85em;vertical-align:middle;flex:0 0 auto;
+    filter:drop-shadow(0 0 6px rgba(202,52,49,0.5));
+  }
+  @keyframes mistakeGlow{
+    0%,100%{text-shadow:0 0 22px rgba(202,52,49,0.7),0 0 44px rgba(202,52,49,0.4)}
+    50%{text-shadow:0 0 30px rgba(202,52,49,0.95),0 0 58px rgba(202,52,49,0.6),0 0 90px rgba(202,52,49,0.25)}
+  }
+
+  /* green "best move" square highlight — shared with How-It-Works board */
+  .s4-greenhi{position:absolute;width:12.5%;height:12.5%;background:rgba(106,168,79,0.55);opacity:0;
+    transition:opacity .3s ease;z-index:1;pointer-events:none}
+  .s4-greenhi.on{opacity:1}
+
+  /* ===================== STEP 4: good move → best move (mirrors step 3 panel) ===================== */
+  .s1step.s1better{display:grid;grid-template-columns:1fr 1.7fr;align-items:center;
+    gap:clamp(24px,4vw,60px);max-width:1280px;margin:0 auto}
+  .s1better .s1left{align-self:center}
+  .s1better .s1sub{max-width:42ch}
+  .s1better .rev-panel{position:relative}            /* anchor for the click cursor */
+  .s1better .rev-evalcol{flex:0 0 auto;padding:0 6px 0 10px}
+  .s1better .revboard{flex:0 0 300px;width:300px;min-width:300px;max-width:300px;
+    height:300px;align-self:center;border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,0.25);margin-right:10px}
+  /* sidebar capped to board height → nothing ever spills above the board */
+  .s1better .rev-sidebar{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px;height:300px;overflow:hidden}
+  /* comment card: sized to its content (NOT flex:1) so it stays small; move log + graph fill the rest.
+     base opacity/filter transition so the best card FADES in (not a sudden swap) after the good one fades out */
+  .s1better .rev-explain-card{flex:0 0 auto;max-height:50%;overflow:hidden;
+    transition:opacity .5s ease, filter .55s ease}
+  .s1better .rev-card-body{position:relative;margin-top:5px;font-size:12.5px;line-height:1.8;min-height:0;overflow:hidden}
+  .s1better .rev-card-title{color:#7cb04a}                  /* green for good/best, not blunder-red */
+  /* the strike: a GRAY line sweeps L→R, and the text gets a gray line-through (crosses every
+     line, not an underline) + greys as the line passes */
+  .s4-strikeline{position:absolute;left:0;top:42%;height:2px;width:0;border-radius:2px;
+    background:#9a978f;box-shadow:0 0 4px rgba(0,0,0,0.18);z-index:3;pointer-events:none}
+  .s4-strikeline.sweep{width:100%;transition:width .6s cubic-bezier(.4,0,.2,1)}
+  .s1better .rev-explain-card.s4-struck .rev-text{color:#a8a59e;
+    text-decoration:line-through;text-decoration-color:#9a978f;text-decoration-thickness:2px;
+    transition:color .55s ease}
+  .s1better .rev-explain-card.s4-greyed{filter:grayscale(.5) opacity(.5);transition:filter .55s ease}
+  .s1better .rev-explain-card.s4-fade{opacity:0;transition:opacity .5s ease}
+  /* the action buttons (Show best move / Continue) — appear at the card's bottom */
+  .s4-showbtn,.s4-nextbtn{margin-top:9px;align-self:flex-start;display:inline-flex;align-items:center;gap:7px;
+    font-family:'Inter';font-weight:700;font-size:12.5px;color:#fff;
+    background:linear-gradient(180deg,#8fc25c,#7cb04a);border:none;border-radius:9px;padding:8px 14px;
+    box-shadow:0 3px 0 var(--green-edge),0 8px 16px rgba(0,0,0,0.2);cursor:pointer;
+    opacity:0;transform:translateY(8px) scale(.96);pointer-events:none;height:0;margin:0;padding:0;overflow:hidden;
+    transition:opacity .4s ease, transform .45s cubic-bezier(.34,1.56,.64,1), box-shadow .12s}
+  .s4-showbtn.show,.s4-nextbtn.show{opacity:1;transform:none;pointer-events:auto;height:auto;margin-top:9px;padding:8px 14px}
+  .s4-showbtn.press,.s4-nextbtn.press{transform:translateY(3px);box-shadow:0 1px 0 var(--green-edge),0 4px 10px rgba(0,0,0,0.25)}
+  .s4-showbtn.gone,.s4-nextbtn.gone{opacity:0;transform:translateY(-4px);pointer-events:none;height:0;margin:0;padding:0;
+    transition:opacity .3s ease, transform .3s ease}
+  .s4-showbtn-ico,.s4-nextbtn-ico{font-size:13px;line-height:1}
+  /* move log rows reuse step-3 .ml-* styles; badge + piece icons */
+  .s1better .rev-movelog{height:auto;flex:1;min-height:56px;overflow:hidden}
+  .s1better #s4GraphDot{fill:#81b64c}                   /* best-move green dot (step 3's is blunder-red) */
+  .ml-ctx{opacity:.62}                                  /* lead-in context moves, slightly dimmed */
+  .ml-w.ml-good{color:#9ac06f}
+  .ml-w.ml-best{color:#81b64c}
+  .ml-row.ml-struck{opacity:.4}
+  .ml-row.ml-struck .ml-w,.ml-row.ml-struck .ml-b{text-decoration:line-through}
+  /* board: fork highlight on the two forked squares + a check tag */
+  .s4-forkhi{position:absolute;width:12.5%;height:12.5%;z-index:1;opacity:0;pointer-events:none;
+    box-shadow:inset 0 0 0 3px #f0c15c;border-radius:2px;background:rgba(240,193,92,0.28);
+    transition:opacity .3s ease}
+  .s4-forkhi.on{opacity:1}
+  .s4-checktag{position:absolute;z-index:6;pointer-events:none;opacity:0;transform:scale(.4);
+    font-family:'Inter';font-weight:800;font-size:11px;color:#fff;background:#ca3431;
+    border-radius:5px;padding:1px 5px;transform-origin:center;
+    transition:opacity .25s ease, transform .4s cubic-bezier(.34,1.56,.64,1)}
+  .s4-checktag.on{opacity:1;transform:scale(1)}
+  /* the simulated cursor lives inside the panel for step 4 */
+  .s4-cursor{position:absolute;width:24px;height:24px;z-index:30;pointer-events:none;opacity:0;
+    filter:drop-shadow(0 2px 5px rgba(0,0,0,0.45));transition:opacity .25s ease, transform .12s ease}
+  .s4-cursor.clicking{transform:scale(0.82)}
+

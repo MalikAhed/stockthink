@@ -1,0 +1,136 @@
+/* ===== Beat 2 — "How we process Stockfish's output" cinematic (rev 4) =====
+   Self-contained, paired with number-to-reason.js. Theme-aware stage; the IDE/terminal stay dark
+   (authentic) in both themes. Acts: ① a Mac desktop with a VS Code project — zoom into the IDE,
+   Stockfish runs complex UCI in the terminal → ② the output is saved as analysis.json and StockThink
+   reformats it into readable facts → ③ pattern-match table (% + red→yellow→green heat map) → ④ the
+   StockThink app, zoomed into the explanation. Fixed 960×540, scaled to fit by JS. */
+  .n2r-fit{position:relative;width:100%}
+  .n2r-stage{position:absolute;top:0;left:50%;transform-origin:top center;transform:translateX(-50%) scale(1);
+    width:960px;height:540px;border-radius:14px;overflow:hidden;opacity:0;
+    --bg:#0b0f0d;--ink:#e8efe9;--mute:#5d6b62;--line:#222c27;--card:rgba(255,255,255,.028);
+    --accent:#6fc24a;--accent-soft:#8fe06a;--accent-dim:rgba(111,194,74,.14);--white:#f7f8f5;
+    --sans:'Inter',system-ui,sans-serif;
+    --eo:cubic-bezier(.22,1,.36,1);--eio:cubic-bezier(.65,0,.35,1);--snap:cubic-bezier(.34,1.56,.64,1);
+    background:var(--bg);color:var(--ink);font-family:ui-monospace,"SF Mono",Menlo,monospace;
+    box-shadow:0 30px 80px rgba(0,0,0,.5),inset 0 0 0 1px var(--line)}
+  body.light .n2r-stage{--bg:#eef1ec;--ink:#16201a;--mute:#76857b;--line:#d7ded7;--card:rgba(0,0,0,.03);
+    --accent-dim:rgba(111,194,74,.18);--white:#ffffff;box-shadow:0 26px 70px rgba(0,0,0,.18),inset 0 0 0 1px var(--line)}
+  .n2r-stage.play{opacity:1;transition:opacity .4s linear}
+  .n2r-vignette{position:absolute;inset:0;opacity:0;pointer-events:none;transition:opacity .3s linear;
+    background:radial-gradient(120% 120% at 50% 42%,transparent 44%,rgba(0,0,0,.4) 100%)}
+  .n2r-stage.play .n2r-vignette{opacity:1}
+  .n2r-world{position:absolute;inset:0;transform:scale(1.02);transition:transform .7s var(--eo)}
+  .n2r-stage.play .n2r-world{transform:none}
+
+  /* step + caption are narration pills (dark, light text) so they read on the dark IDE AND the light stage */
+  .n2r-step{position:absolute;left:50%;bottom:50px;transform:translateX(-50%);z-index:9;
+    background:rgba(8,12,10,.55);backdrop-filter:blur(6px);border-radius:7px;padding:4px 13px;
+    font:600 10px/1 ui-monospace,monospace;letter-spacing:.26em;text-transform:uppercase;color:#aebab1;
+    opacity:0;transition:opacity .4s var(--eo)}
+  .n2r-step.in{opacity:1}.n2r-step b{color:var(--accent-soft);font-weight:700}
+  .n2r-cap{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);max-width:80%;z-index:9;text-align:center;
+    background:rgba(8,12,10,.55);backdrop-filter:blur(6px);border-radius:9px;padding:7px 17px;
+    font:14px/1.45 var(--sans);color:#eaf1ea;opacity:0;transition:opacity .4s var(--eo)}
+  .n2r-cap.in{opacity:1}
+
+  /* ---------- ACT 1/2 — Mac desktop + VS Code (the camera zooms in) ---------- */
+  .n2r-desk{position:absolute;inset:0;transform-origin:0 0;transform:translate(0,0) scale(1);
+    transition:transform 1.15s var(--eio),opacity .5s var(--eo);
+    background:radial-gradient(130% 110% at 50% -10%,#13271f,#0a120e 70%)}
+  .n2r-menubar{position:absolute;top:0;left:0;right:0;height:22px;display:flex;align-items:center;gap:16px;
+    padding:0 14px;background:rgba(8,12,10,.5);backdrop-filter:blur(8px);font:600 11px/1 var(--sans);color:#d3dcd5}
+  .n2r-menubar .sp{margin-left:auto;font-weight:500;color:#aebab1}
+  .n2r-vscode{position:absolute;left:130px;top:70px;width:700px;height:398px;border-radius:9px;overflow:hidden;
+    background:#1e1e1e;border:1px solid #050505;box-shadow:0 30px 70px rgba(0,0,0,.6);
+    display:flex;flex-direction:column;font-family:ui-monospace,"SF Mono",Menlo,monospace}
+  .vs-title{height:30px;flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:0 12px;background:#323233}
+  .vs-title .dots{display:flex;gap:6px}.vs-title .dots i{width:9px;height:9px;border-radius:50%}
+  .vs-title .dots i:nth-child(1){background:#ff5f57}.vs-title .dots i:nth-child(2){background:#febc2e}.vs-title .dots i:nth-child(3){background:#28c840}
+  .vs-title .t{flex:1;text-align:center;font:11px/1 var(--sans);color:#9aa39b}
+  .vs-body{flex:1;display:flex;min-height:0}
+  .vs-activity{width:42px;flex:0 0 auto;background:#2d2d30;display:flex;flex-direction:column;align-items:center;gap:15px;padding-top:13px}
+  .vs-activity i{width:20px;height:20px;border-radius:4px;background:#46464a}
+  .vs-activity i.on{background:transparent;box-shadow:inset 2px 0 0 #cfcfcf;border-radius:0}
+  .vs-explorer{width:170px;flex:0 0 auto;background:#252526;padding:8px 0;overflow:hidden}
+  .vs-exhead{font:600 10px/1 var(--sans);letter-spacing:.1em;color:#9aa39b;padding:3px 14px 9px;text-transform:uppercase}
+  .vs-row{display:flex;align-items:center;gap:6px;padding:2px 14px;font:12px/1.75 var(--sans);color:#cfcfcf;white-space:nowrap}
+  .vs-row.ind{padding-left:28px}
+  .vs-row .ic{font-size:11px;opacity:.85}
+  .vs-row.appear{opacity:0;transition:opacity .45s var(--eo)}
+  .vs-row.appear.show{opacity:1}
+  .vs-row.hot{background:rgba(86,156,214,.28);color:#fff}
+  .vs-row .tag{margin-left:auto;font:600 8px/1 ui-monospace,monospace;color:#6fc24a}
+  .vs-main{flex:1;display:flex;flex-direction:column;min-width:0;background:#1e1e1e}
+  .vs-tabs{height:30px;flex:0 0 auto;display:flex;background:#252526}
+  .vs-tab{display:flex;align-items:center;gap:7px;padding:0 14px;font:12px/30px var(--sans);color:#9aa39b;border-right:1px solid #1a1a1a}
+  .vs-tab.on{background:#1e1e1e;color:#e8e8e8}
+  .vs-tab.appear{opacity:0;transition:opacity .35s}.vs-tab.appear.show{opacity:1}
+  .vs-editor{flex:1;position:relative;padding:11px 16px;overflow:hidden;min-height:0}
+  .vs-pane{position:absolute;left:16px;right:16px;top:11px;opacity:0;transition:opacity .45s var(--eo)}
+  .vs-pane.show{opacity:1}
+  .vs-code{font:12.5px/1.75 ui-monospace,"SF Mono",Menlo,monospace;white-space:pre;color:#d4d4d4}
+  .vs-code .kw{color:#569cd6}.vs-code .st{color:#ce9178}.vs-code .cm{color:#6a9955}.vs-code .fn{color:#dcdcaa}
+  .vs-code .nu{color:#b5cea8}.vs-code .ppt{color:#9cdcfe}.vs-code .gd{color:#6fc24a}
+  .vs-terminal{height:138px;flex:0 0 auto;background:#181818;border-top:1px solid #000;display:flex;flex-direction:column}
+  .vs-termbar{height:24px;flex:0 0 auto;display:flex;align-items:center;gap:16px;padding:0 14px;
+    font:600 10px/24px var(--sans);letter-spacing:.1em;text-transform:uppercase;color:#8a948c}
+  .vs-termbar .on{color:#e8e8e8;box-shadow:inset 0 -2px 0 #6fc24a}
+  .vs-termbody{flex:1;padding:5px 14px;overflow:hidden;font:12px/1.5 ui-monospace,monospace}
+  .vs-tl{display:block;white-space:nowrap;color:#9fb0a6;opacity:0}
+  .vs-tl.show{opacity:1}
+  .vs-tl .pr{color:#6fc24a;margin-right:7px}
+  .vs-tl.typing .tx::after{content:'▋';color:#6fc24a;margin-left:1px;animation:n2rCaret .85s steps(1) infinite}
+  .vs-tl .st{color:#ce9178}.vs-tl .nu{color:#b5cea8}.vs-tl .kw{color:#569cd6}.vs-tl .gd{color:#6fc24a}.vs-tl .di{color:#5d6b62}
+  @keyframes n2rCaret{50%{opacity:0}}
+
+  /* ---------- ACT 3 — pattern-match table (heat map + %) ---------- */
+  .n2r-match{position:absolute;left:200px;top:150px;width:560px;opacity:0;transform:translateY(12px);
+    transition:opacity .5s var(--eo),transform .5s var(--eo);z-index:6}
+  .n2r-match.in{opacity:1;transform:none}
+  .n2r-mhead{display:grid;grid-template-columns:120px 1fr 66px 46px;gap:10px;padding:0 12px 9px;
+    font:600 10px/1 ui-monospace,monospace;letter-spacing:.15em;text-transform:uppercase;color:var(--mute);border-bottom:1px solid var(--line)}
+  .n2r-mhead span:nth-child(3),.n2r-mhead span:nth-child(4){text-align:right}
+  .n2r-mrows{position:relative;margin-top:4px}
+  .n2r-mscan{position:absolute;left:0;right:0;height:40px;border-radius:8px;background:var(--accent-dim);
+    box-shadow:inset 0 0 0 1px rgba(111,194,74,.35);opacity:0;transition:top .32s var(--eio),opacity .25s linear}
+  .n2r-mscan.on{opacity:1}
+  .n2r-mrow{position:relative;height:36px;margin-bottom:4px;display:grid;grid-template-columns:120px 1fr 66px 46px;
+    gap:10px;align-items:center;padding:0 12px;border-radius:8px;opacity:0;transform:translateY(6px);
+    transition:opacity .3s var(--eo),transform .3s var(--eo),background .3s linear}
+  .n2r-mrow.in{opacity:1;transform:none}
+  .n2r-mrow .nm{font:600 13.5px/1 ui-monospace,monospace;color:var(--ink)}
+  .n2r-mrow .def{font:12.5px/1.3 var(--sans);color:var(--mute)}
+  .n2r-mrow .bar{position:relative;height:6px;border-radius:3px;background:var(--line);overflow:hidden}
+  .n2r-mrow .bar-fill{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--mute);transition:width .5s var(--eio),background .3s linear}
+  .n2r-mrow .pct{text-align:right;font:600 12.5px/1 ui-monospace,monospace;color:var(--mute);opacity:0;transition:opacity .3s linear}
+  .n2r-mrow.tested .pct{opacity:1}
+  .n2r-mrow.match{background:var(--accent-dim)}.n2r-mrow.match .nm{color:var(--accent-soft)}
+
+  /* ---------- ACT 4 — the StockThink app, then zoom into the explanation ---------- */
+  .n2r-app{position:absolute;left:40px;top:54px;width:880px;height:432px;border-radius:13px;overflow:hidden;
+    border:1px solid var(--line);background:#101513;opacity:0;transform:scale(.95);transform-origin:0 0;
+    box-shadow:0 30px 70px rgba(0,0,0,.5);transition:opacity .5s var(--eo),transform 1.15s var(--eio);z-index:7}
+  body.light .n2r-app{background:#f4f6f3}
+  .n2r-app.in{opacity:1;transform:scale(1)}
+  .n2r-appbar{display:flex;align-items:center;gap:10px;height:34px;padding:0 12px;background:var(--card);border-bottom:1px solid var(--line)}
+  .n2r-appbar .dots{display:flex;gap:6px}.n2r-appbar .dots i{width:9px;height:9px;border-radius:50%;background:#3a463e}
+  .n2r-appbar .u{flex:1;text-align:center;font:12px/1 ui-monospace,monospace;color:var(--mute)}
+  .n2r-appbody{position:absolute;left:0;right:0;top:34px;bottom:0;display:flex;gap:14px;padding:16px}
+  .n2r-aeval{width:11px;flex:0 0 auto;border-radius:6px;background:var(--line);overflow:hidden;position:relative}
+  .n2r-aeval i{position:absolute;left:0;right:0;bottom:0;height:24%;background:var(--mute)}
+  .n2r-aboard{position:relative;width:300px;height:300px;flex:0 0 auto;border-radius:6px;overflow:hidden;align-self:flex-start}
+  .n2r-aside{flex:1;display:flex;flex-direction:column;gap:12px;min-width:0}
+  .n2r-arating{display:flex;align-items:center;gap:9px;font:700 16px/1 var(--sans);color:var(--ink)}
+  .n2r-arating .badge{width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;background:#c0392b;color:#fff;font:800 15px/1 var(--sans)}
+  .n2r-arating .mv{margin-left:auto;font:600 13px/1 ui-monospace,monospace;color:var(--mute)}
+  .n2r-acomment{flex:0 0 auto;background:var(--white);border:1px solid var(--line);border-radius:10px;padding:14px 15px;box-shadow:0 8px 24px rgba(0,0,0,.12)}
+  .n2r-acomment .ch{font:600 9px/1 ui-monospace,monospace;letter-spacing:.16em;text-transform:uppercase;color:#9aa29a;margin-bottom:8px}
+  .n2r-acomment .ct{font:500 16px/1.5 var(--sans);color:#16201a}
+  .n2r-acomment .ct b{color:#3a7d28;font-weight:700}
+  .n2r-asq{position:absolute;width:12.5%;height:12.5%}
+  .n2r-ahi{position:absolute;width:12.5%;height:12.5%;background:rgba(255,235,90,.55)}
+  .n2r-ap{position:absolute;width:12.5%;height:12.5%;background-size:88%;background-position:center;background-repeat:no-repeat}
+
+  .n2r-replay{position:absolute;right:16px;bottom:13px;border:0;background:transparent;cursor:pointer;
+    font:12px/1 ui-monospace,monospace;color:var(--mute);opacity:0;pointer-events:none;transition:opacity .4s var(--eo),color .2s linear;z-index:10}
+  .n2r-replay.in{opacity:1;pointer-events:auto}.n2r-replay:hover{color:var(--accent)}

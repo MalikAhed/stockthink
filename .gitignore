@@ -2,3 +2,9 @@ node_modules/
 dist/
 *.log
 .DS_Store
+
+# Live Edit Interface — transient changeset the in-page editor writes for Claude
+frontend/landing/editor/edits.json
+
+# Playwright MCP scratch output (console logs + screenshots)
+.playwright-mcp/

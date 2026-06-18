@@ -6,6 +6,49 @@ for /work sessions). Past ~300 lines, /reflect compresses the oldest half into
 LESSONS.md. Entries below 2026-06-12p were migrated verbatim from
 self-improvement/improve/TRACKER.md's daily log (2026-06-12) — history is not rewritten.
 
+- **2026-06-17b** · /ui · Landing "How it works" Beat 1 (data-step 7) — built + approved the
+  right-side **"engine in your browser" demo**: scan → board shrinks/fades → **square-node neural net
+  "thinking"** (matches `user provides/neural-net`, teal→green, edges draw in 2 ramped stages,
+  Calculating→Processing loader, stat-style depth/nodes) → **Nxf7 result pops** on a white panel →
+  board returns with an **L-shaped knight arrow** + chip → short **typewriter explanation**. Also: gears
+  now scroll-coupled (`SPIN` in `gears.js`). EVIDENCE: all phases verified via new `editor/probe.mjs`
+  screenshots; move engine-verified (Fried Liver #1 = Nxf7). FAILED/SLOW: rebuilt the "transition" twice
+  (guessed "dim" vs his "board→net→result→board") + scan color — lesson logged: restate motion as a
+  numbered sequence & check `user provides/` first. Brain updated: `frontend/landing/CLAUDE.md` got the
+  probe.mjs harness note, the ENGINE VISUAL LANGUAGE, the Beat-1 spec, and speed rules. Next = Beat 2.
+- **2026-06-16b** · /ui · Landing health + org pass (for fast future sessions) +
+  resilience. (1) RESILIENCE: a WebGL failure used to kill the WHOLE page — `scene.js`
+  throwing halted `sections.js`/`ui.js` (awaited after it in `main.js`), so any
+  WebGL-less visitor got a blank page. Wrapped the hero import in try/catch → `body.no-hero`,
+  clears `pre-intro`; steps/nav/demos now survive. (2) ORG: `index.html` 89 KB→24 KB
+  (72%↓, 22k→6k tokens — was over the Read limit) by externalizing 10 badge SVGs
+  (was 64 KB inline base64) → `icons/*.svg`; split `styles.css` (733 lines) → 4 partials
+  under `styles/` via an @import manifest (cascade order preserved); extracted the
+  scroll-scrub framework (hero outro + hook morph) → `scroll-engine.js`. EVIDENCE: build
+  green (multi-page, icons+@imports bundle), vitest 249/1-skip, page loads with only the
+  (now-caught) WebGL warning; functionally verified live — section reveal fires, hook
+  morph scrubs 0.65→1.0 across scroll, all 21 icons load, styles apply from partials.
+  Decided steps redesign = "scroll-scrubbed scenes"; left a ready-to-run plan in
+  `frontend/landing/README.md` (per-step JS split + scrubbed-steps) for a user-watching
+  session — deferred the per-step `sections.js` decomposition as too visual to verify headless.
+  SURPRISE: prod build re-inlines the small SVGs (<4 KB) as base64 again — fine, that's a
+  perf win; the source stays clean. Branch `ux/landing-page`, not merged.
+
+- **2026-06-16a** · /ui · De-bloated + split the sandbox landing page. One 5.4 MB
+  HTML (44% inlined base64: 24 piece assets in `window.PIECES` = 6 GLB + 18 PBR
+  textures) → 7 readable files under `frontend/landing/` (~197 KB source) + 24 real
+  assets in `frontend/public/landing/`. Wired as a 2nd Vite entry
+  (`rollupOptions.input.landing`); three/gsap now npm deps (were CDN), loaded URL-by
+  `import.meta.env.BASE_URL`. EVIDENCE: build green (tsc + multi-page: app & landing
+  emit; three.js isolated to a 583 KB `scene` chunk, NOT in the 620 KB app bundle),
+  vitest 249/1-skip, every asset HTTP 200, no code errors. Could NOT screenshot the
+  3D hero — headless Chrome has no GPU (WebGL fails, software llvmpipe); renders on a
+  real GPU. SURPRISE: the inlined GLBs are byte-identical (md5) to the raw source
+  models. 3D source (board + parametric render HTMLs, for a future endgame cinematic)
+  archived OUT of the repo at `~/stockthink-3d-source/`; sandbox + duplicate folder
+  removed. Branch `ux/landing-page`, not yet merged. Next: user reviews on their GPU
+  machine; later decide if landing becomes the public `/`.
+
 - **2026-06-14d** · /chess · 1 unit (U2) · New `invites_capture` fact: when a
   move walks a piece/pawn onto an empty square the engine reply takes right there
   (9...b5? 10.Nxb5!), name the punishing reply WITHOUT a material claim — honest

@@ -1,0 +1,319 @@
+/* Section-1 shell, editorial left/right columns, the in-view/exit reveal transitions (the step FRAMEWORK) */
+  /* ===================== SECTION 1 styling ===================== */
+
+  /* ---- §1 reveal (intro + outro on enter/leave view) — applies to EVERY §1 section ---- */
+  /* default hidden state for all animated content: intro block, the step columns, and the closing line */
+  .s1intro .chainwrap, .s1intro .lead, .s1intro .kick, .s1intro .ohh-img, .s1intro .by,
+  .s1sec .s1left, .s1sec .s1right,
+  .s1end .s1num, .s1end .big{
+    opacity:0; transform:translateY(34px); filter:blur(6px);
+    transition:opacity .8s cubic-bezier(.2,.7,.2,1), transform .8s cubic-bezier(.2,.7,.2,1), filter .8s ease;
+  }
+  /* staggered entrance when the section is in view */
+  .s1sec.in-view .s1intro .chainwrap{opacity:1;transform:translateY(0);filter:blur(0);transition-delay:.05s}
+  .s1sec.in-view .s1intro .lead{opacity:1;transform:translateY(0);filter:blur(0);transition-delay:.18s}
+  .s1sec.in-view .s1intro .kick{opacity:1;transform:translateY(0);filter:blur(0);transition-delay:.32s}
+  .s1sec.in-view .s1intro .ohh-img{opacity:1;transform:translateY(0);filter:blur(0);transition-delay:.26s}
+  .s1sec.in-view .s1intro .by{opacity:1;transform:translateY(0);filter:blur(0);transition-delay:.42s}
+  /* steps 1-4: the text column leads, the demo follows a beat later */
+  .s1sec.in-view .s1left{opacity:1;transform:translateY(0);filter:blur(0);transition-delay:.08s}
+  .s1sec.in-view .s1right{opacity:1;transform:translateY(0);filter:blur(0);transition-delay:.22s}
+  /* closing line */
+  .s1sec.in-view .s1end .s1num{opacity:1;transform:translateY(0);filter:blur(0);transition-delay:.08s}
+  .s1sec.in-view .s1end .big{opacity:1;transform:translateY(0);filter:blur(0);transition-delay:.2s}
+  /* outro: content lifts up and dissolves on the way out (one rule, no duplicates) */
+  .s1sec.exit-up .s1intro .chainwrap, .s1sec.exit-up .s1intro .lead, .s1sec.exit-up .s1intro .kick,
+  .s1sec.exit-up .s1intro .ohh-img, .s1sec.exit-up .s1intro .by,
+  .s1sec.exit-up .s1left, .s1sec.exit-up .s1right,
+  .s1sec.exit-up .s1end .s1num, .s1sec.exit-up .s1end .big{
+    opacity:0 !important; transform:translateY(-52px) !important; filter:blur(8px) !important;
+    transition:opacity .5s cubic-bezier(.4,0,1,1), transform .62s cubic-bezier(.5,0,.2,1), filter .5s ease;
+  }
+  /* the demo / right-hand element trails the text slightly so the exit reads as a sequence */
+  .s1sec.exit-up .s1right, .s1sec.exit-up .s1intro .ohh-img, .s1sec.exit-up .s1intro .by{ transition-delay:.05s }
+
+  /* ---- intro: badge chain + color-synced why + Malik image ---- */
+  .s1intro .introgrid{display:grid;grid-template-columns:1.1fr 0.9fr;gap:clamp(30px,5vw,80px);
+    align-items:center;width:100%;max-width:1200px;margin:0 auto;padding:0 clamp(28px,5vw,80px)}
+  .s1intro .introleft{display:flex;flex-direction:column;align-items:flex-start}
+  .s1intro .introright{display:flex;flex-direction:column;align-items:flex-start;gap:22px}
+  .chainwrap{position:relative;width:100%;max-width:520px;overflow:hidden;margin-bottom:26px;
+    -webkit-mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);
+    mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent)}
+  .chaintrack{display:flex;gap:18px;width:max-content;animation:chainmove 22s linear infinite}
+  .chaintrack .chainb{width:42px;height:42px;flex:0 0 auto;filter:drop-shadow(0 4px 10px rgba(0,0,0,0.25))}
+  @keyframes chainmove{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+  .s1intro .lead{font-family:'Bricolage Grotesque';font-weight:800;
+    font-size:clamp(40px,5.6vw,92px);letter-spacing:-0.04em;line-height:0.98;max-width:15ch;margin:0}
+  #whyWord{position:relative;display:inline-block;transition:color .5s ease, text-shadow .5s ease;
+    color:#ffae3b;text-shadow:0 0 22px rgba(255,170,60,0.5),0 0 46px rgba(255,140,30,0.3)}
+  .s1intro .kick{margin-top:22px;font-family:ui-monospace,monospace;font-size:12px;letter-spacing:.4em;
+    text-transform:uppercase;color:var(--muted)}
+  .ohh-img{width:100%;max-width:360px;aspect-ratio:4/3;border-radius:18px;
+    background:var(--bg2);border:1px dashed var(--line);display:flex;align-items:center;justify-content:center;
+    box-shadow:0 24px 60px rgba(0,0,0,0.22);overflow:hidden}
+  .ohh-img img{width:100%;height:100%;object-fit:cover}
+  .ohh-ph{font-family:'Inter';font-size:13px;letter-spacing:.05em;color:var(--muted);text-transform:lowercase}
+  .s1intro .by{margin:0;font-family:'Inter';font-weight:500;font-size:clamp(16px,1.5vw,21px);
+    color:var(--ink);max-width:34ch;line-height:1.45}
+  .s1intro .by .ohh{font-family:'Bricolage Grotesque';font-weight:800;font-style:italic;
+    background:linear-gradient(95deg,#ffd36b,#ff8c1a);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .s1intro .by .name{font-weight:700}
+  @media (max-width:860px){ .s1intro .introgrid{grid-template-columns:1fr;gap:32px} }
+
+
+  /* EDITORIAL LAYOUT: a left column (title/copy) + right column (the live demo) */
+  .s1stage{position:absolute;inset:0;display:grid;grid-template-columns:1fr 1fr;align-items:center;
+    padding:0 clamp(28px,6vw,96px);gap:clamp(24px,5vw,80px)}
+  /* each step layer stacked, cross-faded by JS */
+  .s1step{position:absolute;inset:0;display:grid;grid-template-columns:1fr 1fr;align-items:center;
+    padding:0 clamp(28px,6vw,96px);gap:clamp(24px,5vw,80px);
+    opacity:0;visibility:hidden;transition:opacity .55s ease, transform .55s ease;
+    transform:translateY(18px);will-change:opacity,transform;pointer-events:none}
+  .s1step.active{opacity:1;visibility:visible;transform:translateY(0)}
+  .s1step.exit{opacity:0;transform:translateY(-18px)}
+  /* left text column */
+  .s1left{align-self:center}
+  .s1num{font-family:ui-monospace,monospace;font-size:12px;letter-spacing:.4em;color:var(--muted);
+    margin-bottom:18px;text-transform:uppercase;display:flex;align-items:center;gap:12px}
+  .s1num::before{content:'';width:28px;height:1px;background:currentColor;opacity:0.5}
+  .s1title{font-family:'Bricolage Grotesque';font-weight:800;font-size:clamp(30px,3.8vw,56px);
+    letter-spacing:-0.03em;line-height:1.0;margin:0 0 20px;max-width:13ch}
+  .s1sub{font-family:'Inter';font-size:clamp(14px,1.15vw,17px);color:var(--muted);max-width:38ch;
+    line-height:1.55;margin:0}
+  /* right demo column */
+  .s1right{align-self:center;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;min-height:0;min-width:0}
+
+  /* ---- INTRO step: full-width, its own distinct layout (NOT the grid) ---- */
+  .s1step.s1intro{display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:0 clamp(28px,7vw,120px)}
+  .s1intro .kick{font-family:ui-monospace,monospace;font-size:12px;letter-spacing:.4em;
+    text-transform:uppercase;color:var(--muted);margin-bottom:24px}
+  .s1intro .lead{font-family:'Bricolage Grotesque';font-weight:800;
+    font-size:clamp(40px,6.4vw,104px);letter-spacing:-0.04em;line-height:0.98;max-width:15ch;margin:0}
+  /* the glowing lightbulb "why" */
+  .s1intro .why{position:relative;display:inline-block;
+    background:linear-gradient(95deg,#ffd36b 0%,#ffae3b 45%,#ff8c1a 100%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 0 22px rgba(255,170,60,0.55)) drop-shadow(0 0 46px rgba(255,140,30,0.3));
+    animation:whyGlow 3.2s ease-in-out infinite}
+  @keyframes whyGlow{0%,100%{filter:drop-shadow(0 0 18px rgba(255,170,60,0.45)) drop-shadow(0 0 40px rgba(255,140,30,0.25))}
+    50%{filter:drop-shadow(0 0 30px rgba(255,190,80,0.7)) drop-shadow(0 0 64px rgba(255,150,40,0.45))}}
+  .s1intro .by{margin-top:40px;font-family:'Inter';font-weight:500;
+    font-size:clamp(16px,1.5vw,22px);letter-spacing:0.01em;color:var(--ink);max-width:30ch;line-height:1.4}
+  .s1intro .by .ohh{font-family:'Bricolage Grotesque';font-weight:800;font-style:italic;
+    background:linear-gradient(95deg,#ffd36b,#ff8c1a);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .s1intro .by .name{color:var(--ink);font-weight:700}
+
+  /* INTRO — centered-poster layout: one centred column, the "ohhh" photo as the
+     centrepiece (badges band -> headline -> kick -> photo -> by-line). */
+  .s1intro .introposter{display:flex;flex-direction:column;align-items:center;text-align:center;
+    gap:clamp(14px,2vh,26px);width:100%;max-width:820px;margin:0 auto}
+  .s1intro .introposter .chainwrap{margin:0 auto 4px;max-width:460px}
+  .s1intro .introposter .lead{font-size:clamp(34px,5vw,76px);max-width:20ch;margin:0;text-align:center}
+  .s1intro .introposter .kick{margin:0}
+  /* photo sized by height so it scales with the viewport and stays the focal point */
+  .s1intro .introposter .ohh-img{width:auto;max-width:none;height:clamp(220px,34vh,380px);
+    aspect-ratio:4/3;margin:4px auto 0}
+  .s1intro .introposter .by{margin:0;max-width:36ch;text-align:center}
+
+
+  /* ---- step 1: paste simulation (cursor + right-click menu) ---- */
+  .pgnwrap{position:relative;display:inline-block}
+  .pgnbox{position:relative}
+  /* the simulated cursor */
+  .pastecursor{position:absolute;width:26px;height:26px;z-index:20;pointer-events:none;opacity:0;
+    filter:drop-shadow(0 2px 5px rgba(0,0,0,0.45));transition:opacity .25s ease, transform .12s ease}
+  .pastecursor.clicking{transform:scale(0.8)}
+  #pgnTyped.flash{animation:pasteFlash .5s ease}
+  @keyframes pasteFlash{0%{background:rgba(129,182,76,0.35)}100%{background:transparent}}
+  /* right-click context menu */
+  .ctxmenu{position:absolute;z-index:15;min-width:172px;padding:6px;border-radius:12px;
+    background:var(--bg2);border:1px solid var(--line);box-shadow:0 18px 48px rgba(0,0,0,0.4);
+    opacity:0;transform:scale(0.9) translateY(-6px);transform-origin:top left;pointer-events:none;
+    transition:opacity .18s ease, transform .18s cubic-bezier(.2,.8,.2,1)}
+  .ctxmenu.show{opacity:1;transform:scale(1) translateY(0)}
+  .ctxitem{font-family:'Inter';font-size:13px;color:var(--ink);padding:8px 12px;border-radius:7px;
+    display:flex;align-items:center;gap:9px;letter-spacing:.01em}
+  .ctxitem.dim{color:var(--muted)}
+  .ctxitem.paste.hot{background:var(--green-accent,#81b64c);color:#fff}
+  .ctxtick{width:14px;height:14px;display:inline-block;opacity:0;
+    background:no-repeat center/contain url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E")}
+  .ctxitem.paste.hot .ctxtick{opacity:1}
+  .ctxsep{height:1px;background:var(--line);margin:5px 8px}
+  /* a little Ctrl+V key hint that flashes */
+  .keyhint{position:absolute;bottom:-44px;left:0;display:flex;gap:6px;opacity:0;transition:opacity .3s}
+  .keyhint.show{opacity:1}
+  .keyhint kbd{font-family:ui-monospace,monospace;font-size:12px;padding:4px 9px;border-radius:6px;
+    background:var(--bg2);border:1px solid var(--line);box-shadow:0 2px 0 var(--line);color:var(--ink)}
+
+  /* ---- PGN paste demo (step 1) ---- */
+  .pgnbox{width:min(100%,460px);background:#272522;border:1px solid var(--line);border-radius:14px;
+    padding:18px 20px;text-align:left;font-family:ui-monospace,monospace;font-size:13px;line-height:1.7;
+    color:var(--ink);box-shadow:0 24px 60px rgba(0,0,0,0.2);position:relative;min-height:120px}
+  .pgnbox .pgnhead{font-family:'Inter';font-size:11px;letter-spacing:.18em;text-transform:uppercase;
+    color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+  .pgnbox .pgnhead::before{content:'';width:8px;height:8px;border-radius:50%;background:#81b64c;box-shadow:0 0 8px #81b64c}
+  .pgnbox .typed{color:var(--ink);word-break:break-word}
+  .caret{display:inline-block;width:2px;height:1.05em;background:var(--lamp-amber);vertical-align:-2px;
+    margin-left:1px;animation:pgnblink 1s steps(1) infinite}
+  @keyframes pgnblink{50%{opacity:0}}
+  body.light .pgnbox{background:var(--bg2)}
+
+  /* ---- analyse button demo (step 2) ---- */
+  .anwrap{position:relative;display:inline-block}
+  .anbtn{position:relative;display:inline-flex;align-items:center;gap:10px;
+    font-family:'Bricolage Grotesque';font-weight:800;font-size:18px;letter-spacing:.02em;color:#fff;
+    background:linear-gradient(180deg,#8fc25c,#7cb04a);border-radius:12px;padding:16px 34px;
+    box-shadow:0 6px 0 var(--green-edge),0 16px 30px rgba(0,0,0,0.25);
+    transition:transform .12s ease, box-shadow .12s ease}
+  .anbtn.press{transform:translateY(4px);box-shadow:0 2px 0 var(--green-edge),0 8px 18px rgba(0,0,0,0.3)}
+  .fakecursor{position:absolute;width:24px;height:24px;z-index:5;pointer-events:none;opacity:0;
+    filter:drop-shadow(0 2px 4px rgba(0,0,0,0.4))}
+  .anloader{margin-top:20px;display:flex;gap:6px;opacity:0;transition:opacity .3s}
+  .anloader.show{opacity:1}
+  .anloader i{width:9px;height:9px;border-radius:50%;background:var(--lamp-amber);animation:andot 1s ease-in-out infinite}
+  .anloader i:nth-child(2){animation-delay:.15s}.anloader i:nth-child(3){animation-delay:.3s}
+  @keyframes andot{0%,100%{transform:translateY(0);opacity:.4}50%{transform:translateY(-7px);opacity:1}}
+
+  /* ---- board card (steps 3 & 4) ---- */
+  .boardcard{display:flex;gap:14px;align-items:stretch;width:100%;
+    background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:14px;
+    box-shadow:0 30px 70px rgba(0,0,0,0.22)}
+  .evalbar{width:14px;border-radius:7px;overflow:hidden;background:#403d39;position:relative;flex:0 0 auto}
+  .evalbar .wfill{position:absolute;left:0;right:0;bottom:0;background:#f3f1ea;transition:height .8s cubic-bezier(.4,0,.2,1)}
+  .cgboard{width:min(30vw,264px);aspect-ratio:1;border-radius:6px;overflow:hidden;position:relative;flex:0 0 auto;
+    box-shadow:0 8px 24px rgba(0,0,0,0.2)}
+  .cgrow{display:flex;height:12.5%}
+  .cgsq{width:12.5%;height:100%;position:relative}
+  .cgpiece{position:absolute;inset:0;background-size:cover;background-position:center;z-index:2}
+  .cghi{position:absolute;inset:0;z-index:1}
+  .cgbad{position:absolute;inset:0;box-shadow:inset 0 0 0 3px #e0726a;z-index:3;border-radius:2px}
+  .cgstrike{position:absolute;z-index:4;height:3px;background:#e0726a;transform-origin:left center;border-radius:2px;
+    box-shadow:0 0 8px rgba(224,114,106,0.6)}
+  .cgright{flex:1;display:flex;flex-direction:column;justify-content:center;text-align:left;min-width:0;padding:4px 8px}
+  .cgbadge{display:inline-flex;align-items:center;gap:9px;font-family:'Bricolage Grotesque';font-weight:800;
+    font-size:18px;margin-bottom:12px}
+  .cgbadge img{width:28px;height:28px}
+  .cgbadge.blunder{color:#e0726a}.cgbadge.best{color:#81b64c}.cgbadge.brilliant{color:#26c2a3}
+  .cgmove{font-family:ui-monospace,monospace;font-size:13px;color:var(--muted);margin-bottom:8px}
+  .cgmove b{color:var(--ink)}
+  .cgtext{font-family:'Inter';font-size:14.5px;line-height:1.5;color:var(--ink)}
+  .cgtext .acc{color:var(--lamp-amber);font-weight:600}
+
+  /* ---- closing step (full width, distinct) ---- */
+  .s1step.s1end{display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;padding:0 clamp(28px,7vw,120px)}
+  .s1end .big{font-family:'Bricolage Grotesque';font-weight:800;font-size:clamp(26px,3.8vw,58px);
+    letter-spacing:-0.03em;line-height:1.05;max-width:20ch;margin:0 auto}
+  .s1end .big .talk{background:linear-gradient(95deg,#ffd36b,#ff8c1a);-webkit-background-clip:text;
+    background-clip:text;color:transparent;filter:drop-shadow(0 0 20px rgba(255,160,50,0.4))}
+  /* the word "Stockfish" glows green */
+  .s1end .big .talk-sf{color:#7cc451;animation:sfWordGlow 2.8s ease-in-out infinite}
+  @keyframes sfWordGlow{
+    0%,100%{text-shadow:0 0 16px rgba(124,196,81,.55),0 0 32px rgba(124,196,81,.3)}
+    50%    {text-shadow:0 0 24px rgba(124,196,81,.9),0 0 52px rgba(124,196,81,.5)}}
+
+  /* ---- step 5 closing: the Stockfish logo sits centre and "speaks" short coaching tips ---- */
+  .sf-stage{position:relative;width:100%;max-width:760px;margin:clamp(16px,4vh,44px) auto 0;
+    height:clamp(260px,34vh,340px);display:flex;align-items:center;justify-content:center;pointer-events:none}
+  .sf-orb{position:relative;width:clamp(108px,13vw,156px);aspect-ratio:1;opacity:0;transform:scale(.82);
+    transition:opacity .8s cubic-bezier(.2,.7,.2,1),transform .8s cubic-bezier(.2,.7,.2,1);transition-delay:.34s}
+  .s1sec.in-view .s1end .sf-orb{opacity:1;transform:scale(1)}
+  .sf-logo{position:relative;z-index:2;width:100%;height:100%;object-fit:contain;border-radius:24%;
+    filter:drop-shadow(0 14px 34px rgba(0,0,0,.45));animation:sfFloat 5.5s ease-in-out infinite;animation-play-state:paused}
+  /* glow matches the green of the "Stockfish" word above (#7cc451) */
+  .sf-glow{position:absolute;inset:-54%;z-index:1;border-radius:50%;
+    background:radial-gradient(circle,rgba(150,224,116,.6) 0%,rgba(124,196,81,.34) 38%,rgba(110,180,70,.1) 60%,transparent 72%);
+    filter:blur(5px);animation:sfPulse 5.5s ease-in-out infinite;animation-play-state:paused}
+  /* 3D gears wrapped around the logo — reads as Stockfish "processing" (logoGears.js).
+     canvases overflow the orb so gears peek around its edges; back is behind, front in front.
+     pointer-events:none so they never block the bubbles. */
+  .lg-canvas{position:absolute;inset:-70%;width:240%;height:240%;display:block;pointer-events:none}
+  .lg-back{z-index:1}   /* behind the logo (logo z-index:2) */
+  .lg-front{z-index:3}  /* in front of the logo */
+  .s1sec.in-view .sf-logo,.s1sec.in-view .sf-glow{animation-play-state:running}
+  @keyframes sfFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
+  @keyframes sfPulse{0%,100%{transform:scale(.94);opacity:.72}50%{transform:scale(1.06);opacity:1}}
+  @keyframes sfSpin{to{transform:rotate(360deg)}}
+  /* the short tips that drift out of the logo, fade in, hold, then dissolve — looped */
+  .sf-bubble{position:absolute;left:50%;top:50%;z-index:3;--sf-bd:rgba(150,205,110,.34);--sf-bg:rgba(26,24,20,.92);
+    font-family:'Inter',sans-serif;font-size:clamp(11px,1.05vw,13.5px);font-weight:600;line-height:1.3;
+    color:#ffffff;white-space:nowrap;text-align:left;padding:8px 14px;border-radius:13px;
+    background:var(--sf-bg);border:1px solid var(--sf-bd);
+    box-shadow:0 12px 28px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.05);backdrop-filter:blur(9px);
+    transform:translate(-50%,-50%) scale(.5);opacity:0;
+    animation:sfEmit 12s ease-in-out infinite;animation-play-state:paused}
+  .s1sec.in-view .sf-bubble{animation-play-state:running}
+  /* move-analysis bubble: rating icon + highlighted move pill + verdict, then a "why" line */
+  .sf-line{display:inline-flex;align-items:center;gap:6px}
+  .sf-rate{width:16px;height:16px;flex:0 0 auto}
+  .sf-mv{display:inline-flex;align-items:center;gap:1px;font-family:ui-monospace,monospace;font-weight:700;
+    background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.18);border-radius:6px;padding:1px 6px 1px 3px}
+  .sf-pc{width:17px;height:17px}
+  .sf-verdict{font-weight:800;letter-spacing:.01em}
+  .sf-verdict.v-brilliant{color:#26c2a3}
+  .sf-verdict.v-best{color:#81b64c}
+  .sf-verdict.v-good{color:#95b776}
+  .sf-verdict.v-blunder{color:#ca3431}
+  .sf-tip-ico{width:26px;height:26px;flex:0 0 auto;vertical-align:middle;margin-right:6px;opacity:.9}
+  .sf-why{display:block;margin-top:3px;font-size:.85em;font-weight:500;opacity:.82;white-space:nowrap}
+  body.light .sf-mv{background:rgba(0,0,0,.06);border-color:rgba(0,0,0,.12)}
+  /* curved speech tail (clip-path, WhatsApp-style) on the bubble's logo-facing side → differs by position */
+  .sf-bubble::after{content:'';position:absolute;width:13px;height:16px;background:var(--sf-bg)}
+  .sf-bubble.tail-right::after{right:-10px;top:50%;transform:translateY(-50%);
+    clip-path:path('M0 1 C 6 3, 9 6, 13 8 C 9 10, 6 13, 0 15 Z')}
+  .sf-bubble.tail-left::after{left:-10px;top:50%;transform:translateY(-50%);
+    clip-path:path('M13 1 C 7 3, 4 6, 0 8 C 4 10, 7 13, 13 15 Z')}
+  .sf-bubble.lean-down::after{top:70%}
+  .sf-bubble.lean-up::after{top:30%}
+  body.light .sf-bubble{--sf-bd:rgba(110,170,60,.42);--sf-bg:rgba(255,255,255,.96);color:#1c1b18}
+  @keyframes sfEmit{
+    0%,5%   {opacity:0;transform:translate(-50%,-50%) scale(.5)}
+    15%     {opacity:1;transform:translate(calc(-50% + var(--tx)),calc(-50% + var(--ty))) scale(1)}
+    68%     {opacity:1;transform:translate(calc(-50% + var(--tx)),calc(-50% + var(--ty))) scale(1)}
+    82%,100%{opacity:0;transform:translate(calc(-50% + var(--tx) * 1.22),calc(-50% + var(--ty) * 1.22)) scale(.97)}
+  }
+  @media (max-width:880px){
+    .sf-stage{transform:scale(.72)}
+    .sf-bubble{white-space:normal;max-width:160px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .sf-logo,.sf-glow,.sf-bubble,.s1end .big .talk-sf{animation:none}
+    .s1end .big .talk-sf{text-shadow:0 0 18px rgba(124,196,81,.6)}
+    .sf-bubble{opacity:1;transform:translate(calc(-50% + var(--tx)),calc(-50% + var(--ty)))}
+  }
+
+  /* side progress rail */
+  .s1rail{position:fixed;right:calc(var(--card-side) + 16px);top:50%;transform:translateY(-50%);z-index:8;
+    display:flex;flex-direction:column;gap:11px;opacity:0;transition:opacity .4s}
+  .s1rail.show{opacity:1}
+  .s1rail .dot{width:7px;height:7px;border-radius:50%;background:var(--line);transition:all .3s}
+  .s1rail .dot.on{background:var(--lamp-amber);transform:scale(1.5);box-shadow:0 0 10px rgba(255,160,50,0.6)}
+
+  :root{--green-accent:#81b64c;--lamp-amber:#fdb153;--green-edge:#4e7837}
+  /* title word glow-on-complete */
+  #titleReady,#titleConnect{transition:color .6s ease,text-shadow .6s ease}
+  #titleReady.lit,#titleConnect.lit{color:#8fd14a;
+    text-shadow:0 0 22px rgba(129,182,76,0.7),0 0 46px rgba(129,182,76,0.4)}
+
+  /* ===================== PER-STEP LAYOUTS (break the repetitive 50/50 pattern) =====================
+     Each step gets a layout chosen to best frame its own demo. Step 1 stays the
+     baseline (text-left / demo-right); each later step picks a different shape. */
+
+  /* STEP 2 — app-left showcase: the chess.com window goes left + wide so its game
+     rows breathe; the copy becomes a compact rail on the right. */
+  .s1step.s1-appleft{grid-template-columns:1.55fr 1fr}
+  .s1step.s1-appleft .s1right{order:-1;align-items:stretch}   /* demo to the left, fills its column */
+  .s1step.s1-appleft .ccapp{width:100%;max-width:600px}        /* lift the 478px cap so rows have room */
+  .s1step.s1-appleft .s1left{align-self:center}
+
+  @media (max-width:820px){
+    .s1step:not(.s1intro):not(.s1end){grid-template-columns:1fr;gap:24px;padding:0 28px;
+      align-content:center;justify-items:start}
+    .s1step.s1-appleft .s1right{order:0}   /* stack text-first on mobile */
+    .s1title{font-size:clamp(28px,7vw,40px)}
+    .boardcard{flex-direction:row}
+    .cgboard{width:min(54vw,260px)}
+  }
+

@@ -100,6 +100,19 @@ PGN text
 | `self-improvement/scripts/puzzles/fetch-fixtures.mjs` | Lichess puzzle DB (HF /rows scan) → `self-improvement/test/fixtures/puzzles/<theme>.csv` |
 | `frontend/public/engine/` | Stockfish 18 Lite single-threaded WASM (7.3 MB, committed) |
 | `frontend/public/badges/` | chess.com classification badges |
+| `frontend/public/landing/` | landing-page 3D assets: `models/*.glb` (6 pieces) + `textures/*_{base,nrm,mr}.jpg` (18 PBR maps) |
+
+### Landing page (separate Vite entry — `frontend/landing/`, see its README for the full "edit X here" map)
+| File | Role |
+|---|---|
+| `frontend/landing/index.html` | landing entry (2nd `rollupOptions.input` in `vite.config.ts`); three.js+GSAP code-split off the app |
+| `frontend/landing/main.js` | boot — GSAP→window, then modules in order; **resilient** (3D failure → `body.no-hero`, page still works) |
+| `frontend/landing/{pieces,scene}.js` | 3D asset manifest · three.js hero scene |
+| `frontend/landing/scroll-engine.js` | scroll-scrubbed motion framework (hero outro + hook morph) — scrub demos extend this |
+| `frontend/landing/sections.js` | per-step demo controller + reveal observers (split per-step = the planned next refactor) |
+| `frontend/landing/ui.js` | nav theme toggle + "why" colour-sync |
+| `frontend/landing/styles.css` → `styles/*.css` | @import manifest → `base` · `steps-layout` · `steps-demos` · `how-it-works` partials |
+| `frontend/landing/icons/*.svg` | 10 chess.com badge icons (externalized from inline base64) |
 
 ## To change X, edit here
 

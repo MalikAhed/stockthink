@@ -1,0 +1,10 @@
+/* StockThink landing styles — split into focused partials.
+   Edit the partial for the area you are changing; this file just orders them
+   (CSS cascade = import order, so keep the order). */
+
+@import './styles/base.css';
+@import './styles/steps-layout.css';
+@import './styles/steps-demos.css';
+@import './styles/how-it-works.css';
+@import './styles/number-to-reason.css';
+@import './styles/coach.css';

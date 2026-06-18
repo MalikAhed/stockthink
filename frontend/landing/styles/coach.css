@@ -1,0 +1,118 @@
+/* Beat 3 — "The coach" (data-step 10). CLEAN FOUNDATION.
+   A tall section with a sticky 100vh stage: one Three.js canvas (logo, centred, facing
+   the user) + a corner guide (two lines top-left, one bottom-right) that fades on scroll.
+   Scene + fade logic: coach.js. */
+
+.sec.coach{
+  /* autoplay stage — one screen; the cinematic plays in place when centred */
+  display:block; min-height:auto; height:100vh; position:relative; pointer-events:none;
+}
+
+.coach-sticky{
+  position:sticky; top:0; height:100vh; width:100%; overflow:hidden;
+  background:var(--bg);
+}
+
+/* three full-bleed layers in one centred coordinate space (so HTML overlays match the 3D projection) */
+.coach-canvas{ position:absolute; inset:0; width:100%; height:100%; display:block; z-index:0; }
+.coach-overlay{ position:absolute; inset:0; z-index:1; pointer-events:none; }
+
+/* dev replay (kept while we tune; cheap to remove later) */
+.coach-replay{
+  position:absolute; bottom:18px; right:18px; z-index:5; pointer-events:auto; cursor:pointer;
+  font:12px ui-monospace,Menlo,monospace; letter-spacing:.08em; color:var(--muted);
+  background:rgba(0,0,0,.35); border:1px solid var(--line); border-radius:7px; padding:6px 11px;
+  opacity:.55; transition:opacity .2s,color .2s;
+}
+.coach-replay:hover{ opacity:1; color:#6fc24a; }
+body.light .coach-replay{ background:rgba(255,255,255,.4); }
+
+/* code-file panel (Act 5 — 2D overlay over the canvas) */
+.coach-code{
+  position:absolute; top:50%; right:6vw; transform:translateY(-50%) translateX(40px);
+  width:min(38vw,440px); z-index:4; pointer-events:none; opacity:0;
+  background:#14171c; border:1px solid #2a2f37; border-radius:10px; overflow:hidden;
+  box-shadow:0 30px 70px rgba(0,0,0,.5); transition:opacity .5s, transform .5s;
+  font:13px/1.7 ui-monospace,Menlo,monospace;
+}
+.coach-code.show{ opacity:1; transform:translateY(-50%) translateX(0); }
+.coach-code .cc-bar{ display:flex; gap:6px; padding:9px 12px; background:#0f1216; border-bottom:1px solid #2a2f37; }
+.coach-code .cc-bar i{ width:10px; height:10px; border-radius:50%; background:#3a3f47; }
+.coach-code .cc-file{ margin-left:8px; color:#7d8590; font-size:11px; align-self:center; }
+.coach-code .cc-body{ padding:14px 16px; color:#c9d1d9; white-space:pre; }
+.coach-code .cc-line{ opacity:0; transition:opacity .25s; }
+.coach-code .cc-line.on{ opacity:1; }
+.coach-code .cc-add{ color:#6fc24a; }
+
+/* "Claude" — fades in beneath the logo as it arrives */
+.coach-name{
+  position:absolute; left:50%; top:64%; z-index:4; pointer-events:none;
+  transform:translate(-50%, 10px); opacity:0;
+  font-family:'Bricolage Grotesque',sans-serif; font-weight:600;
+  font-size:clamp(20px,2.4vw,34px); letter-spacing:.04em; color:var(--ink);
+  transition:opacity .9s ease, transform .9s cubic-bezier(.2,.7,.2,1);
+}
+.coach-name.show{ opacity:1; transform:translate(-50%, 0); }
+
+/* explainer caption — one clear line per phase, bottom-centre, legible on both themes */
+.coach-cap{
+  position:absolute; left:50%; bottom:clamp(48px,9vh,110px); z-index:4; pointer-events:none;
+  transform:translate(-50%, 14px); opacity:0; max-width:min(80vw,560px); text-align:center;
+  font-family:'Bricolage Grotesque',sans-serif; font-weight:500;
+  font-size:clamp(15px,1.8vw,22px); line-height:1.35; letter-spacing:.01em;
+  color:var(--ink); text-shadow:0 2px 18px rgba(0,0,0,.55);
+  transition:opacity .55s ease, transform .55s cubic-bezier(.2,.7,.2,1);
+}
+.coach-cap.show{ opacity:1; transform:translate(-50%, 0); }
+body.light .coach-cap{ text-shadow:0 2px 18px rgba(255,255,255,.6); }
+
+/* thought bubble above Claude (curiosity '?' then a chess piece) — JS positions it via 3D projection */
+.coach-bubble{
+  position:absolute; z-index:5; pointer-events:none; transform:translate(-50%,-100%) scale(.7);
+  transform-origin:50% 130%; opacity:0; transition:opacity .35s ease, transform .35s cubic-bezier(.2,1.3,.4,1);
+  min-width:46px; height:46px; padding:0 10px; border-radius:24px 24px 24px 6px;
+  background:#f5f3ee; color:#1a1a1a; display:flex; align-items:center; justify-content:center;
+  font-family:'Bricolage Grotesque',sans-serif; font-weight:700; font-size:26px; line-height:1;
+  box-shadow:0 10px 30px rgba(0,0,0,.4);
+}
+.coach-bubble::after{ /* the little tail */
+  content:''; position:absolute; left:8px; bottom:-7px; width:12px; height:12px;
+  background:#f5f3ee; border-radius:0 0 0 3px; transform:rotate(45deg) skew(-8deg,-8deg);
+}
+.coach-bubble.show{ opacity:1; transform:translate(-50%,-100%) scale(1); }
+.coach-bubble .cb-piece{ font-size:30px; line-height:1; }
+
+/* dev-only TUNE panel (never ships — gated by import.meta.env.DEV) */
+.coach-tune{ position:absolute; top:16px; left:16px; z-index:9; pointer-events:auto;
+  font:12px ui-monospace,Menlo,monospace; color:#e8e8e8; }
+.coach-tune .ct-toggle{ cursor:pointer; background:rgba(0,0,0,.55); color:#9fe07a;
+  border:1px solid #3a4a32; border-radius:7px; padding:6px 11px; letter-spacing:.06em; }
+.coach-tune .ct-body{ display:none; margin-top:8px; width:248px; max-height:74vh; overflow:auto;
+  background:rgba(12,14,16,.92); border:1px solid #2a2f37; border-radius:9px; padding:10px 11px; backdrop-filter:blur(6px); }
+.coach-tune.on .ct-body{ display:block; }
+.coach-tune .ct-head{ color:#9fe07a; font-weight:700; letter-spacing:.08em; text-transform:uppercase;
+  font-size:10px; margin:10px 0 5px; }
+.coach-tune .ct-head:first-child{ margin-top:0; }
+.coach-tune .ct-row{ display:grid; grid-template-columns:42px 1fr 46px; gap:6px; align-items:center; margin:3px 0; }
+.coach-tune .ct-row span{ color:#aab; }
+.coach-tune .ct-row input[type=range]{ width:100%; accent-color:#6fc24a; }
+.coach-tune .ct-num{ width:46px; background:#1a1e22; border:1px solid #333a42; border-radius:4px;
+  color:#e8e8e8; font:11px ui-monospace,monospace; padding:2px 3px; }
+.coach-tune .ct-copy{ cursor:pointer; width:100%; margin-top:11px; background:#6fc24a; color:#0a0a0a;
+  border:0; border-radius:6px; padding:7px; font-weight:700; letter-spacing:.05em; }
+
+/* ---- corner guide (HTML over the canvas) ---- */
+.coach-guide{ position:absolute; inset:0; pointer-events:none; transition:opacity .2s linear; }
+
+.cg-tl{ position:absolute; top:clamp(80px,12vh,140px); left:clamp(40px,7vw,120px); max-width:min(46%,420px); }
+.cg-tl .wd-kicker{ display:block; }
+.cg-tl .wd-title{ margin-top:14px; line-height:1.15; }
+
+.cg-br{ position:absolute; bottom:clamp(80px,12vh,140px); right:clamp(40px,7vw,120px); max-width:min(40%,340px); text-align:right; }
+/* match the house title (wd-title): Bricolage, bold, same size */
+.cg-copy{ font-family:'Bricolage Grotesque',sans-serif; font-weight:700; font-size:clamp(18px,2vw,27px); line-height:1.2; color:var(--ink); }
+
+@media (max-width:760px){
+  .cg-tl{ top:14vh; left:7vw; max-width:80vw; }
+  .cg-br{ bottom:12vh; right:7vw; left:7vw; max-width:80vw; text-align:left; }
+}

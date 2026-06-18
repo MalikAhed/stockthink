@@ -1,0 +1,283 @@
+/* the "Stockfish that talks?" hook morph + How-It-Works section */
+  /* ===================== HOW STOCKTHINK WORKS ===================== */
+  /* --- the scroll-morph hook (data-step 6) --- */
+  .hookSec{min-height:200vh;position:relative}
+  .hookStage{position:sticky;top:0;height:100vh;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;text-align:center;padding:0 clamp(28px,7vw,120px)}
+  .hookKick{font-family:ui-monospace,monospace;font-size:12px;letter-spacing:.4em;text-transform:uppercase;
+    color:var(--muted);margin-bottom:26px;opacity:0;transform:translateY(8px);transition:opacity .5s ease,transform .5s ease}
+  .hookKick.in{opacity:1;transform:none}
+  .hookTitle{font-family:'Bricolage Grotesque';font-weight:800;font-size:clamp(40px,6.4vw,104px);
+    letter-spacing:-0.04em;line-height:1.0;margin:0;
+    background:linear-gradient(95deg,#ffd36b,#ff8c1a);-webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 0 22px rgba(255,160,50,0.4));
+    transform:translateY(16vh) scale(.62);transform-origin:center center;will-change:transform,opacity;opacity:.85}
+  .hookQ{opacity:0;display:inline-block;transform:scale(.2);transform-origin:left center;
+    color:#ffa12e;-webkit-text-fill-color:#ffa12e;filter:drop-shadow(0 0 18px rgba(255,150,40,0.55))}
+  .hookQ.pop{opacity:1;transform:scale(1);transition:transform .36s cubic-bezier(.34,1.56,.64,1),opacity .18s ease}
+  .hookDot{transition:opacity .12s ease}
+  .hookDot.gone{opacity:0}
+  .hookSub{font-family:'Inter';color:var(--muted);font-size:clamp(14px,1.4vw,20px);margin-top:22px;
+    opacity:0;transform:translateY(10px);transition:opacity .45s ease,transform .45s ease}
+  .hookSub.in{opacity:1;transform:none}
+
+  /* --- shared explainer card --- */
+  .evalStage,.explainStage,.loopStage{width:100%;max-width:478px;background:var(--bg2);
+    border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:0 30px 70px rgba(0,0,0,0.22);
+    display:flex;flex-direction:column;gap:14px}
+  .miniBoard{width:min(34vw,172px);aspect-ratio:1;flex:0 0 auto;border-radius:6px;overflow:hidden;
+    position:relative;box-shadow:0 8px 24px rgba(0,0,0,0.2);background:#ebecd0}
+
+  /* --- 01 evaluate: neural net + search --- */
+  .nnet{width:100%;height:64px;display:block}
+  .nnet .nnEdge{stroke:rgba(245,243,238,0.10);stroke-width:.6}
+  .nnet .nnEdge.hot{stroke:rgba(143,209,74,0.75);stroke-width:1}
+  .nnet .nnNode{fill:#2a2a26;stroke:rgba(245,243,238,0.18);stroke-width:.6;transition:fill .25s ease}
+  .nnet .nnNode.hot{fill:#8fd14a}
+  .nnPulse{fill:#8fd14a;filter:drop-shadow(0 0 4px rgba(143,209,74,0.9));opacity:0;
+    transition:transform .2s linear,opacity .2s ease}
+  .evalRow{display:flex;gap:14px;align-items:stretch}
+  .evalHud{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:7px}
+  .depthRow{font-family:ui-monospace,monospace;font-size:13px;color:var(--muted);letter-spacing:.04em}
+  .depthRow span{color:var(--ink);font-weight:700}
+  .depthTrack{height:5px;border-radius:3px;background:#26241f;overflow:hidden}
+  .depthFill{height:100%;width:0;background:linear-gradient(90deg,#769656,#8fd14a);transition:width .2s linear}
+  .bestBadge{display:flex;align-items:center;gap:9px;margin-top:4px;opacity:0;transform:translateY(6px);
+    transition:opacity .35s ease,transform .35s ease}
+  .bestBadge.show{opacity:1;transform:none}
+  .evalNps{font-family:'Inter';font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+
+  /* --- 02 explain: pattern chips + typewriter --- */
+  .exRow{display:flex;gap:14px;align-items:stretch}
+  .boardWrap{position:relative;flex:0 0 auto;width:min(34vw,176px);aspect-ratio:1;border-radius:6px;overflow:hidden}
+  .boardWrap .miniBoard{width:100%;height:100%;box-shadow:none}
+  .scanSweep{position:absolute;left:0;right:0;top:0;height:30%;z-index:6;pointer-events:none;opacity:0;
+    background:linear-gradient(180deg,rgba(143,209,74,0) 0%,rgba(143,209,74,0.38) 50%,rgba(143,209,74,0) 100%);
+    transform:translateY(-110%)}
+  .scanSweep.run{opacity:1;transform:translateY(340%);transition:transform 1s ease,opacity .3s ease}
+  .chips{flex:1;min-width:0;display:flex;flex-direction:column;gap:7px;justify-content:center}
+  .chip{font-family:'Inter';font-size:12px;color:var(--ink);background:rgba(245,243,238,0.05);
+    border:1px solid var(--line);border-radius:8px;padding:6px 9px;display:flex;align-items:center;gap:7px;
+    opacity:0;transform:translateX(9px);transition:opacity .3s ease,transform .3s ease,border-color .3s ease,background .3s ease}
+  .chip.in{opacity:1;transform:none}
+  .chip.lit{border-color:rgba(143,209,74,0.45);background:rgba(143,209,74,0.10)}
+  .chip-k{font-size:9px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);
+    background:rgba(0,0,0,0.25);padding:2px 5px;border-radius:4px;flex:0 0 auto}
+  .chip.lit .chip-k{color:#8fd14a}
+  .exSentence{font-family:'Inter';font-size:13.5px;line-height:1.5;color:var(--ink);min-height:42px;
+    border-top:1px solid var(--line);padding-top:12px}
+  .exSentence .rev-caret{background:#8fd14a}
+
+  /* --- 03 improve: Claude learning loop --- */
+  .pipe{width:100%;height:118px;display:block}
+  .pipe .pipeEdge{stroke:rgba(245,243,238,0.10);stroke-width:1}
+  .pipe .pipeNode{fill:#2a2a26;stroke:rgba(245,243,238,0.16);stroke-width:.8}
+  .pipe .pipeLbl{fill:var(--muted);font-family:'Inter';font-size:7px;text-anchor:middle}
+  .claudeNode{fill:rgba(143,209,74,0.14);stroke:#8fd14a;stroke-width:1.4}
+  .claudeLbl{fill:#8fd14a;font-family:'Bricolage Grotesque';font-weight:800;font-size:9px}
+  .claudeG{animation:claudePulse 2.4s ease-in-out infinite;transform-origin:110px 66px}
+  @keyframes claudePulse{0%,100%{filter:drop-shadow(0 0 1px rgba(143,209,74,0.3))}
+    50%{filter:drop-shadow(0 0 7px rgba(143,209,74,0.6))}}
+  .pipePulse{opacity:0;fill:#8fd14a;filter:drop-shadow(0 0 3px rgba(143,209,74,0.85))}
+  .loopRight{display:flex;gap:14px;align-items:stretch}
+  .conceptList{flex:1;min-width:0;list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:5px;justify-content:center}
+  .conceptList li{font-family:'Inter';font-size:11.5px;color:var(--ink);background:rgba(143,209,74,0.08);
+    border:1px solid rgba(143,209,74,0.25);border-radius:7px;padding:5px 8px;
+    opacity:0;transform:translateX(10px);transition:opacity .35s ease,transform .35s ease}
+  .conceptList li.in{opacity:1;transform:none}
+  .conceptList li .plus{color:#8fd14a;font-weight:700;margin-right:5px}
+  .loopHud{display:flex;flex-direction:column;gap:8px;justify-content:center;flex:0 0 auto;min-width:92px}
+  .loopCountRow{font-family:'Inter';font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+  .loopCountRow b{display:block;font-family:'Bricolage Grotesque';font-size:26px;color:var(--ink);margin-top:2px}
+  .dayTick{font-family:ui-monospace,monospace;font-size:11px;color:var(--muted);background:rgba(245,243,238,0.05);
+    border:1px solid var(--line);border-radius:6px;padding:4px 8px;transition:color .3s ease,border-color .3s ease}
+  .dayTick.tick{color:#8fd14a;border-color:rgba(143,209,74,0.4)}
+
+  @media (prefers-reduced-motion:reduce){
+    .hookSec{min-height:100vh}
+    .hookStage{position:static;height:auto;padding:16vh 0}
+    .hookTitle{transform:none!important;opacity:1!important}
+    .hookQ{opacity:1;transform:none}.hookDot{display:none}
+    .hookKick,.hookSub{opacity:1;transform:none}
+    .nnPulse,.scanSweep,.pipePulse{display:none}
+    .claudeG{animation:none}
+    .rp{transition:none}
+  }
+
+
+  /* ===== HOW IT WORKS — rebuilt · STAGE 1: creative layout skeletons (placeholder boxes) ===== */
+  /* shared placeholder-box look (auto-sized to content unless a layout sizes it) */
+  .hiw-box{border:1.5px dashed var(--line);border-radius:12px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
+    font-family:ui-monospace,monospace;font-size:11.5px;letter-spacing:.03em;line-height:1.55;
+    color:var(--muted);padding:14px;background:rgba(255,255,255,.02)}
+  .hiw-title{color:var(--ink);font-size:13px}
+  .hiw-visual{color:var(--ink);font-size:12px;
+    background:rgba(124,196,81,.05);border-color:rgba(124,196,81,.32)}
+  /* every creative stage is one tall relative box so the visual can dominate */
+  .s1step.hiw2{position:relative;display:block;width:100%;max-width:1180px;margin:0 auto;height:min(76vh,640px)}
+
+  /* LAYOUT A · OVERLAY — visual fills the stage, caption card floats in a corner */
+  .lay-overlay .cv-fill{position:absolute;inset:0}
+  .lay-overlay .cv-card{position:absolute;left:clamp(14px,3vw,40px);bottom:clamp(14px,3vw,40px);
+    width:clamp(260px,33%,400px);z-index:2;display:flex;flex-direction:column;gap:10px;padding:16px;
+    border-radius:16px;background:rgba(14,13,10,.62);backdrop-filter:blur(10px);
+    border:1px solid var(--line);box-shadow:0 20px 50px rgba(0,0,0,.4)}
+  body.light .lay-overlay .cv-card{background:rgba(255,255,255,.72)}
+
+  /* LAYOUT B · CORNERS — title top-left, copy bottom-right, big centred visual */
+  .lay-corners .cv-center{position:absolute;inset:72px clamp(40px,13vw,200px)}
+  .lay-corners .cv-tl{position:absolute;top:0;left:0;width:min(42%,380px);z-index:2;
+    display:flex;flex-direction:column;gap:10px}
+  .lay-corners .cv-tl .hiw-box{align-items:flex-start;text-align:left}
+  .lay-corners .cv-br{position:absolute;bottom:0;right:0;width:min(42%,360px);z-index:2}
+  .lay-corners .cv-br .hiw-box{align-items:flex-end;text-align:right}
+
+  /* LAYOUT C · TOP BAND — title across the top, huge wide visual below */
+  .s1step.hiw2.lay-topband{display:flex;flex-direction:column;gap:16px}
+  .lay-topband .cv-top{display:flex;flex-direction:column;gap:10px;width:100%}
+  .lay-topband .cv-top .hiw-box{align-items:flex-start;text-align:left;width:100%}
+  .lay-topband .cv-wide{flex:1;width:100%}
+
+  /* LAYOUT D · SIDE RAIL — narrow text rail, dominant visual */
+  .s1step.hiw2.lay-siderail{display:grid;grid-template-columns:minmax(170px,.8fr) 2.4fr;
+    gap:clamp(20px,3vw,48px);align-items:stretch}
+  .lay-siderail .cv-rail{display:flex;flex-direction:column;gap:12px;align-self:center}
+  .lay-siderail .cv-rail .hiw-box{align-items:flex-start;text-align:left}
+  .lay-siderail .cv-big{height:100%}
+
+  @media (max-width:880px){
+    .s1step.hiw2{height:auto;display:flex;flex-direction:column;gap:14px}
+    .lay-overlay .cv-fill{position:relative;min-height:240px}
+    .lay-overlay .cv-card{position:relative;left:auto;bottom:auto;width:100%}
+    .lay-corners .cv-center,.lay-corners .cv-tl,.lay-corners .cv-br{position:relative;inset:auto;top:auto;left:auto;bottom:auto;right:auto;width:100%}
+    .lay-corners .cv-center{min-height:240px}
+    .lay-siderail{grid-template-columns:1fr}
+    .hiw-visual{min-height:240px}
+  }
+
+  /* ===== Beat 2 — LAYOUT E · THEATER: small header overlay + a BIG cinematic stage =====
+     The cinematic ("how we process Stockfish's output") lives in number-to-reason.{js,css}.
+     The stage fills the section; the header overlays the top, slides in from the left on reveal,
+     and recedes once the animation starts (.n2r-playing, set by the module). */
+  .s1step.hiw2.lay-theater{display:block;position:relative;height:min(86vh,800px)}
+  .lay-theater .cv-top{position:absolute;top:10px;left:0;right:0;z-index:4;
+    display:flex;flex-direction:column;align-items:center;gap:7px;
+    opacity:0;transform:translateX(-38px);transition:opacity .6s cubic-bezier(.22,1,.36,1),transform .7s cubic-bezier(.22,1,.36,1)}
+  section[data-step="8"].in-view .lay-theater .cv-top{opacity:1;transform:none}
+  .lay-theater.n2r-playing .cv-top{opacity:0!important;transform:translateY(-12px) scale(.95)!important;pointer-events:none}
+  .lay-theater .cv-stage{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+  .wd-kicker{font-family:ui-monospace,monospace;font-size:11px;letter-spacing:.42em;text-transform:uppercase;color:var(--muted)}
+  .wd-title{font-family:'Bricolage Grotesque';font-weight:700;font-size:clamp(18px,2vw,27px);
+    letter-spacing:-0.02em;line-height:1.05;margin:0;color:var(--ink)}
+
+  /* ===== Beat 1 — gears layered around the standard .s1step text ===== */
+  .gearSec{position:relative;overflow:hidden}
+  .gear-canvas{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none}
+  .gear-back{z-index:0}                 /* behind the text */
+  .gear-front{z-index:3}                /* in front of the text */
+  .gearSec .s1step{position:relative;z-index:1}   /* text sits between the two canvases */
+
+  /* ===== Beat 1 — the engine-in-your-browser demo (right side) ===== */
+  .gearSec .s1right{position:relative;z-index:4;display:flex;align-items:center;justify-content:center}
+  .engwin{width:min(700px,98%);background:#1b1a18;border:1px solid var(--line);border-radius:12px;
+    overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.45)}
+  .engbar{display:flex;align-items:center;gap:10px;padding:9px 12px;background:#232220;border-bottom:1px solid var(--line)}
+  .engdots{display:flex;gap:6px;flex:0 0 auto}
+  .engdots i{width:10px;height:10px;border-radius:50%}
+  .engdots i:nth-child(1){background:#ff5f57}
+  .engdots i:nth-child(2){background:#febc2e}
+  .engdots i:nth-child(3){background:#28c840}
+  .engurl{flex:1;display:flex;align-items:center;gap:6px;justify-content:center;font-size:12px;color:var(--muted);
+    background:#161513;border-radius:6px;padding:4px 10px;letter-spacing:.02em}
+  .englock{fill:var(--muted);flex:0 0 auto}
+  .engbody{padding:16px;display:flex;gap:14px;align-items:stretch}
+  .engboardwrap{position:relative;width:288px;height:288px;flex:0 0 auto;border-radius:6px;overflow:hidden}
+  .engboard{position:absolute;inset:0}
+  /* board scan sweep (bottom↔top) */
+  .engscan{position:absolute;left:0;right:0;height:26px;z-index:5;opacity:0;pointer-events:none;
+    background:linear-gradient(180deg,transparent,rgba(143,224,106,.55),transparent);
+    box-shadow:0 0 18px rgba(143,224,106,.5)}
+  .engscan.run{opacity:1;animation:engScan 2.2s ease-in-out infinite alternate}
+  @keyframes engScan{ from{transform:translateY(-26px)} to{transform:translateY(288px)} }
+  /* board shrinks + fades out while the engine "thinks", then returns */
+  .engboard{transform-origin:center;transition:transform .5s ease,opacity .45s ease}
+  .engboard.out{transform:scale(.84);opacity:0}
+  /* neural-net "compute" panel (matches the square-node reference, teal→green) */
+  .engnet{position:absolute;inset:0;z-index:6;background:#ffffff;
+    opacity:0;transition:opacity .45s;pointer-events:none}
+  .engnet.show{opacity:1}
+  .engnet svg{position:absolute;left:8%;top:8%;width:84%;height:84%;transition:opacity .45s}
+  .engnet.result #engNetSvg{opacity:0}
+  /* edges draw themselves (stroke-dashoffset → 0); per-line delay staged in JS */
+  .enge{stroke:#141414;stroke-width:2.6;stroke-linecap:round;fill:none;animation:engDraw .7s ease forwards}
+  @keyframes engDraw{ to{stroke-dashoffset:0} }
+  /* nodes solid (no pulse); they fade with the panel when the search is done */
+  .engn-f{fill:#57bf3c;stroke:none}
+  .engn-o{fill:#fff;stroke:#141414;stroke-width:2.6}
+  /* "Calculating… → Processing…" loader above the network */
+  .engcalc{position:absolute;top:7%;left:0;right:0;text-align:center;z-index:2;
+    font:600 12px ui-monospace,monospace;letter-spacing:.16em;text-transform:uppercase;color:#5a5a5a;
+    opacity:0;transition:opacity .28s}
+  .engnet.show .engcalc{opacity:1}
+  .engcalc.swap{opacity:0}
+  .engnet.result .engcalc{opacity:0}
+  /* the engine's output pops on the white panel, then the panel fades and the board returns */
+  .engresult{position:absolute;inset:0;z-index:7;display:flex;align-items:center;justify-content:center;
+    opacity:0;transform:scale(.78);transition:opacity .4s ease,transform .4s cubic-bezier(.2,.9,.3,1.3);pointer-events:none}
+  .engnet.result .engresult{opacity:1;transform:scale(1)}
+  .er-in{display:flex;align-items:center;gap:11px;font:800 36px 'Bricolage Grotesque','Inter',sans-serif;
+    letter-spacing:-.01em;color:#474747}
+  .er-in img{width:32px;height:32px}
+  /* the StockThink app sidebar */
+  .engside{flex:1;display:flex;flex-direction:column;gap:10px;min-width:0}
+  .engcard{background:#232220;border:1px solid var(--line);border-radius:8px;padding:9px 11px}
+  .engcard-h{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
+  .engexp{flex:1}
+  .engexp-text{display:none;font-size:12.5px;line-height:1.5;color:var(--ink)}
+  .engexp-text::after{content:'▌';margin-left:1px;color:#6fc24a;animation:engCaret .9s steps(1) infinite}
+  .engexp-text.done::after{content:''}
+  @keyframes engCaret{ 50%{opacity:0} }
+  .engskel{display:flex;flex-direction:column;gap:7px}
+  .engskel i{display:block;height:8px;border-radius:4px;
+    background:linear-gradient(90deg,#322f2b 25%,#3d3a35 50%,#322f2b 75%);background-size:200% 100%;
+    animation:engShimmer 1.3s linear infinite}
+  .engskel i:nth-child(1){width:92%} .engskel i:nth-child(2){width:100%}
+  .engskel i:nth-child(3){width:78%} .engskel i:nth-child(4){width:64%}
+  @keyframes engShimmer{ from{background-position:200% 0} to{background-position:-200% 0} }
+  /* move log — reuses step-3 .ml-* classes; .cur = most-recent move (light grey) */
+  .engml .ml-list{display:flex;flex-direction:column;gap:1px}
+  .engml .ml-row{display:grid;grid-template-columns:20px 1fr 1fr;gap:0 4px;align-items:center;font-size:12px;color:var(--ink);padding:1px 0}
+  .engml .ml-num{color:var(--muted);font-size:10.5px;user-select:none}
+  .engml .ml-w,.engml .ml-b{display:inline-flex;align-items:center;gap:2px;padding:1px 5px;border-radius:4px}
+  .engml .ml-pico{width:15px;height:15px;flex:0 0 auto;vertical-align:middle}
+  .engml .cur{background:rgba(255,255,255,0.14)}
+  body.light .engml .cur{background:rgba(0,0,0,0.09)}
+  .enggraph svg{display:block;width:100%;height:40px}
+  .enggraph polyline{fill:none;stroke:#8fe06a;stroke-width:2;vector-effect:non-scaling-stroke}
+  .enggraph .engarea{fill:rgba(143,224,106,.16);stroke:none}
+  body.light .engwin{background:#f4f3f0;box-shadow:0 24px 60px rgba(0,0,0,.18)}
+  body.light .engbar{background:#e8e7e3}
+  body.light .engurl{background:#fff}
+  body.light .engcard{background:#fff}
+  body.light .engskel i{background:linear-gradient(90deg,#e6e4df 25%,#efeee9 50%,#e6e4df 75%);background-size:200% 100%}
+
+  /* ===== search phase: depth/nodes HUD + candidate arrows narrowing to the best move ===== */
+  .engarrows{position:absolute;inset:0;z-index:6;pointer-events:none;opacity:0;transition:opacity .35s}
+  .engarrows.show{opacity:1}
+  #engAh path{fill:#6fc24a}
+  .eng-arr{stroke:#6fc24a;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;fill:none}
+  .eng-arr-best{stroke-width:3.2;opacity:1}
+  /* depth/nodes readout — big stat numbers + small labels at the panel's foot */
+  .enghud{position:absolute;bottom:12px;left:0;right:0;z-index:7;display:flex;justify-content:center;gap:34px;
+    opacity:0;transform:translateY(4px);transition:opacity .35s,transform .35s;pointer-events:none}
+  .enghud.show{opacity:1;transform:none}
+  .enghud-pill{display:flex;flex-direction:column;align-items:center;gap:2px;line-height:1}
+  .enghud-pill b{font:700 21px ui-monospace,monospace;color:#2f9e1e;letter-spacing:-.01em}
+  .enghud-pill i{font:600 9px 'Inter',sans-serif;font-style:normal;letter-spacing:.18em;text-transform:uppercase;color:#9a9a94}
+  .engbest{position:absolute;bottom:10px;left:50%;transform:translateX(-50%) translateY(8px);z-index:7;
+    display:flex;align-items:center;gap:6px;background:rgba(10,10,9,.82);backdrop-filter:blur(4px);
+    border:1px solid rgba(143,224,106,.5);border-radius:100px;padding:5px 13px 5px 8px;
+    font:600 13px 'Inter',sans-serif;color:#fff;opacity:0;transition:opacity .35s,transform .35s;pointer-events:none}
+  .engbest img{width:17px;height:17px}
+  .engbest.show{opacity:1;transform:translateX(-50%)}

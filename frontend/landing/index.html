@@ -1,0 +1,427 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>StockThink</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body class="pre-intro">
+<div id="cardFrame"></div>
+<div id="cardMask"></div>
+<div id="cardEdge"></div>
+<div id="amb1" style="opacity:0"></div><div id="amb2" style="opacity:0"></div>
+<div id="grain" style="opacity:0"></div><div id="vignette" style="opacity:0"></div>
+
+<nav>
+  <div class="brand">StockThink</div>
+  <div class="links"><a href="#">Product</a><a href="#hookSec">How it works</a><a href="#">Pricing</a></div>
+  <button id="navThemeToggle" aria-label="Toggle theme"><span class="nav-toggle-icon">☀️</span><span id="navToggleLabel">Light</span></button>
+</nav>
+
+<main id="pageClip">
+<section class="sec hero" id="heroSec">
+  <div id="canvasBg" style="position:absolute;inset:0;z-index:2;pointer-events:none;background:transparent"></div>
+  <canvas id="cBack"></canvas>
+  <canvas id="c"></canvas>
+  <div id="hero">
+    <div class="wordmark"><span class="w">STOCK</span><span class="w">THINK</span></div>
+    <div id="tagline"><span class="dot"></span>The why behind every move<span class="dot"></span></div>
+  </div>
+</section>
+<!-- ===================== SECTION 1: How it works ===================== -->
+<section class="sec s1sec" data-step="0">
+<div class="s1step s1intro active" data-step="0">
+          <div class="introposter">
+              <div class="chainwrap">
+            <div class="chaintrack"><img class="chainb" data-color="#26c2a3" src="./icons/brilliant.svg" alt="brilliant"/><img class="chainb" data-color="#749bbf" src="./icons/great.svg" alt="great"/><img class="chainb" data-color="#81b64c" src="./icons/best.svg" alt="best"/><img class="chainb" data-color="#81b64c" src="./icons/excellent.svg" alt="excellent"/><img class="chainb" data-color="#95b776" src="./icons/good.svg" alt="good"/><img class="chainb" data-color="#a88865" src="./icons/book.svg" alt="book"/><img class="chainb" data-color="#f0c15c" src="./icons/inaccuracy.svg" alt="inaccuracy"/><img class="chainb" data-color="#e58f2a" src="./icons/mistake.svg" alt="mistake"/><img class="chainb" data-color="#ee6b55" src="./icons/miss.svg" alt="miss"/><img class="chainb" data-color="#ca3431" src="./icons/blunder.svg" alt="blunder"/><img class="chainb" data-color="#26c2a3" src="./icons/brilliant.svg" alt="brilliant"/><img class="chainb" data-color="#749bbf" src="./icons/great.svg" alt="great"/><img class="chainb" data-color="#81b64c" src="./icons/best.svg" alt="best"/><img class="chainb" data-color="#81b64c" src="./icons/excellent.svg" alt="excellent"/><img class="chainb" data-color="#95b776" src="./icons/good.svg" alt="good"/><img class="chainb" data-color="#a88865" src="./icons/book.svg" alt="book"/><img class="chainb" data-color="#f0c15c" src="./icons/inaccuracy.svg" alt="inaccuracy"/><img class="chainb" data-color="#e58f2a" src="./icons/mistake.svg" alt="mistake"/><img class="chainb" data-color="#ee6b55" src="./icons/miss.svg" alt="miss"/><img class="chainb" data-color="#ca3431" src="./icons/blunder.svg" alt="blunder"/></div>
+          </div>
+              <h2 class="lead">The <span class="why" id="whyWord">&ldquo;why&rdquo;</span><br>behind every Stockfish move.</h2>
+              <div class="kick">Open source &middot; runs in your browser</div>
+              <div class="ohh-img" id="ohhImg">
+                <span class="ohh-ph">your &ldquo;ohhh&rdquo; photo</span>
+              </div>
+              <p class="by">Built by <span class="name">Malik Abuallatta</span> &mdash; to make you go <span class="ohh">&ldquo;ohhh.&rdquo;</span></p>
+          </div>
+        </div>
+</section>
+
+<section class="sec s1sec" data-step="1">
+<div class="s1step" data-step="1">
+          <div class="s1left">
+            <div class="s1num">Step 01</div>
+            <h3 class="s1title">Get your game <span id="titleReady">ready</span>.</h3>
+            <p class="s1sub">Paste a PGN from anywhere &mdash; chess.com, Lichess, or your own board &mdash; then hit analyse. Stockfish&nbsp;18 spins up right on your machine. No server, no waiting on anyone else.</p>
+          </div>
+          <div class="s1right">
+            <div class="demo-stack" id="getReady">
+              <!-- 1) paste box -->
+              <div class="pgnwrap">
+                <div class="pgnbox" id="pgnBox">
+                  <div class="pgnhead">Paste PGN</div>
+                  <div class="typed"><span id="pgnTyped"></span><span class="caret" id="pgnCaret"></span></div>
+                  <div class="ctxmenu" id="ctxMenu">
+                    <div class="ctxitem dim">Cut</div>
+                    <div class="ctxitem dim">Copy</div>
+                    <div class="ctxitem paste" id="ctxPaste"><span class="ctxtick"></span>Paste</div>
+                    <div class="ctxsep"></div>
+                    <div class="ctxitem dim">Select All</div>
+                  </div>
+                </div>
+                <svg class="pastecursor" id="pasteCursor" viewBox="0 0 24 24"><path d="M5 3l14 7-6 1.5L10 18 5 3z" fill="#fff" stroke="#000" stroke-width="1.3" stroke-linejoin="round"/></svg>
+              </div>
+              <!-- 2) analyse button: disabled until a game is pasted, then it lights up -->
+              <div class="anwrap">
+                <button class="anbtn" id="anBtn" disabled aria-disabled="true">
+                  <svg class="anbtn-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="6" y1="20" x2="6" y2="13"/><line x1="12" y1="20" x2="12" y2="5"/><line x1="18" y1="20" x2="18" y2="10"/></svg>
+                  <span class="anbtn-label" id="anLabel">Analyse game</span>
+                </button>
+                <svg class="fakecursor" id="fakeCursor" viewBox="0 0 24 24"><path d="M5 3l14 7-6 1.5L10 18 5 3z" fill="#fff" stroke="#000" stroke-width="1.3" stroke-linejoin="round"/></svg>
+              </div>
+              <!-- 3) progress panel: revealed once analyse is clicked -->
+              <div class="progwrap" id="progWrap">
+                <div class="progpanel">
+                  <div class="progtop">
+                    <span class="progpct" id="progPct">0%</span>
+                    <span class="progbadge" id="progBadge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Game analysed</span>
+                  </div>
+                  <div class="progtrack"><div class="progfill" id="progFill"></div></div>
+                  <div class="progtext" id="progText">Starting engines&hellip;</div>
+                  <div class="progquip" id="progQuip"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+</section>
+
+<section class="sec s1sec" data-step="2">
+<div class="s1step s1-appleft" data-step="2">
+          <div class="s1left">
+            <div class="s1num">Step 02</div>
+            <h3 class="s1title">Or just <span id="titleConnect">connect</span> chess.com</h3>
+            <p class="s1sub">Link your account and StockThink pulls in your game history &mdash; then pick any game and review it in one click. Yours, a rival&rsquo;s, or a streamer&rsquo;s.</p>
+          </div>
+          <div class="s1right">
+            <div class="ccapp" id="ccApp">
+              <div class="cc-search">
+                <div class="cc-search-box" id="ccBox">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.8-3.8"/></svg>
+                  <input id="ccUser" type="text" placeholder="chess.com username" readonly tabindex="-1">
+                </div>
+                <button class="anbtn cc-find" id="ccFind"><span class="cc-find-spin" id="ccSpin"></span><span id="ccFindLabel">Find games</span></button>
+                <svg class="fakecursor" id="ccCursor" viewBox="0 0 24 24"><path d="M5 3l14 7-6 1.5L10 18 5 3z" fill="#fff" stroke="#000" stroke-width="1.3" stroke-linejoin="round"/></svg>
+              </div>
+              <div class="cc-reveal" id="ccPlayerWrap">
+                <div class="cc-player">
+                  <span class="cc-avatar"><span class="cc-avatar-letter">M</span></span>
+                  <div class="cc-player-main">
+                    <div class="cc-player-name"><span>MalikAhed</span><span class="cc-realname">Malik Abuallatta</span></div>
+                    <div class="cc-ratings">
+                      <span class="cc-rating"><span class="cc-tc cc-tc-bullet"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M14.2 3.4c1.9-.8 4-.9 5.6-.2.7 1.6.6 3.7-.2 5.6-.8 1.9-2.2 3.8-4.1 5.7l-2.6 2.6-6-6 2.6-2.6c1.9-1.9 3.8-3.3 4.7-5.1zM6 15l3 3-4.6 3.1c-.5.3-1-.2-.7-.7L6 15z"/></svg></span>1382</span>
+                      <span class="cc-rating"><span class="cc-tc cc-tc-blitz"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4.5 13.5h5L9.5 22 18 10.5h-5L13 2z"/></svg></span>1455</span>
+                      <span class="cc-rating"><span class="cc-tc cc-tc-rapid"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 9.5V13l2.4 1.8M9.5 2.5h5"/></svg></span>1604</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="cc-reveal" id="ccListWrap">
+                <div class="cc-toolbar"><span class="cc-month">June 2026</span><span class="cc-count">12 games</span></div>
+                <div class="cc-list" id="ccList"><div class="cc-row" data-game="MalikAhed-d_petrov"><span class="cc-tc cc-tc-rapid"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 9.5V13l2.4 1.8M9.5 2.5h5"/></svg></span><div class="cc-game"><div class="cc-players"><span class="cc-dot white"></span><span class="cc-name me">MalikAhed</span><span class="cc-elo">(1604)</span><span class="cc-vs">vs</span><span class="cc-dot black"></span><span class="cc-name">d_petrov</span><span class="cc-elo">(1588)</span></div><div class="cc-meta">2 days ago &middot; 41 moves &middot; Won by checkmate &middot; 88% acc</div></div><span class="cc-res win">+</span><span class="cc-status" data-status></span><svg class="cc-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m9.5 6 6 6-6 6"/></svg></div><div class="cc-row" data-game="a_navarro-MalikAhed"><span class="cc-tc cc-tc-blitz"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4.5 13.5h5L9.5 22 18 10.5h-5L13 2z"/></svg></span><div class="cc-game"><div class="cc-players"><span class="cc-dot white"></span><span class="cc-name">a_navarro</span><span class="cc-elo">(1497)</span><span class="cc-vs">vs</span><span class="cc-dot black"></span><span class="cc-name me">MalikAhed</span><span class="cc-elo">(1471)</span></div><div class="cc-meta">4 days ago &middot; 28 moves &middot; Lost on time &middot; 79% acc</div></div><span class="cc-res loss">−</span><span class="cc-status" data-status></span><svg class="cc-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m9.5 6 6 6-6 6"/></svg></div><div class="cc-row" data-game="MalikAhed-kk_lindq"><span class="cc-tc cc-tc-rapid"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 9.5V13l2.4 1.8M9.5 2.5h5"/></svg></span><div class="cc-game"><div class="cc-players"><span class="cc-dot white"></span><span class="cc-name me">MalikAhed</span><span class="cc-elo">(1596)</span><span class="cc-vs">vs</span><span class="cc-dot black"></span><span class="cc-name">kk_lindq</span><span class="cc-elo">(1610)</span></div><div class="cc-meta">Last week &middot; 53 moves &middot; Draw by repetition &middot; 84% acc</div></div><span class="cc-res draw">=</span><span class="cc-status" data-status></span><svg class="cc-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m9.5 6 6 6-6 6"/></svg></div><div class="cc-row" data-game="s_okoye-MalikAhed"><span class="cc-tc cc-tc-bullet"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M14.2 3.4c1.9-.8 4-.9 5.6-.2.7 1.6.6 3.7-.2 5.6-.8 1.9-2.2 3.8-4.1 5.7l-2.6 2.6-6-6 2.6-2.6c1.9-1.9 3.8-3.3 4.7-5.1zM6 15l3 3-4.6 3.1c-.5.3-1-.2-.7-.7L6 15z"/></svg></span><div class="cc-game"><div class="cc-players"><span class="cc-dot white"></span><span class="cc-name">s_okoye</span><span class="cc-elo">(1442)</span><span class="cc-vs">vs</span><span class="cc-dot black"></span><span class="cc-name me">MalikAhed</span><span class="cc-elo">(1450)</span></div><div class="cc-meta">Last week &middot; 19 moves &middot; Won by resignation &middot; 81% acc</div></div><span class="cc-res win">+</span><span class="cc-status" data-status></span><svg class="cc-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m9.5 6 6 6-6 6"/></svg></div></div>
+                <div class="cc-actionbar" id="ccActionbar">
+                  <span class="cc-selcount" id="ccSelCount">Select games to analyse</span>
+                  <button class="anbtn cc-analyse" id="ccAnalyse" disabled aria-disabled="true">
+                    <span class="cc-find-spin" id="ccAnalyseSpin"></span>
+                    <span id="ccAnalyseLabel">Analyse games</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+</section>
+
+<section class="sec s1sec" data-step="3">
+<div class="s1step s1review" data-step="3">
+          <div class="s1left">
+            <div class="s1num">Step 03</div>
+            <h3 class="s1title">Learn from your <span class="glow-mistake"><svg class="inline-blunder-ico" viewBox="0 0 18 19" xmlns="http://www.w3.org/2000/svg"><circle cx="9" cy="9.5" r="9" fill="#ca3431"/><path fill="#fff" d="M14.74 5A2.58 2.58 0 0 0 14 4a3.76 3.76 0 0 0-1.09-.56 4.07 4.07 0 0 0-1.2-.19 3.92 3.92 0 0 0-1.18.17 5.87 5.87 0 0 0-.9.37 3 3 0 0 0-.32.2 3.46 3.46 0 0 1 .42.63 3.29 3.29 0 0 1 .36 1.47.31.31 0 0 0 .19-.06l.11-.08a2.9 2.9 0 0 1 .29-.19 3.89 3.89 0 0 1 .41-.17 1.55 1.55 0 0 1 .48-.07 1.1 1.1 0 0 1 .72.24.72.72 0 0 1 .23.26.8.8 0 0 1 .07.34 1 1 0 0 1-.25.67 7.71 7.71 0 0 1-.65.63 6.2 6.2 0 0 0-.48.43 2.93 2.93 0 0 0-.45.54 2.55 2.55 0 0 0-.33.66 2.62 2.62 0 0 0-.13.83v.35a.24.24 0 0 0 0 .12.35.35 0 0 0 .17.17l.12 0h1.71l.12 0a.23.23 0 0 0 .1-.07.21.21 0 0 0 .06-.1.27.27 0 0 0 0-.12V10.3a1 1 0 0 1 .26-.7q.27-.28.66-.63a5.79 5.79 0 0 0 .51-.48 4.51 4.51 0 0 0 .48-.6 2.56 2.56 0 0 0 .36-.72 2.81 2.81 0 0 0 .14-1A2.66 2.66 0 0 0 14.74 5Z"/><path fill="#fff" d="M12.38 12.15H10.5l-.12 0a.34.34 0 0 0-.18.29v1.82a.36.36 0 0 0 .08.23.23.23 0 0 0 .1.07l.12 0h1.88a.24.24 0 0 0 .12 0 .26.26 0 0 0 .11-.07.36.36 0 0 0 .07-.1.28.28 0 0 0 0-.13V12.46a.27.27 0 0 0 0-.12.61.61 0 0 0-.07-.1.32.32 0 0 0-.23-.09ZM6.79 12.15H4.91l-.12 0a.34.34 0 0 0-.18.29v1.82a.36.36 0 0 0 .08.23.23.23 0 0 0 .1.07l.12 0H6.79a.24.24 0 0 0 .12 0A.26.26 0 0 0 7 14.51a.36.36 0 0 0 .07-.1.28.28 0 0 0 0-.13V12.46a.27.27 0 0 0 0-.12.61.61 0 0 0-.07-.1.32.32 0 0 0-.21-.09ZM8.39 4A3.76 3.76 0 0 0 7.3 3.48a4.07 4.07 0 0 0-1.2-.19A3.92 3.92 0 0 0 4.92 4a5.87 5.87 0 0 0-.9.37 3.37 3.37 0 0 0-.55.38l-.21.19a.32.32 0 0 0 0 .41l1 1.2a.26.26 0 0 0 .2.12.48.48 0 0 0 .24-.06l.11-.08a2.9 2.9 0 0 1 .29-.19l.4-.17A1.66 1.66 0 0 1 6 5.56a1.1 1.1 0 0 1 .72.24.72.72 0 0 1 .23.26A.77.77 0 0 1 7 6.4a1 1 0 0 1-.26.67 7.6 7.6 0 0 1-.64.63 6.28 6.28 0 0 0-.49.43 2.93 2.93 0 0 0-.45.54 2.72 2.72 0 0 0-.33.66 2.62 2.62 0 0 0-.13.83v.35a.43.43 0 0 0 0 .12.39.39 0 0 0 .08.1.18.18 0 0 0 .1.07.21.21 0 0 0 .12 0H6.72l.12 0a.23.23 0 0 0 .1-.07.36.36 0 0 0 .07-.1A.5.5 0 0 0 7 10.3a1 1 0 0 1 .27-.7A8 8 0 0 1 8 9c.18-.15.35-.31.52-.48A7 7 0 0 0 9 7.89a3.23 3.23 0 0 0 .36-.72 3.07 3.07 0 0 0 .13-1A2.66 2.66 0 0 0 9.15 5 2.58 2.58 0 0 0 8.39 4Z"/></svg>mistakes</span>.</h3>
+            <p class="s1sub">Every slip gets named and explained &mdash; in plain words, as it happens. Watch a greedy queen grab a defended bishop.</p>
+          </div>
+          <div class="s1right">
+            <div class="rev-panel">
+              <div class="rev-evalcol">
+                <span class="rev-evalnum" id="revEvalTop">0.0</span>
+                <div class="rev-evalbar"><div class="rev-evalfill" id="revEval"></div></div>
+                <span class="rev-evalnum" id="revEvalBot">0.0</span>
+              </div>
+              <div class="revboard" id="revBoard"></div>
+              <div class="rev-sidebar">
+                <!-- card 1: explanation bubble -->
+                <div class="rev-explain-card" id="revComment">
+                  <div class="rev-card-head" id="revCardHead">
+                    <img class="rev-card-ico" id="revCardIco" src="./icons/blunder.svg" alt="blunder"/>
+                    <span class="rev-card-title">Blunder</span>
+                    <span class="rev-card-move" id="revMove"><img class="rev-mv-ico" src="https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bq.png" alt="Queen">xe5</span>
+                  </div>
+                  <div class="rev-card-body">
+                    <span class="rev-idle" id="revIdle">Following the moves&hellip;</span>
+                    <span class="rev-analysing hide" id="revAnalysing"><span class="cc-spin"></span>Analysing&hellip;</span>
+                    <span class="rev-text" id="revText"></span><span class="rev-caret" id="revCaret"></span>
+                  </div>
+                </div>
+                <!-- card 2: move log (last 4 moves visible) -->
+                <div class="rev-moves-card">
+                  <div class="rev-moves-hdr">Moves</div>
+                  <div class="rev-movelog" id="revMovelog"></div>
+                </div>
+                <!-- card 3: eval graph -->
+                <div class="rev-graph-card">
+                  <div class="rev-graph-label">Eval history</div>
+                  <svg class="rev-graph" id="revGraph" viewBox="0 0 100 36" preserveAspectRatio="none">
+                    <line class="rev-graph-mid" x1="0" y1="18" x2="100" y2="18"/>
+                    <path class="rev-graph-fill" id="revGraphFill" d=""/>
+                    <polyline class="rev-graph-line" id="revGraphLine" points=""/>
+                    <circle class="rev-graph-dot" id="revGraphDot" cx="0" cy="18" r="2.5" opacity="0"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+</section>
+
+<section class="sec s1sec" data-step="4">
+<div class="s1step s1better" data-step="4">
+          <div class="s1left">
+            <div class="s1num">Step 04</div>
+            <h3 class="s1title">See what would&rsquo;ve been better.</h3>
+            <p class="s1sub">Your move gets a tick &mdash; then the strongest move is revealed, with the reason it wins.</p>
+          </div>
+          <div class="s1right">
+            <div class="rev-panel s4panel">
+              <div class="rev-evalcol">
+                <span class="rev-evalnum" id="s4EvalTop">0.0</span>
+                <div class="rev-evalbar"><div class="rev-evalfill" id="s4Eval"></div></div>
+                <span class="rev-evalnum" id="s4EvalBot">0.0</span>
+              </div>
+              <div class="revboard" id="board4"></div>
+              <div class="rev-sidebar">
+                <!-- comment card (good move -> then best move) -->
+                <div class="rev-explain-card s4-explain" id="s4Comment">
+                  <div class="rev-card-head" id="s4CardHead">
+                    <img class="rev-card-ico" id="s4CardIco" src="./icons/good.svg" alt="good"/>
+                    <span class="rev-card-title" id="s4CardTitle">Good move</span>
+                    <span class="rev-card-move" id="s4CardMove"><img class="rev-mv-ico" src="https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wq.png" alt="Queen">f3</span>
+                  </div>
+                  <div class="rev-card-body" id="s4CardBody">
+                    <span class="rev-idle" id="s4Idle">Following the moves&hellip;</span>
+                    <span class="rev-analysing hide" id="s4Analysing"><span class="cc-spin"></span>Analysing&hellip;</span>
+                    <span class="rev-text" id="s4Text"></span><span class="rev-caret" id="s4Caret"></span>
+                    <span class="s4-strikeline" id="s4Strike"></span>
+                  </div>
+                  <button class="s4-showbtn" id="s4ShowBtn" type="button"><span class="s4-showbtn-ico">★</span>Show best move</button>
+                  <button class="s4-nextbtn" id="s4NextBtn" type="button"><span class="s4-nextbtn-ico">◂</span>Back to game analysis</button>
+                </div>
+                <!-- move log -->
+                <div class="rev-moves-card">
+                  <div class="rev-moves-hdr">Moves</div>
+                  <div class="rev-movelog" id="s4Movelog"></div>
+                </div>
+                <!-- eval graph -->
+                <div class="rev-graph-card">
+                  <div class="rev-graph-label">Eval history</div>
+                  <svg class="rev-graph" id="s4Graph" viewBox="0 0 100 36" preserveAspectRatio="none">
+                    <line class="rev-graph-mid" x1="0" y1="18" x2="100" y2="18"/>
+                    <path class="rev-graph-fill" id="s4GraphFill" d=""/>
+                    <polyline class="rev-graph-line" id="s4GraphLine" points=""/>
+                    <circle class="rev-graph-dot" id="s4GraphDot" cx="0" cy="18" r="2.5" opacity="0"/>
+                  </svg>
+                </div>
+              </div>
+              <svg class="fakecursor s4-cursor" id="s4Cursor" viewBox="0 0 24 24"><path d="M5 3l14 7-6 1.5L10 18 5 3z" fill="#fff" stroke="#000" stroke-width="1.3" stroke-linejoin="round"/></svg>
+            </div>
+          </div>
+        </div>
+</section>
+
+<section class="sec s1sec" data-step="5">
+<div class="s1step s1end" data-step="5">
+          <div class="s1num">Every day</div>
+          <h2 class="big">Improve with the <span class="talk-sf">Stockfish</span> <span class="talk">that talks.</span></h2>
+          <!-- the logo sits centre and "speaks" short coaching tips that drift outward -->
+          <div class="sf-stage">
+            <div class="sf-orb">
+              <div class="sf-glow"></div>
+              <!-- 3D gears wrapped around the logo (gear.glb via logoGears.js):
+                   .lg-back sits BEHIND the logo (z1), .lg-front in FRONT (z3) → real depth -->
+              <canvas class="lg-canvas lg-back" aria-hidden="true"></canvas>
+              <img class="sf-logo" src="./stockfishLOGO.png" alt="Stockfish"/>
+              <canvas class="lg-canvas lg-front" aria-hidden="true"></canvas>
+            </div>
+            <span class="sf-bubble tail-right lean-down" style="--tx:-250px;--ty:-60px;animation-delay:0s">
+              <span class="sf-line"><img class="sf-rate" src="./icons/best.svg" alt=""><span class="sf-mv"><img class="sf-pc" src="https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wn.png" alt="">xe4</span><span class="sf-verdict v-best">Best move</span></span>
+              <span class="sf-why">Why: wins a clean central pawn.</span>
+            </span>
+            <span class="sf-bubble tail-left lean-down" style="--tx:248px;--ty:-50px;animation-delay:2s"><img class="sf-tip-ico" src="./icons/learnbooksvg.png" alt="">Castle early — king safety first.</span>
+            <span class="sf-bubble tail-right" style="--tx:-288px;--ty:24px;animation-delay:4s">
+              <span class="sf-line"><img class="sf-rate" src="./icons/blunder.svg" alt=""><span class="sf-mv"><img class="sf-pc" src="https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wq.png" alt="">xh2??</span><span class="sf-verdict v-blunder">Blunder</span></span>
+              <span class="sf-why">Why: the queen is lost to Kxh2.</span>
+            </span>
+            <span class="sf-bubble tail-left" style="--tx:280px;--ty:38px;animation-delay:6s">
+              <span class="sf-line"><img class="sf-rate" src="./icons/good.svg" alt=""><span class="sf-mv"><img class="sf-pc" src="https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wb.png" alt="">g5</span><span class="sf-verdict v-good">Good move</span></span>
+              <span class="sf-why">Why: pins the knight to the queen.</span>
+            </span>
+            <span class="sf-bubble tail-right lean-up" style="--tx:-208px;--ty:104px;animation-delay:8s"><img class="sf-tip-ico" src="./icons/learnbooksvg.png" alt="">Rooks belong on open files.</span>
+            <span class="sf-bubble tail-left lean-up" style="--tx:220px;--ty:106px;animation-delay:10s">
+              <span class="sf-line"><img class="sf-rate" src="./icons/brilliant.svg" alt=""><span class="sf-mv"><img class="sf-pc" src="https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wr.png" alt="">xf7!</span><span class="sf-verdict v-brilliant">Brilliant</span></span>
+              <span class="sf-why">Why: a rook sac that cracks the king open.</span>
+            </span>
+          </div>
+        </div>
+</section>
+
+<!-- ============ HOW STOCKTHINK WORKS ============ -->
+<!-- data-step 6: the scroll-morph hook — "Stockfish that talks." rises to centre and gains a "?" -->
+<section class="sec s1sec hookSec" id="hookSec" data-step="6">
+  <div class="hookStage" id="hookStage">
+    <div class="hookKick" id="hookKick">How StockThink works</div>
+    <h2 class="hookTitle" id="hookTitle">Stockfish that talks<span class="hookDot" id="hookDot">.</span><span class="hookQ" id="hookQ">?</span></h2>
+    <div class="hookSub" id="hookSub">Three things happen the moment you hit analyse.</div>
+  </div>
+</section>
+
+<!-- ===== HOW STOCKTHINK WORKS — rebuilt · STAGE 1: creative layout options (boxes only) ===== -->
+<!-- Beat 1 — 3D gears wrap the title in real z-depth, scroll-scrubbed. No card. -->
+<!-- (the Higgsfield "analysis" video will sit behind, as .gear-visual, later) -->
+<!-- Beat 1 — text LEFT (proven s1step layout) + gears behind (z0) and in front (z3) of it -->
+<section class="sec s1sec gearSec" data-step="7">
+  <canvas class="gear-canvas gear-back" aria-hidden="true"></canvas>
+  <div class="s1step" data-step="7">
+          <div class="s1left">
+            <div class="s1num">01 / 03</div>
+            <h3 class="s1title">The strongest engine — right in your browser.</h3>
+            <p class="s1sub">Stockfish 18 — the engine that outplays every grandmaster — runs entirely on your device. No servers, no uploads. Your games never leave your machine.</p>
+          </div>
+          <div class="s1right">
+            <div class="engwin" id="engWin">
+              <div class="engbar">
+                <span class="engdots"><i></i><i></i><i></i></span>
+                <div class="engurl">
+                  <svg class="englock" viewBox="0 0 24 24" width="12" height="12" aria-hidden="true"><path d="M6 10V8a6 6 0 0 1 12 0v2h1a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1h1zm2 0h8V8a4 4 0 0 0-8 0v2z"/></svg>
+                  <span>your device · offline</span>
+                </div>
+              </div>
+              <div class="engbody">
+                <div class="engboardwrap">
+                  <div class="engboard" id="engBoard"></div>
+                  <div class="engscan" id="engScan"></div>
+                  <svg class="engarrows" id="engArrows" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+                    <defs><marker id="engAh" markerWidth="3.4" markerHeight="3.4" refX="1.7" refY="1.7" orient="auto"><path d="M0,0 L3.4,1.7 L0,3.4 Z"></path></marker></defs>
+                    <g id="engArrowG"></g>
+                  </svg>
+                  <div class="engnet" id="engNet">
+                    <div class="engcalc" id="engCalc">Calculating…</div>
+                    <svg id="engNetSvg" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" aria-hidden="true"></svg>
+                    <div class="engresult" id="engResult"><span class="er-in"><img src="./icons/best.svg" alt="best"><span>Nxf7</span></span></div>
+                  </div>
+                  <div class="enghud" id="engHud">
+                    <span class="enghud-pill"><b id="engDepth">1</b><i>depth</i></span>
+                    <span class="enghud-pill"><b id="engNodes">0</b><i>nodes</i></span>
+                  </div>
+                  <div class="engbest" id="engBest"><img src="./icons/best.svg" alt="best"><span>Nxf7</span></div>
+                </div>
+                <div class="engside">
+                  <div class="engcard engexp" id="engExp">
+                    <div class="engcard-h">Explanation</div>
+                    <div class="engskel" id="engSkel"><i></i><i></i><i></i><i></i></div>
+                    <div class="engexp-text" id="engExpText"></div>
+                  </div>
+                  <div class="engcard engml">
+                    <div class="engcard-h">Moves</div>
+                    <div class="ml-list">
+                      <div class="ml-row"><span class="ml-num">12</span><span class="ml-w"><img class="ml-pico" src="https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wb.png" alt="">c4</span><span class="ml-b"><img class="ml-pico" src="https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bn.png" alt="">f6</span></div>
+                      <div class="ml-row"><span class="ml-num">13</span><span class="ml-w"><img class="ml-pico" src="https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wn.png" alt="">g5</span><span class="ml-b">d5</span></div>
+                      <div class="ml-row"><span class="ml-num">14</span><span class="ml-w">exd5</span><span class="ml-b cur"><img class="ml-pico" src="https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bn.png" alt="">xd5</span></div>
+                    </div>
+                  </div>
+                  <div class="engcard enggraph">
+                    <svg viewBox="0 0 200 56" preserveAspectRatio="none" aria-hidden="true">
+                      <polygon class="engarea" points="0,30 28,26 56,32 84,20 112,28 140,14 168,22 200,10 200,56 0,56"></polygon>
+                      <polyline points="0,30 28,26 56,32 84,20 112,28 140,14 168,22 200,10"></polyline>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+  <canvas class="gear-canvas gear-front" aria-hidden="true"></canvas>
+</section>
+
+<!-- Beat 2 — LAYOUT E · THEATER: centered header + the "number → reason" cinematic.
+     The 960×540 stage's DOM + timeline are built entirely by number-to-reason.js (self-contained,
+     its own IntersectionObserver). Spec: stockthink-number-to-reason-animation.md. -->
+<section class="sec s1sec" data-step="8">
+<div class="s1step hiw2 lay-theater" data-step="8">
+          <div class="cv-top">
+            <div class="wd-kicker">02 / 03</div>
+            <h3 class="wd-title">How we process Stockfish’s output.</h3>
+          </div>
+          <div class="cv-stage">
+            <div class="n2r-fit" id="n2rFit"><div class="n2r-stage" id="n2rStage" role="img" aria-label="StockThink turns raw Stockfish output into one plain-English reason"></div></div>
+          </div>
+        </div>
+</section>
+
+<!-- Beat 3 — "The coach" (data-step 10). AUTOPLAY 3D CINEMATIC (plan: coach-plan.md).
+     One Three.js scene: Claude logo acts out the overnight self-improvement loop. The
+     corner guide shows at rest, then fades when the cinematic plays. Scene: coach.js.
+     NOTE: book + board are PLACEHOLDER boxes this pass — choreography first, GLBs next. -->
+<section class="sec coach" data-step="10">
+  <!-- One full-viewport sticky stage, three explicit layers, all full-bleed (inset:0) and sharing one
+       centred coordinate space so the HTML overlays line up with the 3D projection (see coach.js). -->
+  <div class="coach-sticky">
+    <!-- z0 — the 3D stage. Composition is camera-driven; nothing here is laid out by CSS. -->
+    <canvas id="coachScene" class="coach-canvas"></canvas>
+    <!-- z1 — the 2D HUD overlay. JS mounts the caption, name + thought-bubble in here. pointer-events:none. -->
+    <div class="coach-overlay" id="coachOverlay">
+      <div class="coach-guide" id="coachGuide">
+        <div class="cg-tl">
+          <div class="wd-kicker">THE COACH · 03 / 03</div>
+          <div class="wd-title">A coach that studies<br>while you sleep.</div>
+        </div>
+        <div class="cg-br">
+          <div class="cg-copy">Every night it gets a little better at explaining your game.</div>
+        </div>
+      </div>
+    </div>
+    <!-- z2 — chrome (dev replay; the dev Tune panel also mounts here). -->
+    <button class="coach-replay" id="coachReplay" type="button">↻ Replay</button>
+  </div>
+</section>
+
+</main><!-- /pageClip -->
+
+<footer class="page-corners">
+  <div class="meta bl">Chess Intelligence<br>Est. 2026</div>
+  <div class="meta br">Powered by analysis<br>Move by move</div>
+</footer>
+
+<div class="s1rail" id="s1rail">
+  <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+</div>
+
+
+<div id="load">
+  <div class="lw" id="loadWord"></div>
+  <div class="bar"><i id="loadBar"></i></div>
+  <div class="pct" id="loadPct">0%</div>
+</div>
+
+<script type="module" src="./main.js"></script>
+</body>
+</html>
