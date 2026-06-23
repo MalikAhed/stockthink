@@ -1,0 +1,38 @@
+/* ===== The finale — "the basement endgame" (data-step: ender) =====
+   A tall scroll track with a sticky full-viewport canvas; scroll progress will drive the
+   camera timeline (Phase 2). PHASE 1 just parks the establishing shot. The whole page flips
+   to black while the finale is on screen (body.ending) so a light theme transitions into the
+   cinematic dark — see ender.js. */
+/* No hard black panel here: the section + sticky backgrounds are TRANSPARENT so nothing dark
+   "cuts in" as the section scrolls up. The only black is the gradient veil (.ender-fade), and the
+   scene canvas fades in via opacity (driven by ender.js) — so the whole screen fades to black
+   uniformly, then the basement is revealed. */
+/* shorter than the old scrubbed finale (was 350vh): the video autoplays once on arrival, so the track only
+   needs room for the fade-to-black dissolve in + a comfortable beat to watch it, not a full scrub length. */
+.ender { position: relative; height: 220vh; }
+.ender-sticky { position: sticky; top: 0; height: 100vh; width: 100%; overflow: hidden; }
+/* now a <video> (was a WebGL canvas): cover-fit the viewport, start hidden (revealed under the veil) */
+.ender-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; opacity: 0; object-fit: cover; background: #000; }
+/* 2D HUD layer (captions + rating badges mount here in Phase 3); shares the canvas coord space */
+.ender-overlay { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
+
+/* the fade-to-black veil (driven by ender.js): a top-most full-screen black overlay whose opacity is
+   scrubbed by scroll — it fades the screen to black as the coach leaves, then lifts to reveal the
+   basement scene. Above all chrome; inert when clear. */
+.ender-fade { position: fixed; inset: 0; background: #000; opacity: 0; pointer-events: none; z-index: 60; }
+
+/* ---- the theme flip: chrome recedes while the finale is on screen ----
+   The page-background darkening is scroll-driven in ender.js (light theme only, reversible), so it is
+   NOT flipped here — that keeps dark theme unchanged and lets the transition scrub with scroll. */
+body.ending nav { opacity: 0; pointer-events: none; transition: opacity .6s ease; }
+body.ending .s1rail { opacity: 0; transition: opacity .6s ease; }
+body.ending .page-corners .meta { color: #4a5a50; transition: color .6s ease; }
+
+/* ---- performance-lite fallbacks (set by perf.js when a tier is disabled at boot OR by the watchdog) ----
+   The 3D those sections rendered is gone, so collapse/hide them instead of leaving a blank canvas or a
+   350vh black gap. The text-bearing sections keep their content; only the 3D layers are removed. */
+/* the finale is a pre-rendered video now — it plays on EVERY tier (that's the point), so it is NOT hidden
+   on lite-cinema. Only the coach is still live WebGL and gets collapsed on weak devices. */
+body.lite-cinema #coachScene { display: none; }
+body.lite-gears .gear-back, body.lite-gears .gear-front,
+body.lite-gears .lg-back, body.lite-gears .lg-front { display: none; }

@@ -22,27 +22,71 @@
   .n2r-world{position:absolute;inset:0;transform:scale(1.02);transition:transform .7s var(--eo)}
   .n2r-stage.play .n2r-world{transform:none}
 
-  /* step + caption are narration pills (dark, light text) so they read on the dark IDE AND the light stage */
-  .n2r-step{position:absolute;left:50%;bottom:50px;transform:translateX(-50%);z-index:9;
-    background:rgba(8,12,10,.55);backdrop-filter:blur(6px);border-radius:7px;padding:4px 13px;
-    font:600 10px/1 ui-monospace,monospace;letter-spacing:.26em;text-transform:uppercase;color:#aebab1;
-    opacity:0;transition:opacity .4s var(--eo)}
-  .n2r-step.in{opacity:1}.n2r-step b{color:var(--accent-soft);font-weight:700}
-  .n2r-cap{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);max-width:80%;z-index:9;text-align:center;
-    background:rgba(8,12,10,.55);backdrop-filter:blur(6px);border-radius:9px;padding:7px 17px;
-    font:14px/1.45 var(--sans);color:#eaf1ea;opacity:0;transition:opacity .4s var(--eo)}
-  .n2r-cap.in{opacity:1}
+  /* Narration is a clean lower-third (Anthropic-demo style): a green step kicker + a large white
+     caption over a soft radial scrim — no boxy pills, readable on the dark IDE AND the light stage,
+     and it covers almost nothing (the scrim only sits in the very bottom strip). */
+  .n2r-step{position:absolute;left:50%;bottom:76px;transform:translateX(-50%);z-index:9;pointer-events:none;
+    font:800 11px/1 ui-monospace,monospace;letter-spacing:.34em;text-transform:uppercase;color:#7fe0a8;
+    text-shadow:0 1px 9px rgba(0,0,0,.55);opacity:0;transition:opacity .4s var(--eo)}
+  .n2r-step.in{opacity:1}.n2r-step b{color:#fff;font-weight:800}
+  .n2r-cap{position:absolute;left:50%;bottom:34px;transform:translateX(-50%) translateY(7px);max-width:760px;z-index:9;
+    text-align:center;pointer-events:none;font:600 17px/1.42 var(--sans);color:#fff;letter-spacing:.004em;
+    text-shadow:0 1px 11px rgba(0,0,0,.6);opacity:0;transition:opacity .42s var(--eo),transform .42s var(--eo)}
+  .n2r-cap.in{opacity:1;transform:translateX(-50%) translateY(0)}
+  .n2r-cap::before{content:'';position:absolute;left:50%;bottom:-42px;transform:translateX(-50%);width:980px;height:160px;
+    z-index:-1;background:radial-gradient(58% 100% at 50% 100%,rgba(5,8,7,.72) 0%,rgba(5,8,7,.4) 46%,transparent 76%)}
+  /* Captions stay WHITE (like the title card) in BOTH themes, over the same soft DARK scrim — so the
+     light theme no longer flips them dark or shows a bright white glow at the bottom of the stage. */
 
   /* ---------- ACT 1/2 — Mac desktop + VS Code (the camera zooms in) ---------- */
   .n2r-desk{position:absolute;inset:0;transform-origin:0 0;transform:translate(0,0) scale(1);
     transition:transform 1.15s var(--eio),opacity .5s var(--eo);
-    background:radial-gradient(130% 110% at 50% -10%,#13271f,#0a120e 70%)}
+    /* macOS-style wallpaper: aurora gradient with two soft light blooms */
+    background:
+      radial-gradient(120% 80% at 18% 8%, rgba(90,130,230,.85) 0%, transparent 52%),
+      radial-gradient(120% 90% at 86% 92%, rgba(220,110,160,.8) 0%, transparent 55%),
+      linear-gradient(150deg,#1a2470 0%,#3a4ea8 38%,#7b5fb0 68%,#c77fa0 100%)}
   .n2r-menubar{position:absolute;top:0;left:0;right:0;height:22px;display:flex;align-items:center;gap:16px;
     padding:0 14px;background:rgba(8,12,10,.5);backdrop-filter:blur(8px);font:600 11px/1 var(--sans);color:#d3dcd5}
   .n2r-menubar .sp{margin-left:auto;font-weight:500;color:#aebab1}
+  /* macOS dock */
+  .n2r-dock{position:absolute;left:50%;bottom:8px;transform:translateX(-50%);z-index:5;
+    display:flex;align-items:center;gap:8px;padding:5px 9px;border-radius:16px;
+    background:rgba(255,255,255,.18);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.28);
+    box-shadow:0 12px 30px rgba(0,0,0,.35)}
+  .n2r-dapp{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;
+    color:#fff;box-shadow:0 4px 9px rgba(0,0,0,.32)}
+  img.n2r-dapp{object-fit:contain;background:none;box-shadow:0 3px 8px rgba(0,0,0,.34)}
+  .n2r-dapp.stock{background:linear-gradient(180deg,#8fe06a,#5ca838);font:700 18px/1 'Inter',sans-serif}
+  .n2r-dsep{width:1px;height:26px;background:rgba(255,255,255,.32);margin:0 1px}
   .n2r-vscode{position:absolute;left:130px;top:70px;width:700px;height:398px;border-radius:9px;overflow:hidden;
     background:#1e1e1e;border:1px solid #050505;box-shadow:0 30px 70px rgba(0,0,0,.6);
-    display:flex;flex-direction:column;font-family:ui-monospace,"SF Mono",Menlo,monospace}
+    display:flex;flex-direction:column;font-family:ui-monospace,"SF Mono",Menlo,monospace;
+    transition:opacity .45s var(--eo),transform .5s var(--eio)}
+  .n2r-vscode.n2r-closed{opacity:0;transform:scale(.55);transform-origin:50% 130%;pointer-events:none}  /* genie-open from the dock */
+  /* opening title card + the cursor that opens VS Code from the dock */
+  .n2r-titlecard{position:absolute;left:50%;top:43%;transform:translate(-50%,-50%) scale(.96);z-index:7;text-align:center;
+    opacity:0;transition:opacity .55s var(--eo),transform .55s var(--eo);pointer-events:none;text-shadow:0 2px 26px rgba(0,0,0,.55)}
+  .n2r-titlecard.in{opacity:1;transform:translate(-50%,-50%) scale(1)}
+  .n2r-tc-k{font:800 13px/1 ui-monospace,monospace;letter-spacing:.42em;text-transform:uppercase;color:#7fe0a8;margin-bottom:15px}
+  .n2r-tc-t{font-family:'Bricolage Grotesque','Inter',sans-serif;font-weight:800;font-size:46px;line-height:1.07;color:#fff;letter-spacing:-.02em}
+  body.light .n2r-tc-t{color:#fff}
+  .n2r-cursor{position:absolute;width:24px;height:24px;z-index:11;opacity:0;pointer-events:none;
+    filter:drop-shadow(0 3px 5px rgba(0,0,0,.45));
+    transition:left .62s cubic-bezier(.3,.7,.3,1),top .62s cubic-bezier(.3,.7,.3,1),opacity .3s var(--eo),transform .12s ease}
+  .n2r-cursor svg{width:100%;height:100%;display:block}
+  .n2r-cursor.show{opacity:1}
+  .n2r-cursor.clicking{transform:scale(.78)}
+  .n2r-dapp.bounce{animation:n2rDockBounce .55s var(--eo)}
+  @keyframes n2rDockBounce{0%,100%{transform:translateY(0)}42%{transform:translateY(-13px)}}
+  /* app explanation card: a brief loading shimmer, then the verdict fades in (matches the other demos) */
+  .n2r-askel{display:none;flex-direction:column;gap:8px;padding:8px 0 4px}
+  .n2r-askel i{height:9px;border-radius:5px;background:linear-gradient(90deg,rgba(125,135,128,.16) 25%,rgba(125,135,128,.34) 50%,rgba(125,135,128,.16) 75%);background-size:200% 100%;animation:n2rShimmer 1.15s linear infinite}
+  .n2r-askel i:nth-child(1){width:54%}.n2r-askel i:nth-child(2){width:92%}.n2r-askel i:nth-child(3){width:74%}
+  .n2r-aexplain .n2r-ahead,.n2r-aexplain .n2r-abody{transition:opacity .45s var(--eo)}
+  .n2r-aexplain.loading .n2r-askel{display:flex}
+  .n2r-aexplain.loading .n2r-ahead,.n2r-aexplain.loading .n2r-abody{opacity:0}
+  @keyframes n2rShimmer{to{background-position:-200% 0}}
   .vs-title{height:30px;flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:0 12px;background:#323233}
   .vs-title .dots{display:flex;gap:6px}.vs-title .dots i{width:9px;height:9px;border-radius:50%}
   .vs-title .dots i:nth-child(1){background:#ff5f57}.vs-title .dots i:nth-child(2){background:#febc2e}.vs-title .dots i:nth-child(3){background:#28c840}
@@ -107,7 +151,7 @@
   .n2r-mrow.match{background:var(--accent-dim)}.n2r-mrow.match .nm{color:var(--accent-soft)}
 
   /* ---------- ACT 4 — the StockThink app, then zoom into the explanation ---------- */
-  .n2r-app{position:absolute;left:40px;top:54px;width:880px;height:432px;border-radius:13px;overflow:hidden;
+  .n2r-app{position:absolute;left:130px;top:87px;width:700px;height:366px;border-radius:13px;overflow:hidden;
     border:1px solid var(--line);background:#101513;opacity:0;transform:scale(.95);transform-origin:0 0;
     box-shadow:0 30px 70px rgba(0,0,0,.5);transition:opacity .5s var(--eo),transform 1.15s var(--eio);z-index:7}
   body.light .n2r-app{background:#f4f6f3}
@@ -116,17 +160,47 @@
   .n2r-appbar .dots{display:flex;gap:6px}.n2r-appbar .dots i{width:9px;height:9px;border-radius:50%;background:#3a463e}
   .n2r-appbar .u{flex:1;text-align:center;font:12px/1 ui-monospace,monospace;color:var(--mute)}
   .n2r-appbody{position:absolute;left:0;right:0;top:34px;bottom:0;display:flex;gap:14px;padding:16px}
-  .n2r-aeval{width:11px;flex:0 0 auto;border-radius:6px;background:var(--line);overflow:hidden;position:relative}
-  .n2r-aeval i{position:absolute;left:0;right:0;bottom:0;height:24%;background:var(--mute)}
-  .n2r-aboard{position:relative;width:300px;height:300px;flex:0 0 auto;border-radius:6px;overflow:hidden;align-self:flex-start}
-  .n2r-aside{flex:1;display:flex;flex-direction:column;gap:12px;min-width:0}
-  .n2r-arating{display:flex;align-items:center;gap:9px;font:700 16px/1 var(--sans);color:var(--ink)}
-  .n2r-arating .badge{width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;background:#c0392b;color:#fff;font:800 15px/1 var(--sans)}
-  .n2r-arating .mv{margin-left:auto;font:600 13px/1 ui-monospace,monospace;color:var(--mute)}
-  .n2r-acomment{flex:0 0 auto;background:var(--white);border:1px solid var(--line);border-radius:10px;padding:14px 15px;box-shadow:0 8px 24px rgba(0,0,0,.12)}
-  .n2r-acomment .ch{font:600 9px/1 ui-monospace,monospace;letter-spacing:.16em;text-transform:uppercase;color:#9aa29a;margin-bottom:8px}
-  .n2r-acomment .ct{font:500 16px/1.5 var(--sans);color:#16201a}
-  .n2r-acomment .ct b{color:#3a7d28;font-weight:700}
+  /* eval bar — white winning (~+3): white fill from the bottom, slightly different curve than the panel */
+  .n2r-aeval{width:12px;flex:0 0 auto;border-radius:7px;background:#39413c;overflow:hidden;position:relative;align-self:stretch}
+  body.light .n2r-aeval{background:#cfd4cd}
+  .n2r-aeval i{position:absolute;left:0;right:0;bottom:0;height:74%;border-radius:7px 7px 0 0;background:linear-gradient(180deg,#f7f8f5,#dadfd7)}
+  .n2r-aboard{position:relative;width:300px;height:300px;flex:0 0 auto;border-radius:8px;overflow:hidden;align-self:flex-start;box-shadow:0 6px 20px rgba(0,0,0,.25)}
+  .n2r-aside{flex:1;display:flex;flex-direction:column;gap:10px;min-width:0;height:300px}
+  .n2r-acard{border-radius:8px;overflow:hidden}
+  /* explanation card — the SAME white card as the Step-03 "Learn from your mistakes" review card
+     (#f8f7f5, dark text) in BOTH themes, not a theme-flipped dark panel. */
+  .n2r-aexplain{flex:1 1 auto;min-height:0;background:#f8f7f5;border:1px solid rgba(0,0,0,.1);
+    border-radius:14px;padding:11px 13px;display:flex;flex-direction:column;box-shadow:0 2px 10px rgba(0,0,0,.18)}
+  .n2r-ach2{font:600 10px/1 'Inter',system-ui,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#8a8780;margin-bottom:7px}
+  .n2r-ahead{display:flex;align-items:center;gap:7px;padding-bottom:7px;margin-bottom:8px;border-bottom:1px solid rgba(0,0,0,.08)}
+  .n2r-aico{width:20px;height:20px;flex:0 0 auto}
+  .n2r-atitle{font:800 14px/1 'Bricolage Grotesque',sans-serif;color:#16201a;letter-spacing:-.01em}
+  .n2r-amove{margin-left:auto;display:inline-flex;align-items:center;gap:2px;font:12px/1 ui-monospace,monospace;
+    color:#8a8780;background:rgba(0,0,0,.06);padding:1px 6px;border-radius:6px}
+  .n2r-amove img{width:17px;height:17px}
+  .n2r-abody{font:12.5px/1.7 'Inter',sans-serif;color:#16201a;overflow:hidden}
+  .n2r-abody b{color:#3a7d28;font-weight:700}
+  /* moves card — dark log like the review panel (#232220, matches the explanation card) */
+  .n2r-amoves{flex:0 0 auto;background:#232220;border:1px solid rgba(245,243,238,.08)}
+  body.light .n2r-amoves{background:#fff;border-color:rgba(0,0,0,.08)}
+  /* eval-history graph card — same style as Step-03, but the curve DROPS at the blunder */
+  .n2r-agraph{flex:0 0 auto;background:#232220;border:1px solid rgba(245,243,238,.08);padding:6px 11px 8px}
+  body.light .n2r-agraph{background:#fff;border-color:rgba(0,0,0,.08)}
+  .n2r-agsvg{display:block;width:100%;height:30px}
+  .n2r-agmid{stroke:rgba(245,243,238,.12);stroke-width:.8}
+  body.light .n2r-agmid{stroke:rgba(0,0,0,.1)}
+  .n2r-agfill{fill:url(#n2rGraphGrad)}
+  .n2r-agline{fill:none;stroke:#81b64c;stroke-width:1.6;stroke-linejoin:round;stroke-linecap:round;filter:drop-shadow(0 1px 2px rgba(129,182,76,.35))}
+  .n2r-agdot{fill:#ca3431;stroke:#fbfaf8;stroke-width:1.2}
+  .n2r-ach{font:700 9px/1 var(--sans);letter-spacing:.12em;text-transform:uppercase;color:#8a8780;padding:8px 11px 6px}
+  .n2r-amllist{padding:0 11px 9px;display:flex;flex-direction:column;gap:2px}
+  .n2r-mlrow{display:grid;grid-template-columns:24px 1fr 1fr;gap:2px;font:12.5px/1.6 ui-monospace,monospace;color:#cfcdc6;align-items:center}
+  body.light .n2r-mlrow{color:#3a3833}
+  .n2r-mlnum{color:#7d7a72}
+  .n2r-mlw,.n2r-mlb{display:inline-flex;align-items:center;gap:3px}
+  .n2r-mlb.blun{color:#e05a56}
+  .n2r-mlw img,.n2r-mlb img{width:15px;height:15px}
+  .n2r-mlbadge{width:13px;height:13px;margin-left:3px}
   .n2r-asq{position:absolute;width:12.5%;height:12.5%}
   .n2r-ahi{position:absolute;width:12.5%;height:12.5%;background:rgba(255,235,90,.55)}
   .n2r-ap{position:absolute;width:12.5%;height:12.5%;background-size:88%;background-position:center;background-repeat:no-repeat}

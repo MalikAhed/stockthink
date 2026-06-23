@@ -1,3 +1,5 @@
+import { Reel, Scrubber } from './scrub.js';
+
 // ===== SECTION 1 controller (independent of three.js module) =====
 
 
@@ -49,6 +51,10 @@
   /* =================== STEP 1: "Get your game ready" combined demo ===================
      paste a PGN -> the disabled Analyse button lights up -> cursor clicks ->
      progress bar + live quips -> "Game analysed". */
+  // Step-1 "get your game ready" demo runs on a Reel for frame-seeking.
+  const reel1 = new Reel({ name: 'step 1 · get ready', loop: false });
+  const at1 = (ms, fn, label) => reel1.at(ms, fn, label);
+  const ev1 = (ms, fn) => reel1.every(ms, fn);
   function resetGetReady(){
     clear1();
     const typed=$('pgnTyped'); if(typed){ typed.textContent=''; typed.classList.remove('flash'); }
@@ -66,37 +72,38 @@
     $('progBadge')?.classList.remove('show');
     document.getElementById('titleReady')?.classList.remove('lit');
   }
-  function playGetReady(){
-    resetGetReady();
+  function playGetReadyBuild(){
+    reel1.cue(880,'paste menu'); reel1.cue(2060,'PGN pasted'); reel1.cue(2680,'Analyse lit'); reel1.cue(3920,'analysing'); reel1.cue(4180,'progress bar');
     const box=$('pgnBox'), cur=$('pasteCursor'), menu=$('ctxMenu'), paste=$('ctxPaste'), typed=$('pgnTyped');
     if(!box||!cur||!menu||!paste||!typed) return;
     const bw=box.clientWidth, bh=box.clientHeight;
     cur.style.left=(bw*0.7)+'px'; cur.style.top=(bh+50)+'px';
-    T1(200,()=>{ cur.style.transition='left .55s cubic-bezier(.3,.7,.3,1),top .55s cubic-bezier(.3,.7,.3,1),opacity .25s';
+    at1(200,()=>{ cur.style.transition='left .55s cubic-bezier(.3,.7,.3,1),top .55s cubic-bezier(.3,.7,.3,1),opacity .25s';
       cur.style.opacity='1'; cur.style.left=(bw*0.42)+'px'; cur.style.top=(bh*0.5)+'px'; });
-    T1(880,()=>{ cur.classList.add('clicking'); menu.style.left=(bw*0.42)+'px'; menu.style.top=(bh*0.5)+'px'; menu.classList.add('show'); });
-    T1(1030,()=>cur.classList.remove('clicking'));
-    T1(1300,()=>{ const br=box.getBoundingClientRect(), pr=paste.getBoundingClientRect();
+    at1(880,()=>{ cur.classList.add('clicking'); menu.style.left=(bw*0.42)+'px'; menu.style.top=(bh*0.5)+'px'; menu.classList.add('show'); });
+    at1(1030,()=>cur.classList.remove('clicking'));
+    at1(1300,()=>{ const br=box.getBoundingClientRect(), pr=paste.getBoundingClientRect();
       cur.style.left=((pr.left-br.left)+pr.width*0.5)+'px'; cur.style.top=((pr.top-br.top)+pr.height*0.5)+'px'; });
-    T1(1720,()=>paste.classList.add('hot'));
-    T1(1920,()=>cur.classList.add('clicking'));
-    T1(2060,()=>{ cur.classList.remove('clicking'); menu.classList.remove('show');
+    at1(1720,()=>paste.classList.add('hot'));
+    at1(1920,()=>cur.classList.add('clicking'));
+    at1(2060,()=>{ cur.classList.remove('clicking'); menu.classList.remove('show');
       typed.textContent=PGN; void typed.offsetWidth; typed.classList.add('flash'); });
-    T1(2380,()=>{ cur.style.opacity='0'; });
+    at1(2380,()=>{ cur.style.opacity='0'; });
     // the analyse button lights up now that a game is in
-    T1(2680,()=>{ const btn=$('anBtn'); if(btn){ btn.disabled=false; btn.classList.add('lit'); } });
+    at1(2680,()=>{ const btn=$('anBtn'); if(btn){ btn.disabled=false; btn.classList.add('lit'); } });
     // fake cursor flies to the button and clicks it
-    T1(3120,()=>{ const btn=$('anBtn'), fc=$('fakeCursor'); if(!btn||!fc) return;
+    at1(3120,()=>{ const btn=$('anBtn'), fc=$('fakeCursor'); if(!btn||!fc) return;
       const br=btn.getBoundingClientRect();
       fc.style.transition='none'; fc.style.left=(br.width*0.5+46)+'px'; fc.style.top=(br.height+58)+'px'; fc.style.opacity='0'; void fc.offsetWidth;
       fc.style.transition='left .55s cubic-bezier(.3,.7,.3,1),top .55s cubic-bezier(.3,.7,.3,1),opacity .3s';
       fc.style.opacity='1'; fc.style.left=(br.width*0.5-6)+'px'; fc.style.top=(br.height*0.5)+'px'; });
-    T1(3760,()=>{ $('anBtn')?.classList.add('press'); $('fakeCursor')?.classList.add('clicking'); });
-    T1(3920,()=>{ $('anBtn')?.classList.remove('press'); $('fakeCursor')?.classList.remove('clicking');
+    at1(3760,()=>{ $('anBtn')?.classList.add('press'); $('fakeCursor')?.classList.add('clicking'); });
+    at1(3920,()=>{ $('anBtn')?.classList.remove('press'); $('fakeCursor')?.classList.remove('clicking');
       const lbl=$('anLabel'); if(lbl) lbl.textContent='Analysing\u2026';
-      $('progWrap')?.classList.add('show'); T1(240,runProgress); });
-    T1(4260,()=>{ $('fakeCursor') && ($('fakeCursor').style.opacity='0'); });
+      $('progWrap')?.classList.add('show'); at1(240,runProgress); });
+    at1(4260,()=>{ $('fakeCursor') && ($('fakeCursor').style.opacity='0'); });
   }
+  reel1.load(playGetReadyBuild, resetGetReady);
   const QUIPS=['Stockfish 18 is crunching every position\u2026','Checking captures, checks and threats first\u2026',
     'Grading each move, from book to blunder\u2026','Measuring how the win chances swing\u2026',
     'No servers \u2014 your machine does all the work\u2026','Hunting for brilliancies and missed wins\u2026'];
@@ -105,18 +112,18 @@
     if(!fill) return;
     const TOTAL=24; let qi=0;
     const showQuip=()=>{ if(!quip) return; quip.classList.add('q-out');
-      T1(150,()=>{ quip.textContent=QUIPS[qi%QUIPS.length]; qi++; quip.classList.remove('q-out'); }); };
+      at1(150,()=>{ quip.textContent=QUIPS[qi%QUIPS.length]; qi++; quip.classList.remove('q-out'); }); };
     showQuip();
-    const quipId=I1(950,showQuip);
-    const DUR=2400, t0=performance.now();
-    (function step(now){
-      const p=Math.min(1,(now-t0)/DUR);
+    const quipH=ev1(950,showQuip);
+    const DUR=2400, t0=reel1.time();   // drive the bar off the reel clock so it seeks frame-by-frame
+    const barH=ev1(16,()=>{
+      const p=Math.min(1,(reel1.time()-t0)/DUR);
       const e=p<0.5?4*p*p*p:1-Math.pow(-2*p+2,3)/2;   // easeInOutCubic
       const v=Math.round(e*100);
       fill.style.width=v+'%'; if(pct) pct.textContent=v+'%';
       if(txt && v<100) txt.textContent='Evaluating position '+Math.min(TOTAL,Math.round(e*TOTAL)+1)+' / '+TOTAL;
-      if(p<1){ raf1=requestAnimationFrame(step); } else { clearInterval(quipId); finishProgress(); }
-    })(performance.now());
+      if(p>=1){ barH.cancel(); quipH.cancel(); finishProgress(); }
+    });
   }
   function finishProgress(){
     const txt=$('progText'); if(txt) txt.textContent='All 24 positions evaluated.';
@@ -130,6 +137,10 @@
   /* =================== STEP 2: "Connect chess.com" demo ===================
      type a username -> Find games -> player card -> game history -> pick a game. */
   const CC_USER='MalikAhed';
+  // Step-2 "connect chess.com" demo runs on a Reel for frame-seeking.
+  const reel2 = new Reel({ name: 'step 2 · chess.com', loop: false });
+  const at2 = (ms, fn, label) => reel2.at(ms, fn, label);
+  const ev2 = (ms, fn) => reel2.every(ms, fn);
   function resetChesscom(){
     clear2();
     const inp=$('ccUser'); if(inp) inp.value='';
@@ -145,27 +156,27 @@
     const sc=$('ccSelCount'); if(sc) sc.textContent='Select games to analyse';
     document.getElementById('titleConnect')?.classList.remove('lit');
   }
-  function playChesscom(){
-    resetChesscom();
+  function playChesscomBuild(){
     const inp=$('ccUser'), box=$('ccBox'), find=$('ccFind'), fl=$('ccFindLabel'), cur=$('ccCursor'), app=$('ccApp');
     if(!inp||!find||!app) return;
     const rel=(el)=>{ const r=el.getBoundingClientRect(), a=app.getBoundingClientRect(); return {l:r.left-a.left,t:r.top-a.top,w:r.width,h:r.height}; };
-    T2(300,()=>box?.classList.add('focus'));
-    let k=0; const typeId=I2(70,()=>{ if(k<=CC_USER.length){ inp.value=CC_USER.slice(0,k); k++; } else clearInterval(typeId); });
+    at2(300,()=>box?.classList.add('focus'));
+    let k=0; const typeH=ev2(70,()=>{ if(k<=CC_USER.length){ inp.value=CC_USER.slice(0,k); k++; } else typeH.cancel(); });
     const tEnd=300+CC_USER.length*70+260;
+    reel2.cue(300,'type user'); reel2.cue(tEnd+820,'Finding'); reel2.cue(tEnd+1550,'player card'); reel2.cue(tEnd+2500,'pick games');
     // cursor to Find, click
-    T2(tEnd,()=>{ if(!cur) return; const b=rel(find);
+    at2(tEnd,()=>{ if(!cur) return; const b=rel(find);
       cur.style.transition='none'; cur.style.left=(b.l+b.w*0.5)+'px'; cur.style.top=(b.t+b.h+50)+'px'; cur.style.opacity='0'; void cur.offsetWidth;
       cur.style.transition='left .55s cubic-bezier(.3,.7,.3,1),top .55s cubic-bezier(.3,.7,.3,1),opacity .3s';
       cur.style.opacity='1'; cur.style.left=(b.l+b.w*0.5)+'px'; cur.style.top=(b.t+b.h*0.5)+'px'; });
-    T2(tEnd+650,()=>{ find.classList.add('press'); cur?.classList.add('clicking'); });
-    T2(tEnd+820,()=>{ find.classList.remove('press'); cur?.classList.remove('clicking');
+    at2(tEnd+650,()=>{ find.classList.add('press'); cur?.classList.add('clicking'); });
+    at2(tEnd+820,()=>{ find.classList.remove('press'); cur?.classList.remove('clicking');
       box?.classList.remove('focus'); find.classList.add('finding'); if(fl) fl.textContent='Finding\u2026';
       document.getElementById('titleConnect')?.classList.add('lit'); });
     // player card, then game list
-    T2(tEnd+1550,()=>{ find.classList.remove('finding'); if(fl) fl.textContent='Find games'; $('ccPlayerWrap')?.classList.add('show'); });
-    T2(tEnd+1980,()=>$('ccListWrap')?.classList.add('show'));
-    T2(tEnd+2150,()=>{ if(cur) cur.style.opacity='0'; });
+    at2(tEnd+1550,()=>{ find.classList.remove('finding'); if(fl) fl.textContent='Find games'; $('ccPlayerWrap')?.classList.add('show'); });
+    at2(tEnd+1980,()=>$('ccListWrap')?.classList.add('show'));
+    at2(tEnd+2150,()=>{ if(cur) cur.style.opacity='0'; });
     // --- multi-select: tick 3 games, then click "Analyse games" ---
     const rowsEls=()=>document.querySelectorAll('#ccList .cc-row');
     const moveCur=(el,fx,fy)=>{ if(!cur||!el) return; const b=rel(el);
@@ -174,9 +185,9 @@
     const PICK=[0,1,2];
     let tt=tEnd+2500;
     PICK.forEach((idx)=>{
-      T2(tt,()=>moveCur(rowsEls()[idx],0.045,0.5));        // cursor to the row's checkbox (far left)
-      T2(tt+380,()=>cur?.classList.add('clicking'));
-      T2(tt+500,()=>{ cur?.classList.remove('clicking');
+      at2(tt,()=>moveCur(rowsEls()[idx],0.045,0.5));        // cursor to the row's checkbox (far left)
+      at2(tt+380,()=>cur?.classList.add('clicking'));
+      at2(tt+500,()=>{ cur?.classList.remove('clicking');
         rowsEls()[idx]?.classList.add('sel');
         const n=document.querySelectorAll('#ccList .cc-row.sel').length;
         const sc=$('ccSelCount'); if(sc) sc.textContent=n+' game'+(n>1?'s':'')+' selected';
@@ -185,19 +196,20 @@
       tt+=760;
     });
     // cursor to the Analyse button, click it
-    T2(tt,()=>moveCur($('ccAnalyse'),0.5,0.5));
-    T2(tt+440,()=>{ $('ccAnalyse')?.classList.add('press'); cur?.classList.add('clicking'); });
-    T2(tt+580,()=>{ $('ccAnalyse')?.classList.remove('press'); cur?.classList.remove('clicking');
+    at2(tt,()=>moveCur($('ccAnalyse'),0.5,0.5));
+    at2(tt+440,()=>{ $('ccAnalyse')?.classList.add('press'); cur?.classList.add('clicking'); });
+    at2(tt+580,()=>{ $('ccAnalyse')?.classList.remove('press'); cur?.classList.remove('clicking');
       $('ccAnalyse')?.classList.add('finding'); const al=$('ccAnalyseLabel'); if(al) al.textContent='Analysing\u2026';
       if(cur) cur.style.opacity='0'; });
     // each selected game, in order: checkbox -> loading spinner -> play button (ready to view)
     PICK.forEach((idx,k)=>{
-      T2(tt+800+k*620,()=>rowsEls()[idx]?.classList.add('loading'));
-      T2(tt+1560+k*620,()=>{ const r=rowsEls()[idx]; if(r){ r.classList.remove('loading'); r.classList.add('ready'); } });
+      at2(tt+800+k*620,()=>rowsEls()[idx]?.classList.add('loading'));
+      at2(tt+1560+k*620,()=>{ const r=rowsEls()[idx]; if(r){ r.classList.remove('loading'); r.classList.add('ready'); } });
     });
-    T2(tt+1560+PICK.length*620+200,()=>{ $('ccAnalyse')?.classList.remove('finding'); $('ccAnalyse')?.classList.add('done');
+    at2(tt+1560+PICK.length*620+200,()=>{ $('ccAnalyse')?.classList.remove('finding'); $('ccAnalyse')?.classList.add('done');
       const al=$('ccAnalyseLabel'); if(al) al.textContent='\u2713 3 ready to view'; });
   }
+  reel2.load(playChesscomBuild, resetChesscom);
 
   /* =================== STEP 3: live blunder review ===================
      queen walks d6 -> d4, a pawn takes it, the Blunder badge stamps in,
@@ -388,7 +400,7 @@
     // best-move badge (pops on the knight's square) + good badge (pops on f3) + the check tag near the king
     const e7=sqXY('e7'), f3=sqXY('f3');
     h+='<div class="rev-sqbadge" id="s4Badge" style="left:'+e7.x+'%;top:'+e7.y+'%"><img src="./icons/best.svg" alt=""></div>';
-    h+='<div class="rev-sqbadge" id="s4GoodBadge" style="left:'+f3.x+'%;top:'+f3.y+'%"><img src="./icons/good.svg" alt=""></div>';
+    h+='<div class="rev-sqbadge" id="s4GoodBadge" style="left:'+f3.x+'%;top:'+f3.y+'%"><img src="./icons/miss.svg" alt=""></div>';
     h+='<div class="s4-checktag" id="s4Check" style="left:76.5%;top:1.5%">+</div>';
     b.innerHTML=h;
   }
@@ -405,38 +417,46 @@
     const t=$('s4EvalTop'); if(t){ t.textContent=top; t.classList.toggle('lead',lead==='top'); }
     const b=$('s4EvalBot'); if(b){ b.textContent=bot; b.classList.toggle('lead',lead==='bot'); }
   }
-  // token typewriter (shared shape with step 3) — strings type out, move-tags pop in whole
+  // token typewriter — strings type char-by-char into a stable node; move-tags are appended ONCE as
+  // pills that fade in (append-based, not an innerHTML rebuild, so each pill animates exactly once).
   function s4type(el,tokens,doneCb){
-    if(!el) return; el.innerHTML=''; let ti=0,ci=0;
+    if(!el) return; el.innerHTML=''; let ti=0,ci=0,seg=null;
     const body=el.closest('.rev-card-body');                 // scroll container so the tail stays visible
     const keepEnd=()=>{ if(body) body.scrollTop=body.scrollHeight; };
-    const build=(upto,partial)=>{ let s='';
-      for(let i=0;i<upto;i++){ const t=tokens[i]; s+=(typeof t==='string')?REV_ESC(t):NEO_MV(t.mv,t.code); }
-      if(partial!=null) s+=REV_ESC(partial); return s; };
     const stepFn=()=>{
       if(ti>=tokens.length){ doneCb&&doneCb(); return; }
       const t=tokens[ti];
-      if(typeof t==='string'){ ci++; el.innerHTML=build(ti,t.slice(0,ci)); keepEnd(); if(ci>=t.length){ ti++; ci=0; }
-        const id=setTimeout(stepFn,20); t4.push(id); }
-      else { el.innerHTML=build(ti+1,null); keepEnd(); ti++; ci=0; const id=setTimeout(stepFn,120); t4.push(id); }
+      if(typeof t==='string'){
+        if(ci===0){ seg=document.createElement('span'); el.appendChild(seg); }   // one stable text node per string token
+        ci++; seg.textContent=t.slice(0,ci); keepEnd();
+        if(ci>=t.length){ ti++; ci=0; seg=null; }
+        revReel.at(20, stepFn);
+      } else {                                                                    // a move-tag pill — appended ONCE, fades in
+        const piece=/^[KQRBN]/.test(t.mv); const sp=document.createElement('span'); sp.className='rev-mv rev-mv-in';
+        sp.innerHTML=(piece?'<img class="rev-mv-ico" src="'+NEO+'/'+t.code+'.png" alt="">':'')+(piece?t.mv.slice(1):t.mv);
+        el.appendChild(sp); keepEnd(); ti++; ci=0;
+        revReel.at(120, stepFn);
+      }
     };
     stepFn();
   }
   // ---- eval-history graph (mirrors step 3): flat through the good move, spikes up on the best move ----
-  const S4_GP='0,17 16,18 33,16 50,18 66,17 83,18';
+  // realistic eval history: a gentle white-favoured wander through the middlegame, then the best move
+  // swings it up sharply. Area fills from the line down to the baseline (gradient → #s4GraphGrad).
+  const S4_GP='0,18 10,17 20,18 30,16 41,17 52,15 63,17 74,16 84,18';
   function s4resetGraph(){
     const ln=$('s4GraphLine'),fl=$('s4GraphFill'),dt=$('s4GraphDot');
     if(ln) ln.setAttribute('points',S4_GP);
-    if(fl) fl.setAttribute('d','M0,17 L16,18 L33,16 L50,18 L66,17 L83,18 L83,18 L0,18 Z');
+    if(fl) fl.setAttribute('d','M0,18 L10,17 L20,18 L30,16 L41,17 L52,15 L63,17 L74,16 L84,18 L84,36 L0,36 Z');
     if(dt) dt.setAttribute('opacity','0');
   }
   function s4spikeGraph(){
     const ln=$('s4GraphLine'),fl=$('s4GraphFill'),dt=$('s4GraphDot');
-    if(ln) ln.setAttribute('points',S4_GP+' 100,10');
-    if(fl) fl.setAttribute('d','M0,17 L16,18 L33,16 L50,18 L66,17 L83,18 L100,10 L100,18 L0,18 Z');
-    if(dt){ dt.setAttribute('cx','100'); dt.setAttribute('cy','10'); dt.setAttribute('opacity','1'); }
+    if(ln) ln.setAttribute('points',S4_GP+' 92,12 100,7');
+    if(fl) fl.setAttribute('d','M0,18 L10,17 L20,18 L30,16 L41,17 L52,15 L63,17 L74,16 L84,18 L92,12 L100,7 L100,36 L0,36 Z');
+    if(dt){ dt.setAttribute('cx','100'); dt.setAttribute('cy','7'); dt.setAttribute('opacity','1'); }
   }
-  const GOOD_TOKENS=[ {mv:'Qf3',code:'wq'}, ' keeps the game level — a calm, sensible developing move.' ];
+  const GOOD_TOKENS=[ {mv:'Qf3',code:'wq'}, ' keeps it safe — but it misses a far stronger move.' ];
   const BEST_CHECK_TOKENS=[ {mv:'Ne7+',code:'wn'}, ' is a royal fork — the knight checks the king and hits the queen at the same time.' ];
   const BEST_CAP_TOKENS=[ 'Now ', {mv:'Nxc8',code:'wn'}, ' grabs the queen — a whole queen for a knight.' ];
   // ---- move log (chess-analysis-tab style) ----
@@ -450,7 +470,7 @@
     const d=document.createElement('div'); d.className='ml-row'; if(id) d.id=id; d.innerHTML=html; el.appendChild(d); el.scrollTop=el.scrollHeight; return d; }
   // move the step-4 cursor onto an element (relative to the panel)
   function s4moveCur(targetEl,fx,fy){
-    const cur=$('s4Cursor'), panel=document.querySelector('.s1better .rev-panel');
+    const cur=$('s4Cursor'), panel=document.getElementById('r2Win');
     if(!cur||!panel||!targetEl) return;
     const r=targetEl.getBoundingClientRect(), a=panel.getBoundingClientRect();
     cur.style.transition='left .55s cubic-bezier(.3,.7,.3,1),top .55s cubic-bezier(.3,.7,.3,1),opacity .3s';
@@ -458,13 +478,16 @@
     cur.style.left=(r.left-a.left+r.width*fx)+'px';
     cur.style.top=(r.top-a.top+r.height*fy)+'px';
   }
+  // Step-3 review runs on a Reel so the scrubber can seek every frame.
+  const revReel = new Reel({ name: 'review · blunder → best', loop: false });
+  const at4 = (ms, fn, label) => revReel.at(ms, fn, label);
   function resetBest(){
     clear4();
     buildBoard4();
     s4mlReset();
     s4resetGraph();
     s4eval('50%','0.0','0.0',null);
-    s4head('good.svg','Good move','wq','f3');
+    s4head('miss.svg','Miss','wq','f3');
     $('s4Comment')?.classList.remove('s4-struck','s4-greyed','s4-fade');
     $('s4Strike')?.classList.remove('sweep');
     $('s4Idle')?.classList.remove('hide');
@@ -476,9 +499,7 @@
     $('s4CardHead')?.classList.remove('show');
     const cur=$('s4Cursor'); if(cur){ cur.style.transition='none'; cur.style.opacity='0'; cur.classList.remove('clicking'); }
   }
-  function playBest(){
-    resetBest();
-    if(RM()){
+  function bestStaticEnd(){   // reduced-motion: jump straight to the resolved position
       placeAt($('s4King'),'h8'); const kn=$('s4Knight'); if(kn) kn.style.opacity='0';
       const bq=$('s4BlackQ'); if(bq) bq.style.opacity='0'; placeAt($('s4BlackR'),'c8');
       s4badgeAt('c8'); $('s4Badge')?.classList.add('show'); s4hi('s4Green','c8',true);
@@ -487,77 +508,79 @@
       const tx=$('s4Text'); if(tx) tx.innerHTML=NEO_MV('Nxc8','wn')+REV_ESC(' wins the queen for a knight — and ')+NEO_MV('Rxc8','br')+REV_ESC(' can only recapture.');
       s4mlAdd('<span class="ml-num">18</span><span class="ml-w ml-best">'+mlPiece('Ne7+','w')+'<img class="ml-badge" src="./icons/best.svg"></span><span class="ml-b">'+mlPiece('Kh8','b')+'</span>');
       s4mlAdd('<span class="ml-num">19</span><span class="ml-w ml-best">'+mlPiece('Nxc8','w')+'</span><span class="ml-b ml-best">'+mlPiece('Rxc8','b')+'<img class="ml-badge" src="./icons/best.svg"></span>');
-      return;
-    }
+  }
+  // The review cinematic body — registered on revReel (build); resetBest is its reset hook.
+  function playBestBuild(){
     // ================= 1) the GOOD move: Qf3 — keeps it level, ticked "Good" =================
-    T4(700,()=>{ s4hi('s4HiFrom','d1',true); s4hi('s4HiTo','f3',true); placeAt($('s4Queen'),'f3');
+    at4(700,()=>{ s4hi('s4HiFrom','d1',true); s4hi('s4HiTo','f3',true); placeAt($('s4Queen'),'f3');
       s4eval('50%','0.0','0.0',null);
       $('s4GoodBadge')?.classList.add('show');               // "good" badge pops top-right of f3
       $('s4CardHead')?.classList.add('show');
-      s4mlAdd('<span class="ml-num">18</span><span class="ml-w ml-good">'+mlPiece('Qf3','w')+'<img class="ml-badge" src="./icons/good.svg"></span><span class="ml-b"></span>','s4mlGood');
-      $('s4Idle')?.classList.add('hide'); $('s4Analysing')?.classList.remove('hide'); });
-    T4(1800,()=>{ $('s4Analysing')?.classList.add('hide'); $('s4Caret')?.classList.add('on');
-      s4type($('s4Text'),GOOD_TOKENS,()=>{ T4(700,()=>{ $('s4Caret')?.classList.remove('on'); $('s4ShowBtn')?.classList.add('show'); }); }); });
+      s4mlAdd('<span class="ml-num">18</span><span class="ml-w ml-good">'+mlPiece('Qf3','w')+'<img class="ml-badge" src="./icons/miss.svg"></span><span class="ml-b"></span>','s4mlGood');
+      $('s4Idle')?.classList.add('hide'); $('s4Analysing')?.classList.remove('hide'); }, 'Qf3 · Good');
+    at4(1800,()=>{ $('s4Analysing')?.classList.add('hide'); $('s4Caret')?.classList.add('on');
+      s4type($('s4Text'),GOOD_TOKENS,()=>{ at4(700,()=>{ $('s4Caret')?.classList.remove('on'); $('s4ShowBtn')?.classList.add('show'); }); }); }, 'type · good');
     // ================= 2) cursor → "Show best move" → click → good badge goes, gray strike =======
-    T4(4600,()=>{ s4moveCur($('s4ShowBtn'),0.5,0.5); });
-    T4(5550,()=>{ $('s4ShowBtn')?.classList.add('press'); $('s4Cursor')?.classList.add('clicking'); });
-    T4(5780,()=>{ $('s4ShowBtn')?.classList.remove('press'); $('s4Cursor')?.classList.remove('clicking');
+    at4(4600,()=>{ s4moveCur($('s4ShowBtn'),0.5,0.5); }, '→ Show best');
+    at4(5550,()=>{ $('s4ShowBtn')?.classList.add('press'); $('s4Cursor')?.classList.add('clicking'); }, 'click');
+    at4(5780,()=>{ $('s4ShowBtn')?.classList.remove('press'); $('s4Cursor')?.classList.remove('clicking');
       const cur=$('s4Cursor'); if(cur) cur.style.opacity='0';
       $('s4ShowBtn')?.classList.add('gone');
       $('s4GoodBadge')?.classList.remove('show');            // good badge disappears on the click
       $('s4Strike')?.classList.add('sweep');                 // gray line sweeps L→R crossing the text
       $('s4Comment')?.classList.add('s4-struck');            // text greys + line-through as the line passes
       $('s4mlGood')?.classList.add('ml-struck');
-      s4hi('s4HiFrom',null,false); s4hi('s4HiTo',null,false); });
-    T4(6700,()=>{ $('s4Comment')?.classList.add('s4-greyed'); });   // pause to read, then grey out
-    T4(7400,()=>{ $('s4Comment')?.classList.add('s4-fade'); });     // …then fade away
+      s4hi('s4HiFrom',null,false); s4hi('s4HiTo',null,false); }, 'strike + grey');
+    at4(6700,()=>{ $('s4Comment')?.classList.add('s4-greyed'); });   // pause to read, then grey out
+    at4(7400,()=>{ $('s4Comment')?.classList.add('s4-fade'); });     // …then fade away
     // ================= 3) re-cast the card while still faded, then FADE the best card in ========
-    T4(8100,()=>{
+    at4(8100,()=>{
       placeAt($('s4Queen'),'d1');
       $('s4Comment')?.classList.remove('s4-struck','s4-greyed');   // keep s4-fade → card stays invisible
       $('s4Strike')?.classList.remove('sweep');
       s4head('best.svg','Best move','wn','e7+');
       const tx=$('s4Text'); if(tx) tx.innerHTML='';
       $('s4Analysing')?.classList.remove('hide');
-      T4(80,()=>$('s4Comment')?.classList.remove('s4-fade')); });  // now fade the fresh best card in
+      at4(80,()=>$('s4Comment')?.classList.remove('s4-fade')); }, 'recast · Best');  // now fade the fresh best card in
     // ================= 4) BEST move: Ne7+ — knight lands e7, best badge pops the moment it lands ====
-    T4(9000,()=>{ s4hi('s4HiFrom','d5',true); s4hi('s4HiTo','e7',true); placeAt($('s4Knight'),'e7');
+    at4(9000,()=>{ s4hi('s4HiFrom','d5',true); s4hi('s4HiTo','e7',true); placeAt($('s4Knight'),'e7');
       s4badgeAt('e7'); $('s4Badge')?.classList.add('show');   // best svg appears as the knight lands
       $('s4Check')?.classList.add('on'); s4hi('s4ForkK','g8',true); s4hi('s4ForkQ','c8',true);
       s4eval('70%','-3.0','+3.0','bot'); s4spikeGraph();       // the fork already wins the queen → bar swings now
-      s4mlAdd('<span class="ml-num">18</span><span class="ml-w ml-best">'+mlPiece('Ne7+','w')+'<img class="ml-badge" src="./icons/best.svg"></span><span class="ml-b" id="s4mlBlack"></span>','s4mlBestRow'); });
-    T4(9550,()=>{ $('s4Analysing')?.classList.add('hide'); $('s4Caret')?.classList.add('on');
+      s4mlAdd('<span class="ml-num">18</span><span class="ml-w ml-best">'+mlPiece('Ne7+','w')+'<img class="ml-badge" src="./icons/best.svg"></span><span class="ml-b" id="s4mlBlack"></span>','s4mlBestRow'); }, 'Ne7+ · fork');
+    at4(9550,()=>{ $('s4Analysing')?.classList.add('hide'); $('s4Caret')?.classList.add('on');
       s4type($('s4Text'),BEST_CHECK_TOKENS,()=>{
         // ===== whole continuation chained off "typing done" so ordering is guaranteed =====
         // a) the king escapes → the e7 badge goes away the moment the king moves
-        T4(1000,()=>{ $('s4Caret')?.classList.remove('on');
+        at4(1000,()=>{ $('s4Caret')?.classList.remove('on');
           $('s4Badge')?.classList.remove('show');            // svg goes away as the king moves
           placeAt($('s4King'),'h8'); $('s4Check')?.classList.remove('on'); s4hi('s4ForkK',null,false);
-          const mb=$('s4mlBlack'); if(mb) mb.innerHTML=mlPiece('Kh8','b'); });
+          const mb=$('s4mlBlack'); if(mb) mb.innerHTML=mlPiece('Kh8','b'); }, 'Kh8 escape');
         // b) the knight takes the queen → best badge re-pops on c8
-        T4(1900,()=>{ s4hi('s4HiFrom','e7',true); s4hi('s4HiTo','c8',true); placeAt($('s4Knight'),'c8');
+        at4(1900,()=>{ s4hi('s4HiFrom','e7',true); s4hi('s4HiTo','c8',true); placeAt($('s4Knight'),'c8');
           const bq=$('s4BlackQ'); if(bq) bq.style.opacity='0';
           $('s4ForkQ')?.classList.remove('on'); s4hi('s4Green','c8',true);
           s4badgeAt('c8'); $('s4Badge')?.classList.add('show');
           s4eval('73%','-3.2','+3.2','bot'); s4head('best.svg','Best move','wn','xc8'); s4spikeGraph();
-          s4mlAdd('<span class="ml-num">19</span><span class="ml-w ml-best">'+mlPiece('Nxc8','w')+'</span><span class="ml-b" id="s4mlBlack2"></span>','s4mlCapRow'); });
+          s4mlAdd('<span class="ml-num">19</span><span class="ml-w ml-best">'+mlPiece('Nxc8','w')+'</span><span class="ml-b" id="s4mlBlack2"></span>','s4mlCapRow'); }, 'Nxc8 wins Q');
         // c) the explanation types out
-        T4(2500,()=>{ const tx=$('s4Text'); if(tx) tx.innerHTML=''; $('s4Caret')?.classList.add('on');
-          s4type($('s4Text'),BEST_CAP_TOKENS,()=>{ T4(300,()=>$('s4Caret')?.classList.remove('on')); }); });
+        at4(2500,()=>{ const tx=$('s4Text'); if(tx) tx.innerHTML=''; $('s4Caret')?.classList.add('on');
+          s4type($('s4Text'),BEST_CAP_TOKENS,()=>{ at4(300,()=>$('s4Caret')?.classList.remove('on')); }); }, 'type · cap');
         // d) Black's only reply: Rxc8 recaptures the knight (best by Black) — badge re-pops for the move
-        T4(4400,()=>{ s4hi('s4HiFrom','d8',true); s4hi('s4HiTo','c8',true);
+        at4(4400,()=>{ s4hi('s4HiFrom','d8',true); s4hi('s4HiTo','c8',true);
           const kn=$('s4Knight'); if(kn) kn.style.opacity='0';   // knight is captured
           placeAt($('s4BlackR'),'c8'); $('s4Badge')?.classList.remove('show');
-          const mb=$('s4mlBlack2'); if(mb){ mb.innerHTML=mlPiece('Rxc8','b')+'<img class="ml-badge" src="./icons/best.svg">'; mb.classList.add('ml-best'); } });
-        T4(4800,()=>{ s4badgeAt('c8'); $('s4Badge')?.classList.add('show'); s4hi('s4HiFrom',null,false); s4hi('s4HiTo',null,false); });
+          const mb=$('s4mlBlack2'); if(mb){ mb.innerHTML=mlPiece('Rxc8','b')+'<img class="ml-badge" src="./icons/best.svg">'; mb.classList.add('ml-best'); } }, 'Rxc8 reply');
+        at4(4800,()=>{ s4badgeAt('c8'); $('s4Badge')?.classList.add('show'); s4hi('s4HiFrom',null,false); s4hi('s4HiTo',null,false); });
         // e) "Back to game analysis" → cursor clicks → return to the original game
-        T4(5800,()=>{ $('s4NextBtn')?.classList.add('show'); });
-        T4(6600,()=>{ s4moveCur($('s4NextBtn'),0.5,0.5); });
-        T4(7550,()=>{ $('s4NextBtn')?.classList.add('press'); $('s4Cursor')?.classList.add('clicking'); });
-        T4(7780,()=>{ $('s4NextBtn')?.classList.remove('press'); $('s4Cursor')?.classList.remove('clicking');
+        at4(5800,()=>{ $('s4NextBtn')?.classList.add('show'); }, '→ Back to game');
+        at4(6600,()=>{ s4moveCur($('s4NextBtn'),0.5,0.5); });
+        at4(7550,()=>{ $('s4NextBtn')?.classList.add('press'); $('s4Cursor')?.classList.add('clicking'); });
+        at4(7780,()=>{ $('s4NextBtn')?.classList.remove('press'); $('s4Cursor')?.classList.remove('clicking');
           $('s4NextBtn')?.classList.add('gone'); resetBest(); });
-      }); });
+      }); }, 'type · check');
   }
+  revReel.load(playBestBuild, resetBest);
 
   /* =================== HOW IT WORKS — shared abs-board builder =================== */
   function buildAbsBoard(id,pos,opt){
@@ -580,6 +603,10 @@
     c6:'bn', d5:'bn',e5:'bp',g5:'wn', c4:'wb',
     a2:'wp',b2:'wp',c2:'wp',d2:'wp',f2:'wp',g2:'wp',h2:'wp',
     a1:'wr',b1:'wn',c1:'wb',d1:'wq',e1:'wk',h1:'wr' };
+  // Beat-1 engine demo runs on a Reel so the dev scrubber can seek every frame (CSS net-draw included).
+  const engReel = new Reel({ name: 'engine · your browser', loop: false });
+  const at7 = (ms, fn, label) => engReel.at(ms, fn, label);
+  const ev7 = (ms, fn) => engReel.every(ms, fn);
   function buildEngBoard(){ buildAbsBoard('engBoard',POS_ENG,{}); }
   // The best move is the L-shaped knight hop g5->f7: go UP then point LEFT into f7 (engine-verified Nxf7).
   function engDrawBest(){ const g=$('engArrowG'); if(!g) return;
@@ -612,34 +639,40 @@
   const ENG_EXPL='Knight to f7 — a fork on the queen and rook.';
   function engTypeExpl(){ const sk=$('engSkel'), tx=$('engExpText'); if(!tx) return;
     if(sk) sk.style.display='none'; tx.style.display='block'; tx.classList.remove('done'); let c=0;
-    const id=I7(28,()=>{ if(c<=ENG_EXPL.length){ tx.textContent=ENG_EXPL.slice(0,c); c++; }
-      else { clearInterval(id); tx.classList.add('done'); } }); }
+    const h=ev7(28,()=>{ if(c<=ENG_EXPL.length){ tx.textContent=ENG_EXPL.slice(0,c); c++; }
+      else { h.cancel(); tx.classList.add('done'); } }); }
   function fmtNodes(n){ return n>=1e6 ? (n/1e6).toFixed(1)+'M' : Math.round(n/1e3)+'k'; }
   function engRunDepth(){ let d=1,n=0; const de=$('engDepth'),ne=$('engNodes');
-    const id=I7(72,()=>{ d=Math.min(36,d+1); n+=300000+Math.floor(Math.random()*700000);
+    const h=ev7(72,()=>{ d=Math.min(36,d+1); n+=300000+((d*261803)%700000);   // deterministic so seeks repeat
       if(de) de.textContent=d; if(ne) ne.textContent=fmtNodes(n);
-      if(d>=36) clearInterval(id); }); }
+      if(d>=36) h.cancel(); }); }
   function resetEngine(){ clear7(); buildEngBoard();
     $('engScan')?.classList.remove('run'); $('engBoard')?.classList.remove('out');
     $('engNet')?.classList.remove('show','result'); const ns=$('engNetSvg'); if(ns) ns.innerHTML='';
     const ec=$('engCalc'); if(ec){ ec.textContent='Calculating…'; ec.classList.remove('swap'); }
     const sk=$('engSkel'); if(sk) sk.style.display=''; const tx=$('engExpText'); if(tx){ tx.style.display='none'; tx.textContent=''; tx.classList.remove('done'); }
-    $('engHud')?.classList.remove('show'); $('engArrows')?.classList.remove('show'); $('engBest')?.classList.remove('show');
+    $('engHud')?.classList.remove('show'); $('engArrows')?.classList.remove('show'); $('engBest')?.classList.remove('show'); $('engCardHead')?.classList.remove('show');
     const g=$('engArrowG'); if(g) g.innerHTML=''; const de=$('engDepth'); if(de) de.textContent='1'; const ne=$('engNodes'); if(ne) ne.textContent='0'; }
-  function playEngine(){ resetEngine();
-    if(RM()){ engDrawBest(); $('engArrows')?.classList.add('show'); $('engBest')?.classList.add('show');
-      const sk=$('engSkel'); if(sk) sk.style.display='none'; const tx=$('engExpText'); if(tx){ tx.style.display='block'; tx.textContent=ENG_EXPL; tx.classList.add('done'); } return; }
-    T7(500,()=>$('engScan')?.classList.add('run'));            // scan sweeps the board
-    T7(2500,()=>{ $('engScan')?.classList.remove('run'); $('engBoard')?.classList.add('out'); });  // board shrinks + fades
-    T7(2950,()=>{ engBuildNet(); $('engNet')?.classList.add('show');   // edges draw in two ramped stages
-      $('engHud')?.classList.add('show'); engRunDepth(); });
-    T7(4250,()=>{ const ec=$('engCalc'); if(!ec) return;             // stage 2 begins → swap the loader word
-      ec.classList.add('swap'); T7(260,()=>{ ec.textContent='Processing…'; ec.classList.remove('swap'); }); });
-    T7(5800,()=>{ $('engNet')?.classList.add('result'); $('engHud')?.classList.remove('show'); }); // net + word fade → Nxf7 pops on the panel
-    T7(7100,()=>$('engNet')?.classList.remove('show'));         // the white panel (with result) fades out
-    T7(7450,()=>$('engBoard')?.classList.remove('out'));        // board returns
-    T7(8000,()=>{ engDrawBest(); $('engArrows')?.classList.add('show'); $('engBest')?.classList.add('show'); }); // best move shown on the board
-    T7(8400,()=>engTypeExpl()); }                                // short explanation types out
+  // The cinematic body — registered on engReel (build); resetEngine is its reset hook.
+  function engBuild(){
+    at7(500,()=>$('engScan')?.classList.add('run'), 'scan');            // scan sweeps the board
+    at7(2500,()=>{ $('engScan')?.classList.remove('run'); $('engBoard')?.classList.add('out'); }, 'board → compute');  // board shrinks + fades
+    at7(2950,()=>{ engBuildNet(); $('engNet')?.classList.add('show');   // edges draw in two ramped stages
+      $('engHud')?.classList.add('show'); engRunDepth(); }, 'neural net');
+    at7(4250,()=>{ const ec=$('engCalc'); if(!ec) return;               // stage 2 begins → swap the loader word
+      ec.classList.add('swap'); at7(260,()=>{ ec.textContent='Processing…'; ec.classList.remove('swap'); }); }, 'processing');
+    at7(5800,()=>{ $('engNet')?.classList.add('result'); $('engHud')?.classList.remove('show'); }, 'result · Nxf7'); // net + word fade → Nxf7 pops
+    at7(7100,()=>$('engNet')?.classList.remove('show'));               // the white panel (with result) fades out
+    at7(7450,()=>$('engBoard')?.classList.remove('out'), 'board returns');  // board returns
+    at7(8000,()=>{ engDrawBest(); $('engArrows')?.classList.add('show'); $('engBest')?.classList.add('show'); $('engCardHead')?.classList.add('show'); }, 'best move'); // best on the board + card header
+    at7(8250,()=>{ const sk=$('engSkel'); if(sk) sk.style.display='none'; });   // skeleton clears just before the text types
+    at7(8400,()=>engTypeExpl(), 'explanation');                         // short explanation types out
+  }
+  function engStaticEnd(){   // reduced-motion: jump straight to the resolved frame
+    engDrawBest(); $('engArrows')?.classList.add('show'); $('engBest')?.classList.add('show'); $('engCardHead')?.classList.add('show');
+    const sk=$('engSkel'); if(sk) sk.style.display='none'; const tx=$('engExpText'); if(tx){ tx.style.display='block'; tx.textContent=ENG_EXPL; tx.classList.add('done'); }
+  }
+  engReel.load(engBuild, resetEngine);
 
   /* =================== 01 EVALUATE: neural net + search converging on Nd5 =================== */
   // White to move; Nc3-d5 lands a permanent outpost (e4 guards d5; ...Nd7 blocks the d-file).
@@ -760,19 +793,17 @@
     requestAnimationFrame(()=>{ s.style.transition='width .5s ease-out'; s.style.width=(cell*1.1)+'px'; }); }
 
   function fire(n){ if(fired[n])return; fired[n]=true;
-    if(n==='1') playGetReady();
-    if(n==='2') playChesscom();
-    if(n==='3') playBlunder();
-    if(n==='4') playBest();
-    if(n==='7') playEngine(); }
+    if(n==='1'){ if(RM()) reel1.seek(reel1.duration()); else if(!reel1.claimed) reel1.play(); }
+    if(n==='2'){ if(RM()) reel2.seek(reel2.duration()); else if(!reel2.claimed) reel2.play(); }
+    if(n==='3'){ if(RM()){ revReel.rewind(); bestStaticEnd(); } else if(!revReel.claimed) revReel.play(); }   // merged "Learn from your mistakes" review
+    if(n==='7'){ if(RM()){ engReel.rewind(); engStaticEnd(); } else if(!engReel.claimed) engReel.play(); } }
   // data-step 8 ("the words") is the self-contained number-to-reason.js cinematic — it owns its
   // own IntersectionObserver + timeline, so it's intentionally NOT wired into fire/reset here.
   function reset(n){ fired[n]=false;
-    if(n==='1') resetGetReady();
-    if(n==='2') resetChesscom();
-    if(n==='3') resetBlunder();
-    if(n==='4') resetBest();
-    if(n==='7') resetEngine(); }
+    if(n==='1'){ if(!reel1.claimed) reel1.rewind(); }
+    if(n==='2'){ if(!reel2.claimed) reel2.rewind(); }
+    if(n==='3'){ if(!revReel.claimed) revReel.rewind(); }
+    if(n==='7'){ if(!engReel.claimed) engReel.rewind(); } }
 
   // ----- REVEAL / OUTRO: trigger earlier so content animates while still on screen -----
   const revealIO=new IntersectionObserver((entries)=>{
@@ -780,7 +811,8 @@
       const n=e.target.getAttribute('data-step');
       if(e.isIntersecting){
         e.target.classList.add('in-view'); e.target.classList.remove('exit-up');
-        railDots.forEach((d,i)=>d.classList.toggle('on', String(i)===n));
+        const si=sections.indexOf(e.target);   // light the dot by section ORDER (robust to merged/removed steps)
+        railDots.forEach((d,i)=>d.classList.toggle('on', i===si));
       } else {
         const goingUp=e.boundingClientRect.top<0;
         e.target.classList.remove('in-view');
@@ -804,7 +836,21 @@
   },{threshold:0.1});
   sections.forEach(s=>railIO.observe(s));
 
+  // (old DOM-snapshot review scrubber fully removed — replaced by the Reel-backed universal Scrubber.)
+
   // render the boards/diagrams up front so they exist before the demos fire
   buildBoard();
   buildBoard4();
+
+  // dev-only universal scrubbers for the §1 demos (prod animations are untouched).
+  if (import.meta.env.DEV) {
+    const sec7 = document.querySelector('section[data-step="7"]');
+    if (sec7) { new Scrubber(engReel, sec7, { loop: false }); engReel.attachCss($('engWin')); }
+    const sec3 = document.querySelector('section[data-step="3"]');
+    if (sec3) { new Scrubber(revReel, sec3, { loop: false }); revReel.attachCss(document.getElementById('r2Win')); }
+    const sec1 = document.querySelector('section[data-step="1"]');
+    if (sec1) { new Scrubber(reel1, sec1, { loop: false }); reel1.attachCss(sec1); }
+    const sec2 = document.querySelector('section[data-step="2"]');
+    if (sec2) { new Scrubber(reel2, sec2, { loop: false }); reel2.attachCss(sec2); }
+  }
 })();

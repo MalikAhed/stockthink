@@ -5,34 +5,38 @@
 //      reformats it into readable facts in the editor  →  ③ those facts are matched against a pattern
 //      table (% + red→yellow→green heat map)  →  ④ the StockThink app appears, then we zoom into the
 //      explanation. Theme-aware stage; the IDE/terminal stay dark by design.
+import { Reel, Scrubber } from './scrub.js';
+
 (function () {
   const stage = document.getElementById('n2rStage');
   if (!stage) return;
   const RMQ = matchMedia('(prefers-reduced-motion:reduce)');
   const NEO = 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150';
-  const CHAR = 15, ROW_STEP = 85, SCORE_STEP = 360;
+  const CHAR = 9, ROW_STEP = 85, SCORE_STEP = 360;
 
+  // A real Stockfish UCI session — launch, set the position, search, get the eval + best move.
+  // Kept short on purpose: the long banner/seldepth/nodes/nps strings only padded the typing time.
   const TERM = [
-    { pr: '›', t: './stockfish  —  go depth 30' },
-    { t: 'Stockfish 18 by the Stockfish developers', cls: 'di' },
-    { t: 'info depth 24 score cp -271 pv b5d6 d2d5' },
-    { t: 'info depth 30 seldepth 41 score cp -312 nodes 4.8M' },
-    { t: 'bestmove b5d6 ponder d2d5' },
-    { pr: '✓', t: 'wrote analysis.json', cls: 'gd' },
+    { pr: '$', t: './stockfish' },
+    { t: 'Stockfish 16.1', cls: 'di' },
+    { pr: '>', t: 'position fen 3q2k1/1pp2ppp/3b4/8/2B1P3/8/PP3PPP/3R2K1 w' },
+    { pr: '>', t: 'go depth 20' },
+    { t: 'info depth 20 score cp 312 pv e4e5', cls: 'di' },
+    { t: 'bestmove e4e5', cls: 'gd' },
   ];
   const CODE_PY = '<span class="cm"># analyse.py — run Stockfish on the position</span>\n'
     + '<span class="kw">import</span> chess.engine\n'
     + 'sf   = chess.engine.<span class="fn">popen</span>(<span class="st">"./stockfish"</span>)\n'
     + 'info = sf.<span class="fn">analyse</span>(board, depth=<span class="nu">30</span>)\n'
     + '<span class="fn">save_json</span>(info, <span class="st">"analysis.json"</span>)';
-  const CODE_JSON = '{\n  <span class="ppt">"depth"</span>: <span class="nu">30</span>,\n'
-    + '  <span class="ppt">"score_cp"</span>: <span class="nu">-312</span>,\n'
-    + '  <span class="ppt">"bestmove"</span>: <span class="st">"b5d6"</span>,\n'
-    + '  <span class="ppt">"pv"</span>: [<span class="st">"b5d6"</span>, <span class="st">"d2d5"</span>]\n}';
+  const CODE_JSON = '{\n  <span class="ppt">"depth"</span>: <span class="nu">20</span>,\n'
+    + '  <span class="ppt">"score_cp"</span>: <span class="nu">312</span>,\n'
+    + '  <span class="ppt">"bestmove"</span>: <span class="st">"e4e5"</span>,\n'
+    + '  <span class="ppt">"pv"</span>: [<span class="st">"e4e5"</span>]\n}';
   const CODE_FACTS = '<span class="gd">// StockThink — plain, useful facts</span>\n'
-    + 'verdict : <span class="st">your move loses material</span>\n'
-    + 'move    : <span class="st">Bishop → d6</span>\n'
-    + 'best    : <span class="st">Queen takes d5</span>';
+    + 'verdict : <span class="st">the bishop is pinned and lost</span>\n'
+    + 'move    : <span class="st">Bishop → d6  (blunder)</span>\n'
+    + 'best    : <span class="st">push e5 — wins the bishop</span>';
 
   const CONCEPTS = [
     { nm: 'fork', def: 'one piece attacks two', m: 18 },
@@ -54,12 +58,13 @@
     return 'rgb(' + c[0] + ',' + c[1] + ',' + c[2] + ')';
   }
 
-  let timers = [];
-  const at = (ms, fn) => { timers.push(setTimeout(fn, ms)); };
-  const clearAll = () => { timers.forEach((id) => { clearTimeout(id); clearInterval(id); }); timers = []; };
+  // The cinematic runs on a Reel — a seekable virtual clock — so the dev Scrubber can pause/seek
+  // every frame. at(ms,fn) schedules on it exactly like setTimeout did (fires at now+ms, chains too).
+  const reel = new Reel({ name: 'number → reason', loop: false });
+  const at = (ms, fn) => reel.at(ms, fn);
   const mk = (tag, cls, html) => { const n = document.createElement(tag); if (cls) n.className = cls; if (html != null) n.innerHTML = html; return n; };
 
-  let world, stepEl, capEl, desk, vscode, jsonRow, jsonTab, paneCode, paneJson, paneFacts, termLines, match, mrows, mscan, app, appComment, replay, hostStep;
+  let world, stepEl, capEl, desk, vscode, jsonRow, jsonTab, paneCode, paneJson, paneFacts, termLines, match, mrows, mscan, app, appComment, replay, hostStep, titleCard, cursor, vscodeIcon;
 
   function build() {
     stage.innerHTML = '';
@@ -94,6 +99,13 @@
       + '<div class="vs-termbody" id="n2rTermBody"></div></div>'
       + '</div></div>');
     desk.appendChild(vscode);
+    // macOS-style dock along the bottom — real app logos, then StockThink (our brand)
+    desk.appendChild(mk('div', 'n2r-dock',
+      '<img class="n2r-dapp" src="./icons/dock/finder.png" alt="Finder">'
+      + '<img class="n2r-dapp" src="./icons/dock/vscode.svg" alt="VS Code">'
+      + '<img class="n2r-dapp" src="./icons/dock/chrome.svg" alt="Chrome">'
+      + '<img class="n2r-dapp" src="./icons/dock/terminal.svg" alt="Terminal">'
+      + '<span class="n2r-dsep"></span><span class="n2r-dapp stock">&#9822;</span>'));
     world.appendChild(desk);
     jsonRow = vscode.querySelector('#n2rJsonRow'); jsonTab = vscode.querySelector('#n2rJsonTab');
     paneCode = vscode.querySelector('#n2rPaneCode'); paneJson = vscode.querySelector('#n2rPaneJson'); paneFacts = vscode.querySelector('#n2rPaneFacts');
@@ -113,20 +125,46 @@
     });
     match.appendChild(wrap); world.appendChild(match);
 
-    // ---- app ----
+    // ---- app (same components as the Step-03 review panel: eval bar · board · explanation + moves cards) ----
     app = mk('div', 'n2r-app',
       '<div class="n2r-appbar"><span class="dots"><i></i><i></i><i></i></span><span class="u">stockthink.app · game review</span></div>'
       + '<div class="n2r-appbody"><div class="n2r-aeval"><i></i></div><div class="n2r-aboard"></div>'
-      + '<div class="n2r-aside"><div class="n2r-arating"><span class="badge">??</span>Blunder<span class="mv">Bd6</span></div>'
-      + '<div class="n2r-acomment"><div class="ch">why</div><div class="ct">Your bishop is <b>pinned</b> — it can’t move without losing the queen behind it, so it’s as good as lost.</div></div>'
+      + '<div class="n2r-aside">'
+      + '<div class="n2r-acard n2r-aexplain">'
+      + '<div class="n2r-ach2">Review</div>'
+      + '<div class="n2r-askel"><i></i><i></i><i></i></div>'
+      + '<div class="n2r-ahead"><img class="n2r-aico" src="./icons/blunder.svg" alt="blunder"><span class="n2r-atitle">Blunder</span>'
+      + '<span class="n2r-amove"><img src="' + NEO + '/bb.png" alt="">Bd6</span></div>'
+      + '<div class="n2r-abody">Your bishop is <b>pinned</b> — it can’t move without losing the queen behind it, so it’s as good as lost.</div>'
+      + '</div>'
+      + '<div class="n2r-acard n2r-amoves"><div class="n2r-ach">Moves</div><div class="n2r-amllist">'
+      + '<div class="n2r-mlrow"><span class="n2r-mlnum">16</span><span class="n2r-mlw">Rd1</span><span class="n2r-mlb">Qd8</span></div>'
+      + '<div class="n2r-mlrow"><span class="n2r-mlnum">17</span><span class="n2r-mlw">e4</span>'
+      + '<span class="n2r-mlb blun"><img src="' + NEO + '/bb.png" alt="">Bd6<img class="n2r-mlbadge" src="./icons/blunder.svg" alt=""></span></div>'
+      + '</div></div>'
+      + '<div class="n2r-acard n2r-agraph"><div class="n2r-ach">Eval history</div>'
+      + '<svg class="n2r-agsvg" viewBox="0 0 100 30" preserveAspectRatio="none">'
+      + '<defs><linearGradient id="n2rGraphGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#81b64c" stop-opacity="0.4"/><stop offset="1" stop-color="#81b64c" stop-opacity="0"/></linearGradient></defs>'
+      + '<line class="n2r-agmid" x1="0" y1="15" x2="100" y2="15"/>'
+      + '<polygon class="n2r-agfill" points="0,13 18,12 36,14 54,12 72,13 86,25 100,28 100,30 0,30"/>'
+      + '<polyline class="n2r-agline" points="0,13 18,12 36,14 54,12 72,13 86,25 100,28"/>'
+      + '<circle class="n2r-agdot" cx="100" cy="28" r="2.2"/></svg></div>'
       + '</div></div>');
     world.appendChild(app);
-    appComment = app.querySelector('.n2r-acomment');
+    appComment = app.querySelector('.n2r-aexplain');
     buildMiniBoard(app.querySelector('.n2r-aboard'));
+
+    // opening: a big title card over the (closed) editor, then a cursor opens VS Code from the dock
+    titleCard = mk('div', 'n2r-titlecard', '<div class="n2r-tc-k">02 / 03</div><div class="n2r-tc-t">How we process<br>Stockfish’s output.</div>');
+    world.appendChild(titleCard);
+    cursor = mk('div', 'n2r-cursor'); cursor.innerHTML = '<svg viewBox="0 0 24 24"><path d="M5 3l14 7-6 1.5L10 18 5 3z" fill="#fff" stroke="#111" stroke-width="1.3" stroke-linejoin="round"/></svg>';
+    cursor.style.left = '480px'; cursor.style.top = '560px'; world.appendChild(cursor);
+    vscodeIcon = desk.querySelector('.n2r-dapp[alt="VS Code"]');
+    vscode.classList.add('n2r-closed');   // the editor window starts closed; the cursor opens it
 
     capEl = mk('div', 'n2r-cap'); world.appendChild(capEl);
     replay = mk('button', 'n2r-replay', 'Replay ↺'); replay.type = 'button';
-    replay.addEventListener('click', () => { resetAll(); requestAnimationFrame(runTimeline); });
+    replay.addEventListener('click', () => { reel.rewind(); reel.play(); });
     stage.appendChild(replay);
   }
 
@@ -140,7 +178,7 @@
     b.innerHTML = h;
   }
 
-  const setStep = (n, name) => { stepEl.innerHTML = 'Step ' + n + ' / 4 &nbsp;·&nbsp; <b>' + name + '</b>'; stepEl.classList.add('in'); };
+  const setStep = (n, name) => { stepEl.innerHTML = 'Step ' + n + ' / 4 &nbsp;·&nbsp; <b>' + name + '</b>'; stepEl.classList.add('in'); reel.cue(0, n + ' · ' + name); };
   const cap = (txt) => { capEl.textContent = txt; capEl.classList.add('in'); };
   const capSwap = (txt) => { capEl.classList.remove('in'); at(240, () => { capEl.textContent = txt; capEl.classList.add('in'); }); };
   const capHide = () => capEl.classList.remove('in');
@@ -154,17 +192,25 @@
     desk.style.transform = 'translate(' + (480 - k * cx) + 'px,' + (cy0 - k * cy) + 'px) scale(' + k + ')';
   }
 
+  // fly the fake cursor onto a target element (stage coords)
+  function cursorTo(target, fx, fy) {
+    if (!cursor || !target) return;
+    const sr = stage.getBoundingClientRect(), tr = target.getBoundingClientRect();
+    const fs = (sr.width / 960) || 1;
+    cursor.style.left = ((tr.left + tr.width * (fx == null ? 0.5 : fx) - sr.left) / fs) + 'px';
+    cursor.style.top = ((tr.top + tr.height * (fy == null ? 0.5 : fy) - sr.top) / fs) + 'px';
+  }
+
   function typeTerminal(next) {
     let li = 0;
     const typeLine = () => {
       if (li >= termLines.length) { next(); return; }
       const ln = termLines[li], tx = ln.querySelector('.tx'), txt = ln._txt;
       ln.classList.add('show', 'typing'); let ci = 0;
-      const id = setInterval(() => {
+      const h = reel.every(CHAR, () => {     // each typed char is its own keyframe → seekable mid-line
         ci++; tx.textContent = txt.slice(0, ci);
-        if (ci >= txt.length) { clearInterval(id); ln.classList.remove('typing'); li++; at(90, typeLine); }
-      }, CHAR);
-      timers.push(id);
+        if (ci >= txt.length) { h.cancel(); ln.classList.remove('typing'); li++; at(90, typeLine); }
+      });
     };
     typeLine();
   }
@@ -172,24 +218,35 @@
   // ---- timeline ----
   function runTimeline() {
     stage.classList.add('play');
-    setStep('1', 'Analyse'); cap('A real engine, running in a real project.');
-    at(1000, () => { if (hostStep) hostStep.classList.add('n2r-playing'); });   // title recedes, viewer takes over
-    at(1700, () => { camTo(vscode, 1.18, 232); capSwap('Stockfish searches the position in the terminal.'); });
-    at(2900, () => typeTerminal(act2));
+    setStep('1', 'Analyse');
+    at(120, () => { if (hostStep) hostStep.classList.add('n2r-playing'); });     // the section header recedes
+    at(320, () => titleCard.classList.add('in'));                               // a big on-stage title fades up over the closed-window desktop
+    at(2000, () => { titleCard.classList.remove('in'); cap('Open the analysis project in your editor.'); });
+    at(2450, () => { cursor.classList.add('show'); cursorTo(vscodeIcon, 0.5, 0.42); });   // a cursor flies to the VS Code dock icon
+    at(3350, () => { cursor.classList.add('clicking'); if (vscodeIcon) vscodeIcon.classList.add('bounce'); });
+    at(3520, () => { cursor.classList.remove('clicking'); vscode.classList.remove('n2r-closed'); });   // …and the editor window opens
+    at(4350, () => { cursor.classList.remove('show'); camTo(vscode, 1.18, 232); capSwap('Stockfish searches the position in the terminal.'); });
+    at(5550, () => typeTerminal(act2));
   }
 
   function act2() {
-    setStep('2', 'Reformat'); capSwap('Its output is saved as data — analysis.json.');
-    at(300, () => { jsonRow.classList.add('show'); jsonRow.classList.add('hot'); jsonTab.classList.add('show'); });
-    at(1100, () => { paneCode.classList.remove('show'); paneJson.classList.add('show'); jsonTab.classList.add('on'); vscode.querySelector('.vs-tab').classList.remove('on'); });
-    at(2300, () => capSwap('StockThink reads it and rewrites it as plain facts.'));
-    at(2500, () => { paneJson.classList.remove('show'); paneFacts.classList.add('show'); jsonRow.classList.remove('hot'); });
-    at(4200, act3);
+    setStep('2', 'Reformat'); capSwap('Stockfish writes its analysis to a file — analysis.json.');
+    at(300, () => jsonRow.classList.add('show', 'hot'));                              // the new file slides into the explorer
+    at(1200, () => { cursor.classList.add('show'); cursorTo(jsonRow, 0.5, 0.5); });   // the cursor navigates to it
+    at(2050, () => cursor.classList.add('clicking'));
+    at(2240, () => { cursor.classList.remove('clicking'); jsonTab.classList.add('show', 'on');
+      vscode.querySelector('.vs-tab').classList.remove('on'); paneCode.classList.remove('show'); });   // click → the code pane clears…
+    at(2560, () => paneJson.classList.add('show'));                                   // …then analysis.json fades in (sequenced — no garbled overlap)
+    at(2700, () => cursor.classList.remove('show'));
+    at(3100, () => capSwap('StockThink reads that data and rewrites it as plain facts.'));
+    at(3300, () => { paneJson.classList.remove('show'); jsonRow.classList.remove('hot'); });            // json clears…
+    at(3620, () => paneFacts.classList.add('show'));                                  // …then the plain-facts pane fades in
+    at(5000, act3);
   }
 
   function act3() {
     desk.style.opacity = '0';
-    setStep('3', 'Match'); capSwap('Then it matches those facts to a known pattern.');
+    setStep('3', 'Match'); capSwap('It compares those facts against every pattern it knows.');
     at(500, () => match.classList.add('in'));
     mrows.forEach((r, i) => at(700 + i * ROW_STEP, () => r.classList.add('in')));
     at(700 + mrows.length * ROW_STEP + 350, () => scoreRows(act4));
@@ -206,16 +263,17 @@
       if (c.match) r.classList.add('match');
     }));
     const total = CONCEPTS.length * SCORE_STEP;
-    at(total + 150, () => { mscan.classList.remove('on'); capSwap('Only one scores high — a pin.'); });
+    at(total + 150, () => { mscan.classList.remove('on'); capSwap('Only one is a strong match — a pin.'); });
     at(total + 1200, next);
   }
 
   function act4() {
     setStep('4', 'Explain'); capHide();
     at(350, () => { match.style.opacity = '0'; });
-    at(800, () => { app.classList.add('in'); cap('In the app, it becomes one plain sentence.'); });
-    at(2500, () => { capHide(); zoomToComment(); });
-    at(3900, () => replay.classList.add('in'));
+    at(800, () => { app.classList.add('in'); if (appComment) appComment.classList.add('loading'); cap('In the app, it becomes one plain sentence.'); });
+    at(1750, () => { if (appComment) appComment.classList.remove('loading'); });   // the card finishes loading → the verdict fades in
+    at(3000, () => { capHide(); stepEl.classList.remove('in'); zoomToComment(); });
+    at(4400, () => replay.classList.add('in'));
   }
 
   function zoomToComment() {
@@ -235,8 +293,9 @@
     replay.classList.add('in');
   }
 
+  // Reset hook for the Reel: restore the clean pre-play DOM (the Reel clears its own queue).
   function resetAll() {
-    clearAll(); stage.classList.remove('play');
+    stage.classList.remove('play');
     if (hostStep) hostStep.classList.remove('n2r-playing');
     build(); fit();
   }
@@ -256,12 +315,16 @@
   requestAnimationFrame(fit);
   window.addEventListener('resize', fit);
 
+  // The Reel drives the cinematic: runTimeline = the timeline body, resetAll = its clean state.
+  reel.load(runTimeline, resetAll);
+  if (import.meta.env.DEV) { new Scrubber(reel, hostStep || stage.closest('section') || stage, { loop: false }); reel.attachCss(stage); }
+
   let played = false;
   new IntersectionObserver((entries) => {
     entries.forEach((e) => {
       if (e.isIntersecting && e.intersectionRatio >= 0.6 && !played) {
         played = true;
-        if (RMQ.matches) finalFrame(); else runTimeline();
+        if (RMQ.matches) finalFrame(); else reel.play();
       }
     });
   }, { threshold: [0, 0.6, 1] }).observe(stage);

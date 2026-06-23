@@ -1,10 +1,11 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
+import { fpsGate, QUALITY, registerRenderer } from './perf.js';
 
 const canvas=document.getElementById('c');
-const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
-renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));
+const renderer=new THREE.WebGLRenderer({canvas,antialias:QUALITY.antialias,alpha:true});
+registerRenderer(renderer);   // perf manager sets pixel ratio (and can lower it live)
 renderer.setSize(innerWidth,innerHeight);
 renderer.toneMapping=THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure=1.0;
@@ -157,8 +158,8 @@ let shadowBlob=null;
 
 // ===== BACK SCENE (bishop + rook behind the text) =====
 const canvasB=document.getElementById('cBack');
-const rendererB=new THREE.WebGLRenderer({canvas:canvasB,antialias:true,alpha:true});
-rendererB.setPixelRatio(Math.min(devicePixelRatio,1.5));
+const rendererB=new THREE.WebGLRenderer({canvas:canvasB,antialias:QUALITY.antialias,alpha:true});
+registerRenderer(rendererB);
 rendererB.setSize(innerWidth,innerHeight);
 rendererB.toneMapping=THREE.ACESFilmicToneMapping; rendererB.toneMappingExposure=1.0; rendererB.outputColorSpace=THREE.SRGBColorSpace;
 const sceneB=new THREE.Scene();
@@ -223,6 +224,9 @@ function setProgress(p){
   const bar=document.getElementById('loadBar'), pct=document.getElementById('loadPct');
   if(bar) bar.style.width=Math.round(_progress*100)+'%';
   if(pct) pct.textContent=Math.round(_progress*100)+'%';
+  // illuminate the wordmark letter-by-letter as the real work completes
+  const W=document.getElementById('loadWord');
+  if(W){ const sp=W.children, n=Math.round(_progress*sp.length); for(let i=0;i<sp.length;i++) sp[i].classList.toggle('lit', i<n); }
 }
 
 MeshoptDecoder.ready.then(async()=>{
@@ -275,8 +279,17 @@ let mx=0,my=0,tmx=0,tmy=0;
 addEventListener('mousemove',e=>{ tmx=(e.clientX/innerWidth-0.5); tmy=(e.clientY/innerHeight-0.5); });
 
 const clock=new THREE.Clock();
+// Only the hero is on-screen at the top; once it has scrolled fully away there's nothing to draw,
+// so skip BOTH hero renderers (front + back) entirely. This is the single biggest scroll win —
+// off-screen the hero used to keep rendering two WebGL scenes every frame forever.
+const heroSec=document.getElementById('heroSec');
+function heroVisible(){ if(!heroSec) return true; const r=heroSec.getBoundingClientRect(); return r.bottom>-120 && r.top<innerHeight+120; }
+const heroGate=fpsGate();   // cap below display refresh — two full-screen contexts shouldn't draw at 144Hz
 function animate(){
   requestAnimationFrame(animate);
+  if(!QUALITY.hero) return;         // perf watchdog can disable the hovering hero live
+  if(!heroVisible()) return;
+  if(!heroGate()) return;           // throttle the render; motion is clock-based so it stays correct
   const et=clock.getElapsedTime();
   const Pr=Math.max(0,Math.min(1,window.heroProgress));
   mx+=(tmx-mx)*0.05; my+=(tmy-my)*0.05;

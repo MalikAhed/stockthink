@@ -6,6 +6,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
+import { fpsGate, QUALITY, registerRenderer } from './perf.js';
 
 const RM = () => matchMedia('(prefers-reduced-motion:reduce)').matches;
 
@@ -75,8 +76,8 @@ function convertMaterials(root){
 }
 
 function makeLayer(canvas){
-  const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
-  renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));
+  const renderer=new THREE.WebGLRenderer({canvas,antialias:QUALITY.antialias,alpha:true});
+  registerRenderer(renderer);   // perf manager owns the pixel ratio (and can lower it live)
   renderer.outputColorSpace=THREE.SRGBColorSpace;
   renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.05;
   const scene=new THREE.Scene();
@@ -121,11 +122,11 @@ window.stLogoGears={
 // dScroll = px scrolled since last frame. While scrolling, idleW→0 so rotation tracks scroll
 // frame-by-frame (speed + direction); when it stops, idleW fades back to 1 and the idle
 // "processing" spin resumes in dirSmooth (the last scroll direction). Each gear integrates its angle.
-function renderLayer(L,dScroll){
+function renderLayer(L,dScroll,dtF){
   fit(L);
   LGEARS.forEach(g=>{
     if(!g._mesh || layerOf(g)!==L) return;
-    g._ang=(g._ang||0) + g.dir*g.spin*(SPIN.idle*dirSmooth*idleW + dScroll*SPIN.scrollK);
+    g._ang=(g._ang||0) + g.dir*g.spin*(SPIN.idle*dirSmooth*idleW*dtF + dScroll*SPIN.scrollK);
     g._mesh.rotation.set(TUNE.tiltX,TUNE.tiltY,g._ang);
   });
   L.renderer.render(L.scene,L.camera);
@@ -139,17 +140,23 @@ function boot(){
   rebuild();
   addEventListener('resize',()=>{ back.lw=back.lh=front.lw=front.lh=0; },{passive:true});
 
-  if(RM()){ renderLayer(back,0); renderLayer(front,0); return; }
+  if(RM()){ renderLayer(back,0,1); renderLayer(front,0,1); return; }
+  const draw=fpsGate();
+  let scrollAcc=0, lastDraw=performance.now();
   (function loop(){
     requestAnimationFrame(loop);
+    if(!QUALITY.gears) return;                                           // perf watchdog can disable the gears (last resort)
     const r=secEl.getBoundingClientRect();
     if(r.bottom<-100 || r.top>innerHeight+100){ prevY=scrollY; return; }  // offscreen → skip the draw
     const y=scrollY; if(prevY===null) prevY=y;
-    const dScroll=y-prevY; prevY=y;
-    const moving=Math.abs(dScroll)>0.05;
-    if(moving) dirSmooth=Math.sign(dScroll);                 // lock idle's direction to the scroll
+    const d=y-prevY; prevY=y; scrollAcc+=d;                  // accumulate scroll across throttled frames
+    if(Math.abs(d)>0.05) dirSmooth=Math.sign(d);             // lock idle's direction to the scroll
+    if(!draw()) return;                                      // fps cap — but the scroll above keeps accruing
+    const now=performance.now(); const dtF=Math.min(4,(now-lastDraw)/16.667); lastDraw=now;
+    const moving=Math.abs(scrollAcc)>0.05;
     idleW += ((moving?0:1)-idleW)*(moving?0.6:SPIN.resume);  // kill idle fast while scrolling, ease it back when stopped
-    renderLayer(back,dScroll); renderLayer(front,dScroll);
+    renderLayer(back,scrollAcc,dtF); renderLayer(front,scrollAcc,dtF);
+    scrollAcc=0;
   })();
 }
 

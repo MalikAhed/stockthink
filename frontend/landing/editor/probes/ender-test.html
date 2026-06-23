@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<!-- DEV-only isolation harness: renders ONLY the basement finale scene (one WebGL context),
+     so it builds/screenshots fast under SwiftShader. Not part of the site. -->
+<html lang="en">
+<head><meta charset="UTF-8"><title>ender test</title>
+<style>html,body{margin:0;height:100%;background:#000;overflow:hidden}#enderScene{display:block;width:100vw;height:100vh}#st{position:fixed;left:8px;top:8px;color:#7fe0a8;font:12px monospace;z-index:9}</style>
+</head>
+<body>
+<canvas id="enderScene"></canvas>
+<div id="st">booting…</div>
+<script type="importmap">
+{"imports":{
+  "three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+}}
+</script>
+<script type="module">
+const st = document.getElementById('st');
+try {
+  const { createEnderScene } = await import('../ender-scene.js');
+  const view = await createEnderScene(document.getElementById('enderScene'));
+  view.resize();
+  window.__enderReady = true;
+  st.textContent = 'ready · ' + view.pieces.size + ' pieces';
+  // ?p=0..1 drives the scroll camera path (setShot) so framing can be verified in isolation
+  const P = parseFloat(new URLSearchParams(location.search).get('p') ?? '0');
+  function loop(){ view.tick(); if (view.setShot) view.setShot(P); view.render(); requestAnimationFrame(loop); }
+  loop();
+} catch (e) { st.textContent = 'ERR ' + (e.message||e); console.error(e); window.__enderErr = String(e.message||e); }
+</script>
+</body>
+</html>

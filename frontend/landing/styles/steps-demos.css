@@ -208,6 +208,8 @@
   .nav-toggle-icon{font-size:14px;line-height:1;transition:transform .4s ease}
   #navThemeToggle:hover .nav-toggle-icon{transform:rotate(20deg)}
 
+  /* (dev review-scrubber styling removed — the universal bar in scrub.js injects its own CSS) */
+
   /* ---- step 3: text left · chess.com-style review panel RIGHT ---- */
   .s1step.s1review{display:grid;grid-template-columns:1fr 1.7fr;align-items:center;
     gap:clamp(24px,4vw,60px);max-width:1280px;margin:0 auto}
@@ -249,7 +251,9 @@
     border-bottom:1px solid var(--line)}
   .rev-movelog{height:88px;overflow:hidden}
   .ml-row{display:grid;grid-template-columns:20px 1fr 1fr;gap:0 2px;
-    padding:2px 9px;font-size:12px;font-family:ui-monospace,monospace;line-height:1.7;align-items:center}
+    padding:2px 9px;font-size:12px;font-family:ui-monospace,monospace;line-height:1.7;align-items:center;
+    animation:mlRowIn .34s cubic-bezier(.34,1.25,.64,1) both}
+  @keyframes mlRowIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
   .ml-num{color:var(--muted);font-size:10.5px;user-select:none}
   .ml-w,.ml-b{padding:1px 4px;border-radius:3px;transition:background .12s,color .12s}
   .ml-row.ml-active .ml-w,.ml-row.ml-active .ml-b{background:rgba(255,255,255,0.12)}
@@ -264,8 +268,9 @@
     letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
   .rev-graph{width:100%;height:30px;display:block}
   .rev-graph-mid{stroke:var(--line);stroke-width:.8}
-  .rev-graph-fill{fill:rgba(129,182,76,0.15)}
-  .rev-graph-line{fill:none;stroke:#81b64c;stroke-width:1.5;stroke-linejoin:round;stroke-linecap:round}
+  .rev-graph-fill{fill:url(#s4GraphGrad)}
+  .rev-graph-line{fill:none;stroke:#81b64c;stroke-width:1.6;stroke-linejoin:round;stroke-linecap:round;
+    filter:drop-shadow(0 1px 2px rgba(129,182,76,0.35))}
   .rev-graph-dot{fill:#ca3431;stroke:#fbfaf8;stroke-width:1.5;opacity:0;transition:opacity .4s ease}
   /* move tags in explanation text */
   .rev-mv,.rev-card-move{display:inline-flex;align-items:center;gap:1px;vertical-align:-4px;
@@ -324,14 +329,21 @@
   .s1better .rev-card-title{color:#7cb04a}                  /* green for good/best, not blunder-red */
   /* the strike: a GRAY line sweeps L→R, and the text gets a gray line-through (crosses every
      line, not an underline) + greys as the line passes */
-  .s4-strikeline{position:absolute;left:0;top:42%;height:2px;width:0;border-radius:2px;
-    background:#9a978f;box-shadow:0 0 4px rgba(0,0,0,0.18);z-index:3;pointer-events:none}
-  .s4-strikeline.sweep{width:100%;transition:width .6s cubic-bezier(.4,0,.2,1)}
-  .s1better .rev-explain-card.s4-struck .rev-text{color:#a8a59e;
-    text-decoration:line-through;text-decoration-color:#9a978f;text-decoration-thickness:2px;
-    transition:color .55s ease}
-  .s1better .rev-explain-card.s4-greyed{filter:grayscale(.5) opacity(.5);transition:filter .55s ease}
-  .s1better .rev-explain-card.s4-fade{opacity:0;transition:opacity .5s ease}
+  .s4-strikeline{display:none}   /* replaced by a swept multi-line line-through on .rev-text below */
+  /* The review card fades / greys / strikes via classes on #s4Comment (.r2-explain). Retargeted from
+     the old .s1better/.rev-explain-card names that no longer exist after steps 3+4 merged into one. */
+  .r2-explain{transition:opacity .5s ease, filter .55s ease}
+  /* struck: a grey line sweeps L→R THROUGH the words on EVERY wrapped line (a per-line-box gradient,
+     auto-centered on each line), and the text greys — so both sentences get struck, centered. */
+  .r2-explain .rev-text{background-image:linear-gradient(#9a978f,#9a978f);background-repeat:no-repeat;
+    background-position:0 center;background-size:0% 2px;-webkit-box-decoration-break:clone;box-decoration-break:clone;
+    transition:color .55s ease, background-size .62s cubic-bezier(.4,0,.2,1)}
+  .r2-explain.s4-struck .rev-text{color:#a8a59e;background-size:100% 2px}
+  .r2-explain.s4-greyed{filter:grayscale(.5) opacity(.5);transition:filter .55s ease}
+  .r2-explain.s4-fade{opacity:0;transition:opacity .5s ease}
+  /* move-tag pills fade+pop in as they're typed (driven once per append, seekable via the reel) */
+  @keyframes revMvIn{from{opacity:0;transform:translateY(-3px) scale(.86)}to{opacity:1;transform:none}}
+  .rev-mv-in{animation:revMvIn .32s cubic-bezier(.34,1.5,.64,1) both}
   /* the action buttons (Show best move / Continue) — appear at the card's bottom */
   .s4-showbtn,.s4-nextbtn{margin-top:9px;align-self:flex-start;display:inline-flex;align-items:center;gap:7px;
     font-family:'Inter';font-weight:700;font-size:12.5px;color:#fff;

@@ -1,542 +1,294 @@
-# StockThink Landing — Frontend Guide & Tracker
+# StockThink Landing — session guide & tracker
 
-This file loads every session you run Claude in `frontend/landing/`. It is BOTH the
-build tracker and the design/animation rulebook. Read it, then start working — do
-not re-plan what's already decided here.
-
-> **CURRENT FOCUS (2026-06-17): the "How StockThink works" cinematic beats.** Beat 1 (the engine) and
-> Beat 2 ("How we process Stockfish's output" — the rev-4 desktop→terminal→json→pattern-match→app
-> cinematic in `number-to-reason.js`) are DONE & approved. **Beat 3 (the coach) is next** (still a
-> placeholder; the user will shape its copy/idea — confirm before building). The Beat-2 cinematic is the
-> QUALITY BAR for these. SEE the page with the headless harness — **`node editor/probe-wd.mjs <ms…>
-> [light]`** (multi-phase, Beat 2) or `editor/probe.mjs` (Beat 1). The **Live Edit Interface (`editor/`)
-> is an available TOOL, not the active build** (its spec/details are in the 🛠️ section below).
+Loads every session in `frontend/landing/`. It's the build tracker + the design/animation
+rulebook. **This is my memory — read it, then work; update it as I learn.** File map lives in
+`README.md` (don't duplicate it here). Beat-3 plan lives in `coach-plan.md`. Editor spec lives in
+`the-edit-interface.md`. Keep this file lean: prune done-history, don't let it re-bloat.
 
 ---
 
-## How to work with me (the user's style — follow this exactly)
-- **Speedy, direct edits. No over-thinking, no over-planning, no over-complicating.**
-- since this is claude.md and runs every session you must use it and update it as you memory
-- when the user user points a mistake learn form it and put it in here to avoid it next time
-- when the user likes something or a certain animations or a syle learn form it discribe it and how you did it so new session learn form it
-  I show you the running page, I see what's wrong, I tell you, you fix it fast.
-- Make the edit → tell me what changed in 1–2 lines → I look → I give feedback. Loop.
-- It's fine to make mistakes if you're fast and correct them fast. Slow perfectionism is worse.
-- **Screenshots: verify silently, show only on request.** Don't narrate browser babysitting or
-  push shots at me unprompted. BUT you SHOULD silently screenshot via the headless harness to
-  *verify your own work* (read it yourself) — that's encouraged, not the thing I'm vetoing. Only
-  surface a screenshot when I ask or when it's genuinely the clearest way to present a result.
-- One concern per edit. Don't bundle unrelated changes.
-- When I pick an option, build THAT — don't relitigate it.
-- when the user tells you dont do theat again note it in the mistaks to avide here 
+## How the user works (follow exactly)
+- **Speedy, direct edits. No over-planning, no over-complicating.** He shows the running page, says
+  what's wrong, I fix it fast. Edit → 1–2 line summary of what changed → he looks → feedback. Loop.
+- Fast + self-correcting beats slow perfectionism. One concern per edit; don't bundle.
+- When he picks an option, build THAT — don't relitigate.
+- **Screenshots: verify silently, surface only on request.** Silently screenshotting via the headless
+  harness to check my OWN work is encouraged; pushing shots at him unprompted is not.
+- He hands an EXACT target (`#N selector` + `📌 NOTE`, from the Edit Interface) — go straight to it.
+- Reference media lands in `user provides/` (mp4/gif/png). When he says "I gave you a reference",
+  look there FIRST and `Read` it; don't ask where files are.
+- **When he corrects a mistake or likes a style — record it here** (Mistakes / Design system below).
+
+## Speed rules (earned the hard way — they prevent the slow loops)
+1. **Don't edit blind. Verify → change → re-verify** with the harness (below). Editing by reasoning
+   alone cost ~3 rounds; one harness run finds the real cause.
+2. **Build on the proven skeleton.** Any new section = `.s1sec > .s1step > .s1left/.s1right`. 3D /
+   canvas / video go in as separate absolutely-positioned layers (z0 behind text, z3 in front) —
+   NEVER re-layout the text into a bespoke absolute/sticky stage (that clustered the title, ~6 turns).
+3. **One visible increment at a time.** Ship the smallest thing he can see, confirm, add the next.
+4. **Make the look HIS to dial.** For material/position/timing/color work, build a throwaway on-page
+   tuning panel (sliders + a "Copy params" button emitting a JS-ready config). He tweaks live, pastes
+   back, I bake it as default and delete the panel. Keep tunables as a plain object at the TOP of the
+   file (see `gears.js` `TUNE`/`GEARS`) so baking = one paste. Biggest speed win — he loved it.
+5. **Lock the CONCEPT before polishing pacing.** For a fresh cinematic: restate the STRUCTURE (what
+   each act shows, one line each), get a 👍, build it rough, THEN tune ms/heat/zoom. Beat 2 was rebuilt
+   4× because timings were gold-plated before the shape was approved. Offer 2–3 ASCII layout options up
+   front (AskUserQuestion) instead of guessing then rebuilding.
+6. **Restate motion back as a numbered second-by-second sequence before coding it.** Biggest time sink
+   = guessing what a motion word means ("transition" built as "sidebar recedes" when he meant
+   "board shrinks→net→result→board returns" = 2 reworks). Match any `user provides/` reference literally.
+7. **Animations = a TIMED phase pipeline.** Build each multi-step anim as one `playX()` using the
+   `tN/iN/TN/IN/clearN` registry with explicit ms offsets (see `playEngine` in `sections.js`). Verify
+   each phase by tuning the probe `sleep(ms)` to that offset. Keep timings/colors as plain literals.
+8. **Big animations = their OWN module** (per-act `actN()` fns + a generic `camTo()/heat()/fit()`
+   camera + own IntersectionObserver + own CSS), imported in `main.js`. `number-to-reason.js` is the
+   pattern — a rework then touches ONE file. Use this for anything bigger than a single `playX()`.
 
 ---
 
-## GO FASTER NEXT TIME (rules earned this session — follow them, they prevent the slow loops)
+## Harnesses — SEE the page (you are NOT blind)
+Browser MCPs can't reach localhost here — skip them. What works: headless `google-chrome`
+(`/usr/bin/google-chrome`) over CDP with the `ws` pkg. **Needs `npm run dev` up.** Caveats: the `#load`
+overlay must be force-hidden, `html{scroll-behavior:smooth}` fights `scrollIntoView` (poll-scroll instead),
+and chess.com CDN PNGs don't load headless. **WebGL DOES render** with `GL=sw` (adds `--no-sandbox
+--use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader`) — so coach/gears/hero ARE visible via
+SwiftShader, but SLOW (≈one heavy coach frame per run): for spot-checking single frames, not fast iteration.
 
-**0. Touching the Edit Interface? RUN THE HARNESS FIRST, don't edit blind.** `node
-frontend/landing/editor/devtest.mjs` (needs `npm run dev`) actually drives the editor headlessly and
-prints what Pick selects + the tree + a screenshot. Editing editor.js by reasoning alone cost ~3
-rounds of "still broken" this session; one harness run found the real causes immediately. Verify →
-then change → then re-verify. (Pick's 3 root causes + the harness are documented below.)
+**The one-off probe scripts now live in `editor/probes/`** (2026-06-23 tidy) — prefix the table commands
+with `probes/` (e.g. `node editor/probes/probe.mjs`). The render pipeline (`record.mjs`/`encode.mjs`/
+`make-render-kit.mjs`) + the Edit Interface (`editor.js`/`editor.css`/`edits.json`) stay at `editor/` root.
 
-**1. Build on the proven skeleton, layer extras on top.** Any new section starts as
-`.s1sec > .s1step > .s1left/.s1right` (the layout that already works). 3D / canvas / video go in
-as **separate absolutely-positioned layers** (`z0` behind text, `z3` in front) — NEVER re-layout the
-text into a bespoke absolute/sticky stage. (Doing that clustered the title and cost ~6 turns.)
+| Run | What it does |
+|---|---|
+| `node editor/probe.mjs` | screenshot+probe any state → `/tmp/st-shot.png`. Tune the post-build `sleep(ms)` (from when the demo fires) to capture a specific animation phase. The ready-made base — copy its CDP boilerplate for new pages. |
+| `node editor/probe-wd.mjs <ms…> [light]` | **multi-phase** Beat-2 shots in ONE Chrome session → `/tmp/st-wd-<ms>.png` each. Pass every act offset at once (≈600 desktop · ≈4400 terminal · ≈9000 reformat · ≈13000 heat table · ≈18400 explanation). `light` = light theme. |
+| `node editor/devtest.mjs` | drives the Edit Interface headlessly (real Pick hover+click, dumps the tree) → `/tmp/st-editor-shot.png`. Run before editing `editor.js`. |
+| `[GL=sw] PORT=5173 STEP=N node editor/probe-scrub.mjs <fracs…>` | drive an animation's **scrubber** to fractions → `/tmp/st-scrub-N-NN.png` each (prints `time [label]`). STEP = section `data-step` (1,2,3,7,8,10). `GL=sw` to see the 3D coach (step 10), slowly. |
+| `PORT=5173 node editor/probe-sweep.mjs <steps…>` | full-page consistency sweep: screenshot each `data-step` settled → `/tmp/st-sweep-<step>.png`. |
 
-**2. One visible increment at a time — confirm, then add.** For anything non-trivial, ship the
-SMALLEST thing the user can see (e.g. just the text), let them confirm, then add the next piece.
-Don't deliver a big complex feature in one shot — when it breaks you can't tell which part.
+**Dev scrubber** (`scrub.js`, DEV-only UI, tree-shaken from prod) — ONE universal frame-seekable bar on
+every autoplay animation, so the user pins the exact bad frame and `Copy`s e.g. `engine · your browser
+t=6.01s [result · Nxf7]`. `Reel` = a virtual-clock timeline that REPLACED the setTimeout pipelines and
+drives them in prod too: each `playX` body became `xBuild(reel)` + a reset hook via `reel.load(build,
+reset)`; `at()`/`every()` replace `setTimeout`/`setInterval`; rAF loops read `reel.time()`. It even
+seeks CSS animations/transitions (`reel.attachCss(scope)` pauses them + drives `currentTime`). GSAP
+(coach) wraps via `gsapTransport(tl)`. Wired: steps 1/2/3 + engine (`sections.js` reels `reel1/reel2/
+revReel/engReel`), `number-to-reason.js`, `coach.js`. The OLD hand-rolled bars (coach `buildScrubber`,
+sections `buildReviewScrub` HTML-snapshot hack) are deleted. To add a new animated thing: drive it off
+the reel (`at`/`every`/`reel.time()`), never its own clock, or it won't pause/seek.
 
-**3. Make the look the USER's to dial, not yours to guess.** For any material / position / timing /
-color work, build a throwaway on-page **tuning panel** (sliders + a **"Copy params"** button that
-emits a JS-ready config). User tweaks live → pastes the config back → you bake it as the default and
-delete the panel. This is the single biggest speed win — the user loved it. Keep tunables as a
-plain object at the TOP of the file (see `gears.js` `TUNE`/`GEARS`) so baking = one paste.
-
-**4. Robust-first AND verify by screenshot.** Still write code that works first try (guard missing
-DOM, auto-fit canvas every frame, idle-animate motion, isolate WebGL in try/catch) — but you are NOT
-blind: capture a PNG via the headless harness (see "Seeing the page") and `Read` it before claiming
-done. Only WebGL/3D can't be seen headlessly; use the user's eyes for that.
-
-**5. The user gives you the EXACT target — honour the format, don't re-scope.** He hands you a
-`#N selector` + `📌 NOTE` per fix (from the Edit Interface). Go straight to that element. He also
-drops **reference media in `frontend/landing/user provides/`** (mp4/gif/png) — ALWAYS look there
-first when he says "I gave you a reference"; `Read` the png/gif (first frame) to extract the exact
-look, then recreate it in our colors (he'll say e.g. "make it green"). Don't ask where files are
-before checking that folder.
-
-**6. Animations = a TIMED phase pipeline you can verify phase-by-phase.** Build every multi-step
-animation as a single `playX()` using the `tN/iN/TN/IN/clearN` registry with explicit ms offsets
-(see `playEngine` in `sections.js` — scan→board-out→net→result→board→arrow→type, each its own `T7`).
-Then verify each phase with `probe.mjs` by tuning `sleep(ms)` to that offset. This turns "is the
-animation right?" into a fast, checkable loop instead of a guess. Keep all timings + colors as plain
-literals so re-pacing = editing numbers, not logic.
-
-**7. Speed: don't redo standing work.** `probe.mjs` (screenshots) and `/tmp/sfverify` (engine) exist
-— reuse them. Verify chess positions in ONE batch run (`check.cjs` with several FENs), pick one, move
-on; don't hunt for the "perfect" position. A single edit shouldn't take 40 min — the time sinks were
-rebuilding harnesses and over-searching, both now avoidable.
-
-**8. The verification loop is the BIGGEST time sink — capture many phases in ONE Chrome run.** Each
-probe spawns Chrome (~5s) + waits to the offset; running it once per phase (this session: ~12 runs of a
-13-act cinematic) is most of the wall-clock. **`probe-wd.mjs` is now MULTI-PHASE:** `node
-editor/probe-wd.mjs 600 4400 9000 13000 18400 [light]` saves `/tmp/st-wd-<ms>.png` for every offset in a
-single session. Pass all the act offsets at once, then `Read` only the PNGs that matter. (For a brand-new
-animation, copy this harness and point it at the new selector.)
-
-**9. LOCK the concept before polishing pacing.** Beat 2 was rebuilt 4× as the user reshaped the idea
-(board → terminal+gate → data-table → desktop/VS Code). Each time, finely-tuned timings/positions were
-thrown away. For a fresh cinematic: restate the STRUCTURE (what each act shows, one line each) and get a
-👍 FIRST; build it rough; THEN tune ms offsets / heat / zoom. Don't gold-plate timing before the shape is
-approved. Offering 2–3 quick layout/structure options (AskUserQuestion with ASCII previews) up front
-beats guessing then rebuilding.
-
-**10. Big animations = their OWN module, per-act functions + a generic camera.** `number-to-reason.js`
-is the pattern: its own stage DOM + IntersectionObserver@0.6 + chained `actN()` functions + reusable
-`camTo()/zoomToComment()/heat()/fit()`, isolated from `sections.js`, imported in `main.js`, styled in its
-own `styles/*.css`. A rework then touches ONE file and feedback localizes to one `actN()`. Use the
-self-contained-module pattern for anything bigger than a single `playX()`.
-
-## Engine-verify harness (`/tmp/sfverify`) — rebuild in 10s if `/tmp` was wiped
-`cp frontend/public/engine/stockfish-18-lite-single.js /tmp/sfverify/stockfish.cjs` AND the `.wasm`
-**renamed to `/tmp/sfverify/stockfish.wasm`** (the .cjs locateFile derives the wasm name from its OWN
-basename — mismatched names = `ENOENT stockfish.wasm` abort). Then a node script spawns it, speaks UCI
-(`setoption name MultiPV value 3` / `position fen … / go depth 22`), parses `info … multipv N … pv …`
-+ `bestmove`. `check.cjs` is the ready instance: `node /tmp/sfverify/check.cjs "FEN1" "FEN2" …`.
-Locked Beat-1 position: Fried Liver `r1bqkb1r/ppp2ppp/2n5/3np1N1/2B5/8/PPPP1PPP/RNBQK2R w` → #1 = **Nxf7**.
-
-## Editor verification harness (USE THIS — stop guessing on editor behaviour)
-`node frontend/landing/editor/devtest.mjs` (needs `npm run dev` up) launches headless
-`google-chrome` (at `/usr/bin/google-chrome`), drives it over CDP via the `ws` pkg, opens the
-editor, runs real hover+click Pick on scrolled-in elements, dumps the tree, and saves a shot to
-`/tmp/st-editor-shot.png`. The editor exposes `window.__sted` (dev only) for probing. Caveats:
-headless has **no WebGL** → `scene.js`/`gears.js` throw on import, so the 3D objects don't appear
-AND the `#load` overlay never auto-hides (the harness force-hides it). Three Pick bugs it caught
-(2026-06-17): `.sec{pointer-events:none}` hid section content from `elementsFromPoint` (→ force
-`pointer-events:auto` while picking); pick auto-disabled after one pick; the highlight overlay
-stole the click (→ keep `#st-ed-hl/#st-ed-sel` `pointer-events:none` during pick).
-
-## Seeing the page — the headless harness IS the way (you are NOT blind)
-The browser MCPs (chrome-devtools / playwright) can't reach `localhost` here — skip them, don't
-retry them. **What WORKS and is proven:** headless **`google-chrome`** (`/usr/bin/google-chrome`)
-driven over CDP with the `ws` npm pkg — navigate `http://localhost:5173/frontend/landing/index.html`,
-scroll to a selector, `Page.captureScreenshot` → save PNG → `Read` it. `editor/devtest.mjs` is the
-ready-made instance (it also opens/drives the editor + dumps the tree); copy its CDP boilerplate for
-a plain screenshot of any page state. **Caveats:** headless has **no WebGL** → 3D (hero pieces,
-gears) won't render in the shot, and the `#load` overlay must be force-hidden
-(`document.getElementById('load')?.classList.add('done')`). So: harness to SEE the DOM/layout/editor;
-the user's eyes only for 3D/visual polish that headless can't render.
-
-### `editor/probe.mjs` — the ready-made screenshot+probe (USE THIS, don't rebuild it)
-Built 2026-06-17, it's the fast path: navigate → force-hide `#load` + remove `pre-intro` → scroll a
-selector to center → wait → dump a JSON probe (`engBoard` kids/rect, body classes, scrollY) + save
-`/tmp/st-shot.png`. Run `node frontend/landing/editor/probe.mjs` (needs `npm run dev`), then `Read`
-the PNG. Two hard-won gotchas baked in — keep them:
-- **Scroll is fought by `html{scroll-behavior:smooth}` + the scroll-engine.** `scrollIntoView` and a
-  single `scrollTo` silently no-op (scrollY stays 0). FIX: set `scrollBehavior='auto'`, then **loop**
-  `window.scrollTo(0, rect.top+scrollY - innerHeight/2 + rect.height/2)` polling `engBoard.children.length>0`
-  until the demo builds. The gearSec centers at scrollY≈7317.
-- **Capture a specific animation phase by tuning the post-build `sleep(ms)`** — ms is measured from
-  when the demo fires. e.g. Beat-1: ~3700 = scan/stage-1, ~4900 = processing/stage-2, ~9700 = final
-  move+typed explanation. Change one number, re-run, `Read`. This is how you verify timed animations.
-- Pieces look "missing" in shots = chess.com CDN PNGs don't load headless. Not a bug; they show live.
-
-### `editor/probe-wd.mjs` — MULTI-PHASE shots of Beat 2 (the `number-to-reason` cinematic)
-Same CDP boilerplate as `probe.mjs`, but scrolls `section[data-step="8"]`, waits for `#n2rStage.play`,
-and captures **several offsets in ONE Chrome session**: `node editor/probe-wd.mjs 600 4400 9000 13000
-18400 [light]` → `/tmp/st-wd-<ms>.png` each. Add `light` anywhere to test the light theme. This is the
-fast way to review a long autoplay cinematic — pass every act offset at once. Current Beat-2 offsets:
-≈600 full desktop · ≈4400 zoomed terminal · ≈9000 json→facts reformat · ≈13000 heat-map table · ≈18400
-zoomed explanation. (The IDE/terminal are intentionally dark in both themes; the chess.com CDN pieces
-on the app board don't load headless — they show live.)
+**Engine-verify** (`/tmp/sfverify`) — verify EVERY crafted FEN before using it. Rebuild in 10s:
+`cp frontend/public/engine/stockfish-18-lite-single.js /tmp/sfverify/stockfish.cjs` + the `.wasm`
+**renamed to `/tmp/sfverify/stockfish.wasm`** (locateFile derives the wasm name from the .cjs basename
+— mismatch = `ENOENT` abort). `node /tmp/sfverify/check.cjs "FEN1" "FEN2" …` speaks UCI (`setoption
+name MultiPV value 3` / `position fen … / go depth 22`). Forced wins show ~depth 16; quiet evals need 20–22.
 
 ---
 
-## 🛠️ THE LIVE EDIT INTERFACE (`editor/`) — use it, keep improving it
-A **dev-only in-page visual editor** so the user moves/styles things himself instead of
-"move this, edit that" chat loops. Iterated every session; goal end-state = a reusable,
-maybe-npm-installable **public skill**. **Spec / source of truth: `the-edit-interface.md`**
-(concept, goal, the DOM-hygiene contract, dynamic-hierarchy rules, do/avoid) — read it before
-extending the tool; keep refining it. Selecting is bidirectional: Pick on the page expands +
-reveals the item at its place in the tree (`revealInTree`), and tree rows scroll the page to it.
-- **Files:** `editor/editor.js` + `editor/editor.css` (all ids/classes namespaced `st-ed*`,
-  cannot collide). Loaded ONLY in dev via `main.js` (`if (import.meta.env.DEV) import('./editor/editor.js')`)
-  — tree-shaken out of the production build, never ships.
-- **UI = tabbed editing tool** (redesigned 2026-06-17): header (logo + Pick + close) · **two tabs
-  `Components` / `Settings`** · footer (count + Copy + Save). Tree rows have a hover **pencil
-  button** that opens that item's Settings; Picking on the page also jumps to Settings. Settings
-  header has a back-chevron to Components, ↑ parent, reset. Icons are inline SVGs (`ICON` map).
-  **Known TODO: the search box is intentionally disabled (not wired up yet).**
-- **How the user uses it:** click the floating **✎ Edit** button → panel opens. Pick **Pick**
-  mode to click elements on the page, or click rows in the **component tree** (Page → regions →
-  sections → components, lazy; hovering a row highlights it on the page). Selected element →
-  **inspector** groups: Move/transform (X/Y/Z/scale/rotate), Spacing, Size, Color, Text, and a
-  **📌 Note for Claude**. Every numeric control = slider **+ unclamped manual box** (type ANY
-  value → full range, no "stuck at edge" bug). Live-applies as inline styles.
-- **HOW CLAUDE GETS THE EDITS (the output method — this is the whole point):** user clicks
-  **Save** → POST to dev endpoint `/__st_edit_save` (a Vite `serve`-only plugin in
-  `vite.config.ts`) → writes `editor/edits.json`. **Claude just `Read`s that file** and applies
-  the real CSS/HTML. `{selector, classes, styles:{prop:val}, note}` per edit. No chat bloat, no
-  paste. (Fallback: **Copy for Claude** button → structured text to clipboard.) `edits.json` is
-  gitignored (transient).
-- **To add a setting:** push a control into the `GROUPS` array in `editor.js` (kinds: `num` /
-  `color` / `select` / `note`); each has `{key,label,get,set}` over the element's edit record.
-- **3D objects are separate editable nodes (not one canvas).** WebGL pieces/gears aren't DOM, so
-  `vObjects(section)` registers each as its own tree node (chip `3d`) wired to scene APIs:
-  hero Knight via `window.setPieceTransform`/`getPieceTransform`; Bishop/Rook via
-  `setBackTransform('bishop'|'rook',…)`/`getBackTransform`; gears via `window.stGears` (added to
-  `gears.js`). Selecting one shows move/scale/rotate sliders (manual box unclamped). The raw 3D
-  canvases (`#c`,`#cBack`,`.gear-canvas`) are hidden from the tree (shown as objects instead).
-  3D edits save as `{kind:'3d',target,name,transform,note}` → bake into the `T`/`TB`/`TR` defaults
-  in `scene.js` and `GEARS` in `gears.js`. (Can't be verified headless — confirm visually.)
-- **The tool drives DOM hygiene (key principle).** The editor only shows what's worth editing:
-  the tree is rooted at a `page` node (`<body>`) → structural regions (`nav` / `main` / `footer` /
-  `section`, always shown + colour-chipped) → leaf components. Picking (`pickAt` → `isLeafComponent`)
-  targets ONLY deep leaf things (titles, text, buttons, icons, the blunder svg, progress bar) and
-  NEVER a section/full-screen layer. Invisible/decorative chrome (opacity:0, full-bleed empty divs)
-  is filtered (`isHidden`/`isDecorative`). **So: keep the markup semantic and neat** — real `<nav>`/
-  `<main>`/`<footer>`, no pointless wrapper divs — and the tool stays clear for the user (and for you).
-  Names come from `nameOf` (heading text / button label / alt / humanised id; 3D canvases get
-  explicit names). Done 2026-06-17: wrapped content in `<main id="pageClip">`, moved the `.meta`
-  corner labels into `<footer class="page-corners">`, so the page now reads nav / Body / Footer.
-- **NOT built yet (next increments, from the idea file):** add-new-text-box, add existing
-  components (chess pieces / 3D gears with float/animation props), multi-select, delete-a-setting,
-  "request a setting" (describe → Claude adds it). Build these smallest-visible-first, confirm, add.
+## Design system & preferences (decided — don't re-derive)
+- **Theme:** dark default + light. Vars in `base.css` (`--bg:#0a0a0a` `--bg2:#111110` `--ink:#f5f3ee`
+  `--muted` `--line`); `body.light` resets them. Every new surface MUST work in both themes (add a
+  `body.light` override for any hard-coded color). Caption/label overlays sitting over BOTH dark and
+  light backgrounds need their own dark pill + light text (`.n2r-step`/`.n2r-cap`).
+- **Card colors:** warm grey `#272522` for move-log/data cards; white `#f8f7f5` for comment/explanation
+  cards (own scoped `--ink`/`--muted` for dark text on white). Light theme grey cards → `var(--bg2)`.
+- **Break the 50/50 pattern** — each step gets a layout chosen for its own demo.
+- **The "chess analysis tab" panel** (`rev-panel`) is the house style for board demos:
+  `[eval bar | board | sidebar]` in one rounded card; sidebar = stacked cards (comment on top, move log
+  below), chess.com-style.
+- **Board:** `.rev-sq` squares + `.rp` pieces positioned by % (12.5% grid), chess.com NEO PNGs (`NEO`
+  const in `sections.js`). Move tags in prose = NEO PNG + square, pill-styled (`.rev-mv`). Move ratings
+  = local SVGs in `./icons/` (`good.svg`, `best.svg`, `blunder.svg`…).
+- **Buttons clicked by a fake cursor** (`.fakecursor`/`.s4-cursor`): flies in, `press`+`clicking`
+  classes, then acts. Same pattern in steps 1, 2, 4.
 
-## Where things live (file map)
-```
-frontend/landing/
-  index.html              all sections (hero, steps 0–5, hook 6, beats 7/8/10), static markup
-  main.js                 boot: pieces → try(scene) → scroll-engine → sections → number-to-reason → gears → ui
-  sections.js             demo controllers + timers for steps 1–5 + Beat 1 engine (playEngine). NOTE: still
-                          holds DEAD code — playEval/playExplain/playLoop + buildNet/EvalBoard/ExBoard/Pipe
-                          (old steps 8/9, now unwired). Safe to delete in a cleanup, BUT t7/clear7 is shared
-                          with the live engine demo — keep that registry.
-  number-to-reason.js     Beat 2 cinematic — OWN module (own stage DOM + observer + actN() timeline). rev 4.
-  scroll-engine.js        scroll-scrubbed motion: hero outro + the "talks." → "talks?" hook morph
-  pieces.js / scene.js    3D hero (three.js + GSAP). scene.js is wrapped in try/catch in main.js
-  styles.css              @import manifest →
-  styles/
-    base.css              CSS vars, theme (:root + body.light), nav, hero, cards frame
-    steps-layout.css      per-step layouts, cursor, board card, rail, PGN box (step 1)
-    steps-demos.css       per-step demo styling (steps 2/3/4 + how-it-works shared bits)
-    how-it-works.css      hook morph + beat LAYOUTS (lay-corners / lay-theater) + Beat-1 engine demo.
-                          (The old evalStage/explainStage/loopStage CSS here is dead — see sections.js note.)
-    number-to-reason.css  all Beat-2 `.n2r-*`/`.vs-*` styling (theme-aware; IDE/terminal dark by design)
-```
-Served by Vite multi-page (`vite.config.ts` has `main` + `landing` entries). `npm run dev`,
-HMR is instant. Engine assets at `frontend/public/engine/` (also used for verification).
+## Animation patterns (reuse these)
+- **Autoplay video-style, NOT scroll-scrubbed.** Demos play on a timer when the section enters view.
+  Only the hero outro + the "talks."→"talks?" hook morph are scroll-linked (in `scroll-engine.js`).
+  Exception: the Beat-1 gears ARE scroll-coupled (he asked for it).
+- **Timers:** per-step registry `tN`/`iN` + `TN(ms,fn)` + `clearN()`; `demoIO` calls `fire(n)`/`reset(n)`.
+  Always push timers to the registry so resets cancel cleanly. `TN` schedules from when it's called →
+  safe to chain inside callbacks.
+- **Typewriter:** token arrays mixing strings (char-by-char) and `{mv,code}` move-tags (pop in whole as
+  a pill). See `s4type` / step-3 `REV_TOKENS`.
+- **Reduced motion:** every `play*` has an `if(RM())` branch jumping to the final state. Keep it.
+- **Pacing:** SLOW between scenes (~0.8–1.8s pauses) so the viewer comprehends each beat.
+- **Smoothness:** lock board size (e.g. 300×300) so it never resizes when sidebar text grows;
+  comment card content-sized, sidebar capped to board height with `overflow:hidden` so long text clips
+  INSIDE (never `flex:none`, never unbounded `flex:1`); tall `line-height` so inline pills never grow a
+  line; strike = a line that SWEEPS left→right greying text (not instant `line-through`).
+- **A fixed-size stage must `fit()` to width AND height** (`s = min(1, availW/960, availH/540)`) or it
+  overflows short sections and collides with the title.
+
+## Cinematics = pre-rendered VIDEO (the perf endgame — 2026-06-23)
+Heavy below-the-fold cinematics are converted to **pre-rendered clips**: rendered ONCE at max quality
+offline, shipped as a hardware-decoded `<video>` → ~zero runtime cost on ANY device, and quality no
+longer touches device perf (so crank resolution freely). **Hero + gears stay LIVE** (they sit over text,
+where a video bg won't composite). **Finale = DONE (video). Coach = NEXT** — video for the 3D, but keep
+its captions/typed-code as **LIVE editable HTML** (user wants to edit text without re-rendering; the GSAP
+timeline that positions overlays is cheap — only the WebGL render is heavy, so only that becomes video).
+
+**Render pipeline (dev-only, `record/` + `editor/`):**
+- `record/studio.html`+`studio.js` — max-quality offline stage; `?scene=…&ss=<supersample>`; exposes
+  `window.RB.frame(p)` (deterministic per-frame) + `RB.glRenderer`. An importmap maps `three`→CDN so it
+  also runs **without Vite** (the Colab bundle).
+- `editor/record.mjs` — headless-Chrome frame capturer → PNG seq. `GL=sw` (this GPU-less box, ~13–25 s/
+  frame) or `GL=gpu` (Colab). Env: `SCENE PORT URLPATH FRAMES W H SS OUT DBG FSTART FEND`. Renders sync +
+  waits node-side (headless rAF throttling hangs it otherwise). **Don't edit served files mid-render** (HMR
+  stalls it); parallel slices thrash on this 4-core/6 GB box — use ONE instance.
+- `editor/encode.mjs` — PNG seq → `<scene>.mp4` (H.264) + `.webm` (VP9) + poster via `ffmpeg-static`
+  (npm) or system ffmpeg. Env: `SCENE FPS CRF VPCRF IN OUTDIR FFMPEG`. Output → `public/landing/video/`.
+- **GPU path (no GPU here):** `editor/make-render-kit.mjs` → `render-kit.tgz` (self-contained, no Vite) +
+  `render/colab-render.ipynb` (Colab GPU notebook). A **Colab MCP** (`googlecolab/colab-mcp`) is in
+  `.mcp.json` (needs `uv` + a Claude-Code restart + the user's Google auth) so a future session drives the
+  GPU directly. To feed Colab, the kit must reach it (git clone or upload).
+- **Re-render the finale:** `npm run dev`, then `GL=sw SCENE=ender FRAMES=120 W=2560 H=1440 SS=1.25
+  OUT=/tmp/rec/ender node editor/record.mjs` → `SCENE=ender FPS=24 IN=/tmp/rec/ender node editor/encode.mjs`.
+  Current finale clip: 2560×1440, ~4.6 MB mp4. Verify playback: `node editor/probes/probe-endervideo.mjs`.
+
+## Performance — the lightness pass (2026-06-19; never regress)
+The page had ~8 WebGL contexts ALL rendering every frame forever + all created at boot → the hero
+intro + every scroll lagged. Two rules fix it (proven via `editor/probe-perf.mjs`: off-screen = **0**
+draws/sec):
+- **Every render loop MUST be visibility-gated.** A `requestAnimationFrame` that calls `renderer.render`
+  unconditionally is a bug. Gate it: hero (`scene.js`) skips both renderers when `#heroSec` is off-screen;
+  `coach.js` `frame()` early-returns unless its IntersectionObserver set `visible`; `gears`/`logoGears`
+  already skip via a rect check; `ender.js` renders only while `active`. Any NEW 3D scene does the same.
+- **Below-the-fold 3D modules load LAZILY, never at boot.** `main.js` `lazy3D()` arms an approach-observer
+  (`rootMargin:'300%'`) per section AND idle-preloads (`requestIdleCallback`, staggered, started ~3s after
+  load so it never competes with the intro). Boot creates only the hero context → buttery intro. Don't add
+  a `await import('./<3d>.js')` at boot; register it in the `heavy3D` list instead.
+- Pixel ratio cap ≤ **1.5** everywhere (was 1.75 on coach). The loader wordmark illuminates letter-by-letter
+  with real progress (`setProgress` toggles `.lit`; CSS in `base.css`).
+
+**v3 — the performance manager / "runs on almost any device" (2026-06-22; the root fix).** `perf.js` is
+now a manager, not just an fps gate. It picks a **tier** at boot from cheap signals (reduced-motion / no
+WebGL / software GPU → `min`; saveData / deviceMemory≤2 / mobile / cores≤4 → `low`; cores≤8 → `mid`; else
+`high`) and exposes ONE `QUALITY` object every module reads: `{dpr, antialias, fpsCap, hero, gears, cinema}`.
+- **DPR is the big lever** (render cost ≈ quadratic in DPR): capped 1.0 (low/min) → 1.25 (mid) → 1.5 (high).
+  `antialias` off except high. Every renderer is built `antialias:QUALITY.antialias` + `registerRenderer(r)`
+  (the manager owns `setPixelRatio` and can lower it LIVE). No module sets pixel ratio itself anymore.
+- **Tier gates which 3D loads** (`main.js`): hero behind `QUALITY.hero`, gears/logoGears behind
+  `QUALITY.gears`, coach/ender behind `QUALITY.cinema`. Per the user's priority: the **hovering hero is
+  dropped first** on weak devices, the **spinning gears are kept longest**, the **cinemas** in between.
+  Each render loop also early-returns on its flag so the watchdog can disable it live.
+- **Adaptive FPS watchdog** (`startWatchdog`): counts dropped frames (>33ms) per ~1s window; two bad
+  windows → one graduated demotion (lower DPR → drop hero → lower DPR → drop cinema → lower DPR → drop
+  gears), with a cooldown. One-way; self-corrects to smooth on any device.
+- **Lite CSS** (`styles/ender.css`): `body.lite-cinema` hides the coach canvas + collapses the 350vh
+  `.ender` (and `ender.js` zeroes its veil when `!QUALITY.cinema`); `body.lite-gears` hides gear canvases;
+  `no-hero` is the existing wordmark fallback. Debug/test any device with **`?perf=min|low|mid|high`**
+  (forces a tier); `window.__perf` shows the detected tier. Probe: `GL=sw PERF=high node editor/probe-tier.mjs`.
+- `fpsGate()` now takes NO arg — it reads `QUALITY.fpsCap` live (so a demotion tightens every loop at once).
+  The old per-module `FPS` export is gone.
+
+**v2 — the frame-rate governor (2026-06-21; never regress).** `requestAnimationFrame` fires at the DISPLAY
+refresh, so on 120/144Hz panels every on-screen WebGL loop re-rendered 120–144×/sec (the hero is TWO
+full-screen contexts) — the real cause of the "laggy / low fps" report, NOT gating. Fix: `perf.js` exports
+`fpsGate(fps)` + a tunable `FPS` object (`hero:50 · gears:36 · coach:40 · ender:40` — one dial). Each loop
+calls `if(!gate()) return;` AFTER its visibility check, before `renderer.render`. Motion stays correct
+because it's all clock/`tl.time()`-driven. The gears were ALSO converted to a **time-based** idle spin
+(`SPIN.idle*…*dtF`) — they used to spin 2–2.4× too fast on high-refresh displays — and accumulate scroll
+delta across throttled frames (`scrollAcc`) so the scroll-coupled spin stays exact. Any NEW 3D loop MUST
+fps-gate the same way. Further levers if still heavy: lower decorative DPR (gears→1.25), fewer idle-preloaded
+contexts (8 live at once).
+
+## Chess accuracy (non-negotiable — burned us)
+- **Never guess a position.** Verify EVERY crafted FEN with the engine harness before using it.
+  Verify legality AND the story (the fork really forks, the king must move out of check, etc.).
+- **Best move = Stockfish's #1, full stop.** A small eval gap doesn't make it "not best".
+- No eval numbers in prose (repo R1 holds on the landing too).
+- Locked positions: Beat-1 Fried Liver `r1bqkb1r/ppp2ppp/2n5/3np1N1/2B5/8/PPPP1PPP/RNBQK2R w` → **Nxf7**.
+  Step-4 `r1qr2k1/pb3ppp/1p6/2pN4/4P3/8/PP3PPP/R2Q1RK1 w` → Good=Qf3 (level), Best=**Ne7+** (royal fork).
+
+---
+
+## ALWAYS / NEVER
+**ALWAYS:** match surrounding idiom · keep both themes working · push timers to their registry · keep
+the `RM()` branch · `node --check sections.js` after JS edits · verify chess with the engine · lock
+board size · keep the comment card content-sized.
+
+**NEVER:** scroll-scrub a step demo · invent a "best move" · let a card resize the board or spill above
+it · reuse a `const` name already declared in `sections.js` (namespace step-scoped consts: `S4_PC`…) ·
+add red accent lines or any flourish he didn't ask for · over-plan a fix I can just see and approve ·
+show a screenshot unprompted.
+
+## Mistakes to avoid (real bugs, kept for immunity)
+- `buildAbsBoard` does `el.innerHTML=h` → wipes overlay children of `#engBoard`. Put scan/net/arrow
+  overlays as **siblings in `.engboardwrap`**, not inside the board element.
+- Bottom-anchored overlays collide with a zoomed full-bleed element → zoom a bit less + bias the camera
+  centre upward (`camTo(el, k, centerY)`) to reserve a bottom strip for the caption.
+- Same-baseline raw→readable cross-fades look garbled mid-transition (~0.3s overlap); sequence them if
+  it bothers him (fade raw fully out, THEN fade readable in).
+- One source of truth for a reveal — never let a safety `setTimeout` fight an animation tween (the
+  intro flicker: `introScale` vs `__intro.v` desynced; tween must start from the CURRENT value).
+- 3D things must be visible without precise scroll — gears idle-spin continuously; scroll only ADDS
+  rotation (tying visibility to scroll-progress hid them at progress 0).
 
 ---
 
 ## STATUS TRACKER
 
-### 🎯 ACTIVE ARC — "How StockThink works" cinematic beats
-Beat 1 (engine) + Beat 2 (number→reason, rev 4) DONE & approved. **Beat 3, the coach (data-step 10), IN
-PROGRESS — now an AUTOPLAY 3D CINEMATIC** (the scroll-scrub idea + the old `stockthink-coach-overnight-section.md`
-spec are BOTH DEAD). FOUNDATION built (`coach.js` + `styles/coach.css`): the real Claude logo
-(`models/claude-logo.glb`, clay material reused from `3D assets/claude-logo-render.html`) faces the user
-dead-centre (`FACE_Y=-1.680`), static camera, gentle bob; a corner guide (two lines top-left, one bottom-right)
-fades on scroll. **Full plan + acts + open questions: `coach-plan.md` (SOURCE OF TRUTH).** Assets: logo ✓,
-board ✓ (`models/chess-board.glb`, 0.54 MB), **3D book ⬜ user provides next session**, code file = 2D overlay.
-NEXT: answer the 5 open questions in the plan, then build the camera/Claude choreography on PLACEHOLDER boxes
-before swapping in GLBs (lock the move, then materials/timing). Treat the Beat-2 cinematic as the QUALITY BAR.
-After the beats: the final cinematic endgame (3D masters at `~/stockthink-3d-source/`). All landing work is
-uncommitted on `ux/landing-page`.
+### 🎯 ACTIVE — "How StockThink works" cinematic, 3 beats after the hook
+- **Hook (data-step 6, scroll morph):** "Stockfish that talks." morphs "." → "?". WORKS — keep it.
+- **Beat 1 — "The strongest engine — right in your browser." (01/03, data-step 7) — DONE & approved.**
+  Gears + the "engine in your browser" demo (`engBuild`/`engReel` in `sections.js`; panel right-aligned
+  off the gears; explanation card matches the review card; CSS under
+  "engine-in-your-browser" in `how-it-works.css`, markup in `.s1right` of data-step 7). Timeline (ms
+  from fire): 500 scan → 2500 board shrinks+fades → 2950 net panel + `Calculating…` → 4250 `Processing…`
+  → 5800 `Nxf7` result pops → 7450 board returns → 8000 L-arrow + `★Nxf7` chip → 8400 typed explanation.
+  **Engine visual language (reuse for any engine beat):** neural net = SQUARE nodes on a white compute
+  panel, teal→green, edges DRAW IN in two ramped stages; loader word `Calculating…`→`Processing…`;
+  result move pops standalone on the panel, THEN board returns (a sequence, not simultaneous); knight
+  arrow is L-shaped (up then left), green `#6fc24a`; stats = big mono number over a small label; scan =
+  green gradient bar bottom↔top.
+- **Beat 2 — "How we process Stockfish's output." (02/03, data-step 8) — BUILT.** The number→reason
+  cinematic (`number-to-reason.js`, own observer + a `Reel`). ~24s: opening title card → a cursor opens
+  VS Code from the dock → terminal types UCI → `analysis.json` (cursor opens it, panes sequenced — no
+  crossfade garble) → plain facts → pattern-match heat table → StockThink app card (loads, then the
+  verdict). Captions = clean lower-third (green kicker + white caption + scrim, no pills). Helpers:
+  `camTo`/`cursorTo`/`zoomToComment`/`heat`. CSS `styles/number-to-reason.css`, header `.lay-theater`.
+- **Beat 3 — "A coach that studies while you sleep." (03/03, data-step 10) — BUILT, needs final polish.**
+  Autoplay 3D GSAP cinematic in `coach.js` (Claude logo → book → subagents → board); one paused timeline
+  `tl` with per-act `tl.addLabel(...)`. Scrubber via `gsapTransport(tl)`. Anything animated MUST run off
+  `tl.time()` (never its own clock) or it won't pause/seek. Tunables at the top (`CAM`/`POS`/`SHIFT`/…) —
+  change numbers, not structure. No headless screenshots (no WebGL) — verify with the user's eyes.
+  Board/pieces load from **real URL files** (`coach-board.js` uses `window.PIECES`/`window.BOARD3D` set by
+  `pieces.js`; the old ~6.8 MB base64 `coach-board-data.js` blob is DELETED, `board-layout.js` keeps the
+  opening layout). **NEXT: convert to video** (see "Cinematics = pre-rendered video") — clip the 3D, keep
+  the captions/typed-code as live editable HTML.
+
+- **Beat 4 — THE FINALE — "the basement endgame" — DONE, now a PRE-RENDERED VIDEO (2026-06-23).**
+  Réti–Tartakower basement set (board on a table under a caged Edison bulb); the camera dollies from a
+  wide establishing shot to a **seated White-POV close-up**. It's a `<video>` now, not live WebGL — see
+  **"Cinematics = pre-rendered video"** above. `ender-video.js` keeps the scroll fade-to-black veil +
+  `body.ending` theme flip and **autoplays the clip on arrival** (zero WebGL, plays on EVERY tier).
+  `index.html`: section `.ender` (220vh) holds `<video id="enderVideo">`; `styles/ender.css` cover-fits it.
+  The live-3D finale (`ender.js`) is retired from the page; `ender-scene.js` (basement set: fog, SpotLight,
+  volumetric beam, Edison pendant, light pools — floor removed) + `ender-board.js` (per-piece FEN builder,
+  real URL GLBs) survive ONLY to re-render. Open FEN `rnb1kb1r/pp3ppp/2p2n2/4q3/4N3/3Q4/PPPB1PPP/2KR1BNR b
+  kq - 0 8`; the queen-sac move-beat sequence (8…Nxe4 🔴 · 9.Qd8+ ✨ · 10.Bg5+ double-check 🟢 · 11.Bd8# 👑)
+  is in git history if move-beats return.
+
+After the finale: an optional further cinematic — editable 3D masters now at
+`~/stockthink-3d-source/landing-source-html/` (the basement/board source HTML moved out of the repo).
 
 ### 🧰 PAUSED — the Live Edit Interface (`editor/`)
-Still a real, working TOOL (use it to pick elements / read `editor/edits.json`); just NOT the active build.
-Verified: Page→regions→sections→components tree, Pick, Components/Settings tabs, per-row pencil, full-range
-controls, 3D-objects-as-nodes, Save→edits.json, drag/resize. Spec `the-edit-interface.md`; details in the
-🛠️ section below. Next-if-resumed: wire the disabled search · multi-select · add-text/component · "request
-a setting". Verify with `node editor/devtest.mjs`.
+A real, working dev-only tool (use it to Pick elements / read `editor/edits.json`); just NOT the active
+build. Verified: Page→regions→sections→components tree, Pick, Components/Settings tabs, per-row pencil,
+full-range controls, 3D-objects-as-nodes, Save→edits.json, drag/resize. **Spec: `the-edit-interface.md`.**
+Loaded only in dev via `main.js`, tree-shaken from prod. Next-if-resumed: wire the disabled search ·
+multi-select · add-text/component · "request a setting". Verify with `node editor/devtest.mjs`.
 
-### ✅ DONE
-- **Hero section** (3D wordmark, tagline, scroll outro). Resilient: if WebGL fails,
-  `body.no-hero` fallback clears the loader and shows the page.
-- **"How to use StockThink" — the 5-step product demo (steps 0–5):**
-  - Step 0 intro poster · Step 1 "Get your game ready" (PGN paste) · Step 2 "connect
-    chess.com" (multi-select + analyse) · Step 3 "Learn from your mistakes" (live blunder
-    review, chess.com-style panel) · Step 4 "See what would've been better" (good → best
-    move, engine-verified) · Step 5 closing slide.
-  - These use the **autoplay video-style demos** (see Animation rules). Approved look.
-- **"How StockThink works" — Beat 1 (data-step 7) DONE & approved (2026-06-17):** gear title + the
-  full **"engine in your browser" demo** (scan → board-out → square-node neural net "thinking" →
-  Nxf7 result pop → board returns w/ L-arrow + chip → typed explanation). Spec + the reusable ENGINE
-  VISUAL LANGUAGE are in "Progress + decisions" below.
-- **NOW 3 BEATS (not 4), restructured 2026-06-17:** 01 The engine · 02 The words · 03 The coach.
-  The old "It will never bluff you" beat was DELETED; the coach is `03 / 03`. Beat 1 kicker → `01 / 03`.
-- **"How StockThink works" — Beat 2 (data-step 8) DONE & verified (2026-06-17, rev 4):** seeded by
-  `stockthink-number-to-reason-animation.md` but reworked 4× on the user's notes — **that spec is now
-  HISTORICAL (rev 4 diverged completely); the code + this entry are the source of truth, don't rebuild
-  from the spec.** NO board. Kicker = just
-  `02 / 03`; title = small **"How we process Stockfish's output."** that slides in from the left on reveal
-  and **recedes when the animation plays** (`.lay-theater.n2r-playing .cv-top`, set by the module). The
-  stage now **fills the section** (`lay-theater` = header overlay + full-bleed `cv-stage`; section height
-  `min(86vh,800px)`) for a bigger viewer. Self-contained **~19s, 4-act** cinematic, theme-aware, with a
-  `STEP n/4` + caption **pill** (dark, light text — legible on the dark IDE AND the light stage):
-  - **① Analyse:** a **Mac desktop** (menu bar + wallpaper) with a **VS Code window** (Explorer showing the
-    STOCKTHINK project — engine/, src/, analyse.py… — editor + integrated terminal), shown full, then the
-    **camera zooms into the IDE** (`camTo(el,k,centerY)` pans+scales the `.n2r-desk`). Stockfish types
-    **complex UCI live** in the terminal (info depth…/bestmove/✓ wrote analysis.json).
-  - **② Reformat:** `analysis.json` **appears in the Explorer** (NEW tag); the editor opens it (raw JSON),
-    then **StockThink reformats it into plain facts** (editor crossfades JSON → `verdict/move/best`).
-  - **③ Match:** a centered **pattern-match TABLE** (`Pattern · Definition · Match · %`); a scan scores each
-    with a **% + red→yellow→green HEAT MAP** (`heat()` lerps colour by match); only **`pin`** scores high.
-    (User OK'd red here — overrides the old "never red" note.)
-  - **④ Explain:** the desk fades and the **StockThink APP** (browser mock: eval bar + board with the pin
-    position + Blunder rating + comment) appears, then **`zoomToComment()` zooms into the explanation**.
-  - **Files (isolated from sections.js):** `number-to-reason.js` (own 960×540 stage DOM + per-act chained
-    timeline + own IntersectionObserver@0.6 + Replay + reduced-motion frame + **`fit()` scales to width AND
-    height** + `camTo()` + `zoomToComment()` + `heat()` + `buildMiniBoard()`) · `styles/number-to-reason.css`
-    (all `.n2r-*`/`.vs-*`; palette + `body.light` overrides; the IDE/terminal stay dark by design). Header
-    layout in `styles/how-it-works.css` (`.lay-theater`). Imported in `main.js`+`styles.css`.
-    **StockThink has no logo yet** — the app/IDE use text marks; swap in the real logo when it exists.
-  - **Wiring:** data-step 8 is NOT in `sections.js` `fire()/reset()` — the module owns its observer.
-    Tune timing via the `at(...)` offsets in each act fn + `CHAR`/`ROW_STEP`/`SCORE_STEP` at the top.
-  - **Verify:** `node editor/probe-wd.mjs <ms> [light]` → `/tmp/st-wd.png` (≈600 full desktop, ≈4400 zoomed
-    terminal, ≈9000 json→facts reformat, ≈13000 heat table, ≈18400 zoomed explanation). Both themes verified.
-  - Beat 3 (coach) still a STAGE-1 placeholder box (on the corners layout).
-
-### 🔧 LOW-PRIORITY BACKLOG (not blocking — only if the user raises them)
-- Old carryover: give Steps 3 & 4 one live play-through (Step 4 was rebuilt a few sessions ago) and
-  polish any timing/spacing nits. Not urgent — they've shipped fine through many sessions since.
-- Cleanup: delete the dead `playEval/playExplain/playLoop` block in `sections.js` (keep the `t7`
-  registry — the live engine demo shares it). Lower the file from ~810 lines so it reads faster.
-
-### ⬜ TODO (next arcs, in order)
-1. **Beat 3 "The coach" (data-step 10) — IN PROGRESS, autoplay 3D cinematic. SEE `coach-plan.md`.**
-   Foundation done (logo faces user + corner guide). The acted-out self-improvement loop: Claude recedes →
-   book appears, Claude pulses + spawns a clone (subagent) → clone scans the book, evolves, returns → board
-   appears, Claude learns the puzzle + pulses → Claude writes new concepts into a code file. Autoplay (NOT
-   scroll). Next: answer the 5 open questions, build choreography on placeholder boxes, then swap in GLBs.
-   3D book asset still to come from the user.
-2. **Final cinematic endgame show** — the closing 3D/cinematic moment. Editable 3D
-   masters live OUTSIDE the repo at `~/stockthink-3d-source/` (see root memory). Not started.
-
----
-
-## DESIGN SYSTEM & PREFERENCES (decided this session — don't re-derive)
-- **Theme:** dark default + light. Vars in `base.css`: `--bg:#0a0a0a` `--bg2:#111110`
-  `--ink:#f5f3ee` `--muted` `--line`. Light = `body.light` resets the vars.
-  Every new surface MUST work in both themes (add a `body.light` override if it uses a
-  hard-coded color).
-- **Card colors:** warm grey `#272522` for move-log / data cards (matches step 1 PGN box +
-  step 2). White `#f8f7f5` for the comment/explanation card (with its own scoped `--ink`/
-  `--muted` so dark text reads on white). Light theme grey cards reset to `var(--bg2)`.
-- **Break the repetitive 50/50 pattern.** Each step gets a layout chosen for its own demo
-  (poster, app-left, text+panel, etc.). Don't make every step text-left/demo-right.
-- **The "chess analysis tab" panel** (`rev-panel`) is the house style for board demos:
-  `[eval bar | board | sidebar]` in one rounded card. Sidebar = stacked cards (comment on
-  top, move log below, etc.), just like chess.com's review tab.
-- **Board:** built from `.rev-sq` squares + `.rp` pieces positioned by % (12.5% grid).
-  Pieces = chess.com NEO PNGs (`NEO` const in sections.js). Coordinates = `.rev-coord`
-  spans colored to contrast their square (ranks top-left, files bottom-right).
-- **Move tags in prose** = NEO piece PNG + square text, pill-styled (`.rev-mv`).
-  **Move ratings** = local SVGs in `./icons/` (`good.svg`, `best.svg`, `blunder.svg`, …).
-- **Buttons clicked by a fake cursor** (`.fakecursor` / `.s4-cursor`): cursor flies in,
-  `press` + `clicking` classes, then action. Same pattern in steps 1, 2, 4.
-
----
-
-## HOW THE ANIMATIONS WORK (the patterns — reuse these)
-- **Autoplay video-style, NOT scroll-scrubbed.** Demos play themselves on a timer when the
-  section enters view (think Anthropic feature demos). I REJECTED scroll-scrubbed step
-  animations — only the hero outro + the "talks."→"talks?" hook morph are scroll-linked
-  (those live in `scroll-engine.js`).
-- **Timers:** each step has a registry `tN`/`iN` + `TN(ms,fn)` helper + `clearN()`.
-  `demoIO` (IntersectionObserver) calls `fire(n)` when centered, `reset(n)` on leave.
-  Always push timers to the registry so resets cancel cleanly. `TN` schedules from the
-  moment it's called → safe to chain inside callbacks (e.g. after a typewriter finishes).
-- **Typewriter:** token arrays mixing strings (type char-by-char) and `{mv,code}` move-tags
-  (pop in whole as a pill). See `s4type` / step-3 `REV_TOKENS`.
-- **Reduced motion:** every `play*` has an `if(RM())` branch that jumps straight to the
-  final state. Keep it.
-- **Pacing:** SLOW between scenes — ~0.8–1.8s pauses so the viewer comprehends each beat.
-  Don't rush beats together.
-- **Smoothness rules (hard-won):**
-  - Lock the board size (e.g. 300×300) so it NEVER resizes when sidebar text grows.
-  - Comment/explanation card = **content-sized**, and cap the sidebar to the board height
-    with `overflow:hidden` so long text clips INSIDE the card instead of spilling above the
-    board. (Do NOT make the comment card `flex:1` unbounded, and never `flex:none` on it.)
-  - Keep `line-height` tall enough that inline move-pills never grow a line (kills text
-    "shift" as pills type in). Pills `vertical-align:middle`.
-  - Strike/cancel = a line that SWEEPS left→right (`width 0→100%`), greying text as it
-    passes, then fade. Not an instant `line-through`.
-
----
-
-## CHESS ACCURACY (non-negotiable — burned us this session)
-- **Never guess a position.** Verify EVERY crafted FEN with the real Stockfish before using
-  it. Last session the original step-4 demo had the best move BACKWARDS (d3 was best, not d4).
-- **Best move = Stockfish's #1, full stop.** A small eval gap does NOT make it "not best";
-  it only means the eval bar moves less. Don't editorialize the engine's ranking.
-- Verify legality AND the story (fork really forks, king must move out of check, etc.).
-- **Verification harness** (rebuild if `/tmp/sfverify` is gone): copy
-  `frontend/public/engine/stockfish-18-lite-single.js` → `stockfish.cjs` + the `.wasm`
-  alongside, `spawn('node', [enginePath])`, speak UCI (`position fen … / go depth N`,
-  `setoption name MultiPV value 3`). The repo's `self-improvement/test/helpers/transport.ts`
-  is the reference. Forced material wins show at depth ~16; quiet evals need depth ~20–22.
-- Step-4 locked position (engine-verified): `r1qr2k1/pb3ppp/1p6/2pN4/4P3/8/PP3PPP/R2Q1RK1 w`
-  — Good = Qf3 (~0.0, level), Best = **Ne7+** (#1, +3.2: royal fork, wins the queen).
-
----
-
-## ALWAYS / NEVER
-**ALWAYS:** match the surrounding code's idiom · keep both themes working · push timers to
-their registry · keep the `RM()` branch · `node --check sections.js` after JS edits ·
-verify chess with the engine · lock board size · keep the comment card content-sized.
-
-**NEVER:** scroll-scrub a step demo · invent a "best move" · let a card resize the board or
-spill above it · reuse a `const` name already declared in `sections.js` · add red accent
-lines (or any flourish) I didn't ask for · over-plan a fix I can just see and approve ·
-SHOW me a screenshot unprompted (silently verifying with the harness is fine — encouraged, even).
-
----
-
-## MISTAKES TO AVOID (this session's actual bugs)
-- **A fixed-size stage must `fit()` to width AND height.** Scaling only to width let the 540px stage
-  overflow a short section and collide with the section title. FIX: `s = min(1, availW/960, availH/540)`
-  measuring the `.cv-stage` box (see `number-to-reason.js` `fit()`).
-- **Caption/label overlays that sit over BOTH dark and light backgrounds need their own pill.** In light
-  theme the dark-ink caption vanished on the dark IDE; over the light stage a light caption would vanish
-  too. FIX: a fixed dark pill + light text (`.n2r-step`/`.n2r-cap`) reads on everything.
-- **Bottom-anchored overlays collide with a zoomed full-bleed element.** When the IDE zoomed to fill the
-  stage, the terminal's last lines sat under the bottom caption. FIX: zoom a bit less + bias the camera
-  centre upward (`camTo(el, k, centerY)`) to reserve a bottom strip for the caption.
-- **Same-baseline raw→readable cross-fades look garbled MID-transition** (both texts overlap for ~0.3s).
-  Acceptable if brief; if it bothers the user, sequence it (fade raw fully out, THEN fade readable in).
-- **Biggest time sink (2026-06-17): guessing what a motion word means.** "Transition" got built as
-  "sidebar dims/recedes" when he meant "board shrinks→fades→neural-net→result→board returns" — 2
-  reworks. "Scan" got built white when he wanted green. FIX = before coding any multi-step motion,
-  **restate it back as a numbered second-by-second sequence** and match any reference in `user
-  provides/` literally; build to that, don't improvise the choreography.
-- **Don't ask "where are the files?" first** — he drops references in `frontend/landing/user provides/`.
-  Check there, `Read` them, then build.
-- `buildAbsBoard` does `el.innerHTML=h` — it **wipes any overlay child** you put inside `#engBoard`.
-  Put scan/net/arrow overlays as **siblings in a `.engboardwrap`**, not inside the board element.
-- `const ML_PC` declared twice in `sections.js` → "already declared". Namespace step-scoped
-  consts (`S4_PC`, etc.).
-- `.s1review #revComment{flex:none}` made the explanation card grow with text and push
-  **above the board**. Fix = `flex:1; min-height:0` + sidebar `height:300px; overflow:hidden`.
-- Circular width: `width:100%` inside a flex parent with no explicit width re-resolves as
-  text types in → the whole card jumps. Give the parent a real size.
-- Move-pills taller than the text line → each pill pops the line height → text shifts.
-- Instant `line-through` looked cheap; the swept strike line reads as a real "cancel".
-- Dismissing the engine's #1 because the gap was small — wrong; best is best.
-- Over-searching for the "perfect" position — verify a couple, pick, move on.
-- **Custom full-stage layouts cluster/break.** A bespoke `gearStage` with a `position:absolute;inset:0`
-  title flex-box clustered the text and was a nightmare to debug. FIX: reuse the proven
-  `.s1sec > .s1step > .s1left/.s1right` framework for text, and add 3D/visuals as **separate
-  absolutely-positioned canvas layers** behind (z0) and in front (z3) of it — never re-layout the text.
-- **"Can't screenshot here" was WRONG (corrected 2026-06-17).** The MCP browsers fail on
-  localhost, but headless `google-chrome` + CDP (`ws`) works — see "Seeing the page" /
-  `editor/devtest.mjs`. Don't build blind; capture a PNG and `Read` it. Only true blind spot:
-  WebGL/3D doesn't render headless.
-- **3D things must be visible without precise scroll.** Tying gear visibility to scroll-progress
-  hid them at the top of the section (progress 0). FIX: gears idle-spin continuously (always
-  visible); scroll only *adds* rotation.
-- **Intro "appear → vanish → grow" flicker (intermittent).** Root cause: two visibility sources
-  desynced — `introScale` (what `animate()` renders) vs `window.__intro.v` (what the grow tween
-  drives) — and a safety `setTimeout` force-set `introScale=1` on SLOW loads, then the tween yanked
-  it back to 0. FIX (scene.js): tween starts from the CURRENT `introScale` (can't snap to 0), and
-  the safety only fires if the intro never started (`introStarted` guard). Lesson: one source of
-  truth for a reveal; never let a safety net fight the animation.
-
----
-
-## NEXT ARC: "How StockThink works" (steps 6–9) — START CLEAN, STAGED
-
-Last session felt rough because we improvised and patched bad parts. Do NOT do that here.
-Build this section in **explicit stages, each gated by my approval before the next:**
-
-1. **STAGE 1 — Layout grid (skeleton only).** Lay out the whole "how it works" run as a
-   VISIBLE grid: bordered boxes / placeholder blocks showing where every section and its
-   sub-areas sit (heading area, visual area, etc.). No real content, no animation — just
-   visible borders so I can approve the spatial distribution. **Stop, show me, get approval.**
-2. **STAGE 2 — Content.** Drop the real texts + components into their approved boxes
-   (static, no motion). Stop, get approval.
-3. **STAGE 3 — Transitions.** Add intro/outro transitions linked to scrolling (reveal on
-   enter, exit on leave). Stop, get approval.
-4. **STAGE 4 — Animations.** Only now build the per-step demo animations (autoplay,
-   video-style). This is LAST.
-
-Never jump ahead a stage. The whole point is to get the bones right before the flesh.
-
-### Progress + decisions (this section)
-- **Voice = "reassuring & human"** (chosen). **3 beats** (restructured 2026-06-17, after the "Stockfish
-  that talks?" hook): 1 "The strongest engine — right in your browser." (THE ENGINE · 01/03) ·
-  2 "How a number becomes a sentence." (THE WORDS · 02/03) · 3 "A coach that studies while you sleep."
-  (THE COACH · 03/03). The old beat-2 "No numbers…" title and the "It will never bluff you" beat were
-  cut. Beat-2 kicker/copy were rewritten short ("Stockfish gives a move and a score. StockThink finds
-  the idea behind it — the tactic, the pattern, the purpose — and tells you in plain words.").
-- **Beat 1 DONE (incl. the right-side engine demo, 2026-06-17):** `index.html` data-step 7 = standard
-  `.s1step`, title LEFT + two gear canvases (`.gear-back` z0, `.gear-front` z3) wrapping it. The RIGHT
-  side (`.s1right`) now holds the **"engine in your browser" demo** — see its spec below. (The old
-  "Higgsfield video" idea is dropped.)
-- **Gears (`gears.js`):** scroll-coupled spin baked in — idle spin cuts out *while* scrolling so the
-  gears track scroll speed+direction frame-by-frame, then resume in the last scroll direction. Tunables
-  at top: `SPIN = { idle, scrollK, resume }` (alongside `TUNE`/`GEARS`).
-- **The 3D scene = scroll-linked motion is OK here** (user asked for it) — supersedes the old
-  "no scroll-scrub" rule for this gear section only.
-
-#### Beat-1 engine demo — spec & knobs (so you can tweak it FAST)
-The whole thing is `playEngine()`/`resetEngine()` in `sections.js` (wired to `fire/reset('7')`), CSS
-under "engine-in-your-browser" in `how-it-works.css`, markup in the `.s1right` of data-step 7.
-DOM: `.engwin` (mac browser chrome: dots + `🔒 your device · offline`) › `.engbody` = `.engboardwrap`
-(`#engBoard` house board + `#engScan` + `#engNet` + `#engArrows` + `#engHud` + `#engBest`) and
-`.engside` (`#engExp` explanation, `.engml` move log with `.cur` highlight, `.enggraph` w/ area fill).
-Timeline (ms from fire): 500 scan → 2500 board shrinks+fades (`.engboard.out`) → 2950 net (`#engNet`
-white panel) + `Calculating…` + depth/nodes stats → 4250 word→`Processing…` → 5800 net fades, `Nxf7`
-result pops on panel → 7100 panel fades → 7450 board returns → 8000 L-arrow + `★Nxf7` chip → 8400
-explanation types out. Everything has an `if(RM())` jump-to-final. Verify phases with `probe.mjs`
-sleep offsets (see harness note). Locked move: **Nxf7** (engine-verified, Fried Liver).
-
-#### THE STOCKFISH / ENGINE VISUAL LANGUAGE (user-approved this session — reuse for any "engine" beat)
-- **Neural net = SQUARE nodes** in the `user provides/neural-net` topology (input→4→2 with crossing
-  edges + a vertical link), on a **white "compute" panel**; teal→**green** (filled `#57bf3c`, outlined
-  black-on-white). Edges **DRAW IN** (stroke-dashoffset→0) in **two ramped stages** (input→4 nodes,
-  short pause, 4→2 nodes) so you SEE lines grow left→right. Nodes **solid** (no pulse), they **fade
-  with the panel** when done.
-- **Loader word above the net:** `Calculating…` during stage 1 → fade-swap to `Processing…` for stage 2.
-- **Result reveal:** after thinking, the move (`Nxf7`) **pops standalone** big on the white panel
-  (text `#474747`), THEN fades, THEN the board returns and shows the move. Don't show the move on the
-  board at the same time as the standalone result — it's a sequence.
-- **Move arrows are move-shaped:** a knight move is an **L** (rise straight up, then turn and point
-  left into the square), not a diagonal line. Arrow green `#6fc24a` (slightly darker than brand green).
-- **Stats look like stats:** big mono number (`#2f9e1e`) over a small uppercase label — NOT tiny pills,
-  and never overlapping other text. (Dark pills were rejected.)
-- **Explanation = typewriter, short & direct, engine-true** (e.g. "Knight to f7 — a fork on the queen
-  and rook."). Blinking caret that stops on done. No eval numbers (repo R1 still holds on the landing).
-- **Scan sweep** = green gradient bar, bottom↔top (`.engscan.run`). White scan was rejected.
-- **WORKFLOW THE USER LIKES — temp tuning panel.** For 3D/visual look work, build a throwaway
-  on-page panel (sliders for material + per-object x/y/z/size/etc.) with a **"Copy params"** button
-  that emits a JS-ready config; user tweaks live, pastes the config back, you bake it as the default
-  and delete the panel. One round, no edit ping-pong. Locked gear values live at the top of `gears.js`
-  (`TUNE` + `GEARS`).
-
-### "How StockThink works" — the beats (CURRENT state — supersedes the old steps-7/8/9 plan)
-3 beats after the hook (the old "First it reads / Then it explains / sharpens every day" plan + its
-`playEval/playExplain/playLoop` demos are obsolete):
-- **Hook (data-step 6, scroll morph):** kicker "How StockThink works"; title "Stockfish that talks."
-  morphs "." → "?"; sub "Three things happen the moment you hit analyse." WORKS — keep the mechanic.
-- **Beat 1 (data-step 7) — "The strongest engine — right in your browser." (THE ENGINE · 01/03)** —
-  DONE: gears + the engine-in-your-browser demo (`playEngine` in `sections.js`).
-- **Beat 2 (data-step 8) — "How we process Stockfish's output." (02/03)** — DONE rev 4: the
-  number→reason cinematic (`number-to-reason.js`). The quality bar.
-- **Beat 3 (data-step 10) — "A coach that studies while you sleep." (THE COACH · 03/03)** — NEXT;
-  placeholder on `lay-corners`. Idea: an LLM (Claude) studies fresh games/puzzles daily and teaches
-  StockThink new patterns (a growing concept list + day/version counter). User will shape the copy —
-  confirm the structure before building, then build it as its own module if it's a big cinematic.
-
-After the beats: the final cinematic endgame (editable 3D masters at `~/stockthink-3d-source/`).
+### 🔧 LOW-PRIORITY (only if he raises it)
+- `sections.js` still holds DEAD code — `playEval/playExplain/playLoop` + `buildNet/EvalBoard/ExBoard/Pipe`
+  (old steps, unwired; the engine demo now uses `engReel`, so `t7/clear7` is dead too). Safe to delete,
+  with the matching dead `evalStage/explainStage/loopStage` CSS in `how-it-works.css`.
+- Design-review findings log: `improvement-planning.md` (findings only; the user actions them).
 
 ---
 
 ## Quality gates (don't regress the app)
-This is the marketing landing page, but the repo's real app shares the tree. A pure-UI
-change must keep `npm run build` (tsc) and `npx vitest run` green. If you ever touch
-commentary/analysis logic (you usually won't from here), also run `npm run eval`.
-End a session with one line in `self-improvement/docs/JOURNAL.md`.
+Marketing landing, but the repo's real app shares the tree. A pure-UI change must keep `npm run build`
+(tsc) and `npx vitest run` green; if you touch commentary/analysis logic (rare from here), also run
+`npm run eval`. End a session with one line in `self-improvement/docs/JOURNAL.md`.

@@ -8,3 +8,5 @@ frontend/landing/editor/edits.json
 
 # Playwright MCP scratch output (console logs + screenshots)
 .playwright-mcp/
+.vite/
+frontend/.vite/

@@ -39,6 +39,8 @@ body.light .coach-replay{ background:rgba(255,255,255,.4); }
 .coach-code .cc-bar{ display:flex; gap:6px; padding:9px 12px; background:#0f1216; border-bottom:1px solid #2a2f37; }
 .coach-code .cc-bar i{ width:10px; height:10px; border-radius:50%; background:#3a3f47; }
 .coach-code .cc-file{ margin-left:8px; color:#7d8590; font-size:11px; align-self:center; }
+.coach-code .cc-save{ margin-left:auto; color:var(--green-ai); font-size:11px; font-weight:600; align-self:center; opacity:0; transition:opacity .3s; }
+.coach-code.saved .cc-save{ opacity:1; }
 .coach-code .cc-body{ padding:14px 16px; color:#c9d1d9; white-space:pre; }
 .coach-code .cc-line{ opacity:0; transition:opacity .25s; }
 .coach-code .cc-line.on{ opacity:1; }
@@ -82,24 +84,7 @@ body.light .coach-cap{ text-shadow:0 2px 18px rgba(255,255,255,.6); }
 .coach-bubble.show{ opacity:1; transform:translate(-50%,-100%) scale(1); }
 .coach-bubble .cb-piece{ font-size:30px; line-height:1; }
 
-/* dev-only TUNE panel (never ships — gated by import.meta.env.DEV) */
-.coach-tune{ position:absolute; top:16px; left:16px; z-index:9; pointer-events:auto;
-  font:12px ui-monospace,Menlo,monospace; color:#e8e8e8; }
-.coach-tune .ct-toggle{ cursor:pointer; background:rgba(0,0,0,.55); color:#9fe07a;
-  border:1px solid #3a4a32; border-radius:7px; padding:6px 11px; letter-spacing:.06em; }
-.coach-tune .ct-body{ display:none; margin-top:8px; width:248px; max-height:74vh; overflow:auto;
-  background:rgba(12,14,16,.92); border:1px solid #2a2f37; border-radius:9px; padding:10px 11px; backdrop-filter:blur(6px); }
-.coach-tune.on .ct-body{ display:block; }
-.coach-tune .ct-head{ color:#9fe07a; font-weight:700; letter-spacing:.08em; text-transform:uppercase;
-  font-size:10px; margin:10px 0 5px; }
-.coach-tune .ct-head:first-child{ margin-top:0; }
-.coach-tune .ct-row{ display:grid; grid-template-columns:42px 1fr 46px; gap:6px; align-items:center; margin:3px 0; }
-.coach-tune .ct-row span{ color:#aab; }
-.coach-tune .ct-row input[type=range]{ width:100%; accent-color:#6fc24a; }
-.coach-tune .ct-num{ width:46px; background:#1a1e22; border:1px solid #333a42; border-radius:4px;
-  color:#e8e8e8; font:11px ui-monospace,monospace; padding:2px 3px; }
-.coach-tune .ct-copy{ cursor:pointer; width:100%; margin-top:11px; background:#6fc24a; color:#0a0a0a;
-  border:0; border-radius:6px; padding:7px; font-weight:700; letter-spacing:.05em; }
+/* (dev scrubber styling now lives in scrub.js — the universal bar injects its own CSS) */
 
 /* ---- corner guide (HTML over the canvas) ---- */
 .coach-guide{ position:absolute; inset:0; pointer-events:none; transition:opacity .2s linear; }

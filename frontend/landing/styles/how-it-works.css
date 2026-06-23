@@ -176,11 +176,19 @@
   .gear-canvas{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none}
   .gear-back{z-index:0}                 /* behind the text */
   .gear-front{z-index:3}                /* in front of the text */
-  .gearSec .s1step{position:relative;z-index:1}   /* text sits between the two canvases */
+  /* NO z-index here on purpose: position:relative alone is NOT a stacking context, so the panel's
+     z-index:4 (below) can rise ABOVE the front-gear canvas (z-index:3) and never get covered, while
+     the left text still sits in the gear sandwich. Same grid + width as Step-03 for a consistent design. */
+  .gearSec .s1step{position:relative;
+    display:grid;grid-template-columns:1fr 1.7fr;align-items:center;
+    gap:clamp(24px,4vw,60px);max-width:1280px;margin:0 auto}
 
+  /* layering (no stacking-context trap on .s1step): back gears 0 → text 2 → front gears 3 → panel 4.
+     The text stays in the gear sandwich; the panel/animation always sits ABOVE the gears (never covered). */
+  .gearSec .s1left{position:relative;z-index:2}
   /* ===== Beat 1 — the engine-in-your-browser demo (right side) ===== */
-  .gearSec .s1right{position:relative;z-index:4;display:flex;align-items:center;justify-content:center}
-  .engwin{width:min(700px,98%);background:#1b1a18;border:1px solid var(--line);border-radius:12px;
+  .gearSec .s1right{position:relative;z-index:4;display:flex;flex-direction:column;align-items:flex-end;justify-content:center}
+  .engwin{width:min(560px,98%);background:#1b1a18;border:1px solid var(--line);border-radius:12px;
     overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.45)}
   .engbar{display:flex;align-items:center;gap:10px;padding:9px 12px;background:#232220;border-bottom:1px solid var(--line)}
   .engdots{display:flex;gap:6px;flex:0 0 auto}
@@ -234,6 +242,8 @@
   .engcard{background:#232220;border:1px solid var(--line);border-radius:8px;padding:9px 11px}
   .engcard-h{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
   .engexp{flex:1}
+  .engexp .rev-card-title{color:#81b64c}   /* best-move green (engine result), not blunder-red */
+  .engexp .rev-card-head{margin-bottom:7px}
   .engexp-text{display:none;font-size:12.5px;line-height:1.5;color:var(--ink)}
   .engexp-text::after{content:'▌';margin-left:1px;color:var(--green-ai);animation:engCaret .9s steps(1) infinite}
   .engexp-text.done::after{content:''}
@@ -254,12 +264,49 @@
   .engml .cur{background:rgba(255,255,255,0.14)}
   body.light .engml .cur{background:rgba(0,0,0,0.09)}
   .enggraph svg{display:block;width:100%;height:40px}
-  .enggraph polyline{fill:none;stroke:#8fe06a;stroke-width:2;vector-effect:non-scaling-stroke}
-  .enggraph .engarea{fill:rgba(143,224,106,.16);stroke:none}
+  .enggraph polyline{fill:none;stroke:#8fe06a;stroke-width:2;vector-effect:non-scaling-stroke;filter:drop-shadow(0 1px 2px rgba(143,224,106,.35))}
+  .enggraph .engarea{fill:url(#engGraphGrad);stroke:none}
   body.light .engwin{background:#f4f3f0;box-shadow:0 24px 60px rgba(0,0,0,.18)}
   body.light .engbar{background:#e8e7e3}
   body.light .engurl{background:#fff}
   body.light .engcard{background:#fff}
+
+  /* ===== Merged "Learn from your mistakes" review — step-4 demo re-skinned into the engine webviewer ===== */
+  .r2win{position:relative}                                  /* cursor anchor + (later) zoom origin */
+  .r2win .engbody{align-items:stretch}
+  .r2win .engboardwrap.r2boardwrap{width:288px;height:288px}
+  .r2win .revboard.r2board{position:absolute;inset:0;width:100%;height:100%;min-width:0;max-width:none;border-radius:6px}
+  .r2win .engside{justify-content:flex-start;gap:8px;height:288px}   /* LOCK the sidebar to the board height so the window NEVER resizes */
+  /* explanation card on the dark engine surface (reuses the step-4 rev-card-* + s4-* ids) */
+  .r2win .r2-explain{display:flex;flex-direction:column;flex:1 1 0;min-height:0;overflow:hidden}   /* fills the leftover column height + clips inside, so text length never changes the window */
+  .r2win .rev-card-head{padding-bottom:7px;margin-bottom:2px}
+  .r2win .rev-card-ico{width:20px;height:20px}
+  .r2win .rev-card-title{font-family:'Bricolage Grotesque';font-weight:800;font-size:14px;color:var(--ink);letter-spacing:-.01em}
+  .r2win .rev-card-move{color:var(--muted);background:rgba(255,255,255,.08)}
+  body.light .r2win .rev-card-move{background:rgba(0,0,0,.06)}
+  /* only the body text clips/scrolls (keepEnd keeps the tail in view) — header + button stay visible */
+  .r2win .rev-card-body{position:relative;flex:1 1 0;min-height:0;overflow:hidden;margin-top:5px;
+    font-family:'Inter';font-size:12.5px;line-height:1.7;color:var(--ink)}
+  .r2win .rev-text{color:var(--ink)}
+  /* skeleton placeholder rides ALONGSIDE "Analysing…" (shows only while analysing is up) */
+  .r2win .engskel{display:none;margin-top:8px}
+  .r2win .rev-card-body:has(.rev-analysing:not(.hide)) .engskel{display:flex}
+  /* struck / greyed / fade states (re-scoped from .s1better) */
+  .r2win .r2-explain.s4-struck .rev-text{color:#9a978f}
+  .r2win .r2-explain.s4-greyed{filter:grayscale(.5) opacity(.5);transition:filter .55s ease}
+  .r2win .r2-explain.s4-fade{opacity:0;transition:opacity .5s ease}
+  /* moves + eval-history cards */
+  .r2win .engml,.r2win .r2graph{flex:0 0 auto}
+  .r2win .ml-list{display:flex;flex-direction:column;justify-content:flex-end;gap:1px;max-height:49px;overflow:hidden}   /* ~2 rows, bottom-anchored so the LATEST move stays visible — keeps the explanation roomy */
+  .r2win .r2graph .rev-graph{display:block;width:100%;height:26px}
+  /* smoothness: every move-log row slides/fades in (never pops); struck rows grey out, not snap */
+  .r2win .ml-row{transition:opacity .4s ease}
+  .r2win .ml-list>.ml-row{animation:r2RowIn .5s cubic-bezier(.22,1,.36,1) both}
+  @keyframes r2RowIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+  /* smoothness: the "Analysing…" state + skeleton fade IN (masks the instant display:none of the idle line) */
+  .r2win .rev-analysing:not(.hide),.r2win .rev-idle:not(.hide){animation:r2FadeIn .35s ease both}
+  .r2win .rev-card-body:has(.rev-analysing:not(.hide)) .engskel{animation:r2FadeIn .35s ease both}
+  @keyframes r2FadeIn{from{opacity:0}to{opacity:1}}
   body.light .engskel i{background:linear-gradient(90deg,#e6e4df 25%,#efeee9 50%,#e6e4df 75%);background-size:200% 100%}
 
   /* ===== search phase: depth/nodes HUD + candidate arrows narrowing to the best move ===== */

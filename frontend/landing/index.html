@@ -152,100 +152,56 @@
           <div class="s1left">
             <div class="s1num">Step 03</div>
             <h3 class="s1title">Learn from your <span class="glow-mistake"><svg class="inline-blunder-ico" viewBox="0 0 18 19" xmlns="http://www.w3.org/2000/svg"><circle cx="9" cy="9.5" r="9" fill="#ca3431"/><path fill="#fff" d="M14.74 5A2.58 2.58 0 0 0 14 4a3.76 3.76 0 0 0-1.09-.56 4.07 4.07 0 0 0-1.2-.19 3.92 3.92 0 0 0-1.18.17 5.87 5.87 0 0 0-.9.37 3 3 0 0 0-.32.2 3.46 3.46 0 0 1 .42.63 3.29 3.29 0 0 1 .36 1.47.31.31 0 0 0 .19-.06l.11-.08a2.9 2.9 0 0 1 .29-.19 3.89 3.89 0 0 1 .41-.17 1.55 1.55 0 0 1 .48-.07 1.1 1.1 0 0 1 .72.24.72.72 0 0 1 .23.26.8.8 0 0 1 .07.34 1 1 0 0 1-.25.67 7.71 7.71 0 0 1-.65.63 6.2 6.2 0 0 0-.48.43 2.93 2.93 0 0 0-.45.54 2.55 2.55 0 0 0-.33.66 2.62 2.62 0 0 0-.13.83v.35a.24.24 0 0 0 0 .12.35.35 0 0 0 .17.17l.12 0h1.71l.12 0a.23.23 0 0 0 .1-.07.21.21 0 0 0 .06-.1.27.27 0 0 0 0-.12V10.3a1 1 0 0 1 .26-.7q.27-.28.66-.63a5.79 5.79 0 0 0 .51-.48 4.51 4.51 0 0 0 .48-.6 2.56 2.56 0 0 0 .36-.72 2.81 2.81 0 0 0 .14-1A2.66 2.66 0 0 0 14.74 5Z"/><path fill="#fff" d="M12.38 12.15H10.5l-.12 0a.34.34 0 0 0-.18.29v1.82a.36.36 0 0 0 .08.23.23.23 0 0 0 .1.07l.12 0h1.88a.24.24 0 0 0 .12 0 .26.26 0 0 0 .11-.07.36.36 0 0 0 .07-.1.28.28 0 0 0 0-.13V12.46a.27.27 0 0 0 0-.12.61.61 0 0 0-.07-.1.32.32 0 0 0-.23-.09ZM6.79 12.15H4.91l-.12 0a.34.34 0 0 0-.18.29v1.82a.36.36 0 0 0 .08.23.23.23 0 0 0 .1.07l.12 0H6.79a.24.24 0 0 0 .12 0A.26.26 0 0 0 7 14.51a.36.36 0 0 0 .07-.1.28.28 0 0 0 0-.13V12.46a.27.27 0 0 0 0-.12.61.61 0 0 0-.07-.1.32.32 0 0 0-.21-.09ZM8.39 4A3.76 3.76 0 0 0 7.3 3.48a4.07 4.07 0 0 0-1.2-.19A3.92 3.92 0 0 0 4.92 4a5.87 5.87 0 0 0-.9.37 3.37 3.37 0 0 0-.55.38l-.21.19a.32.32 0 0 0 0 .41l1 1.2a.26.26 0 0 0 .2.12.48.48 0 0 0 .24-.06l.11-.08a2.9 2.9 0 0 1 .29-.19l.4-.17A1.66 1.66 0 0 1 6 5.56a1.1 1.1 0 0 1 .72.24.72.72 0 0 1 .23.26A.77.77 0 0 1 7 6.4a1 1 0 0 1-.26.67 7.6 7.6 0 0 1-.64.63 6.28 6.28 0 0 0-.49.43 2.93 2.93 0 0 0-.45.54 2.72 2.72 0 0 0-.33.66 2.62 2.62 0 0 0-.13.83v.35a.43.43 0 0 0 0 .12.39.39 0 0 0 .08.1.18.18 0 0 0 .1.07.21.21 0 0 0 .12 0H6.72l.12 0a.23.23 0 0 0 .1-.07.36.36 0 0 0 .07-.1A.5.5 0 0 0 7 10.3a1 1 0 0 1 .27-.7A8 8 0 0 1 8 9c.18-.15.35-.31.52-.48A7 7 0 0 0 9 7.89a3.23 3.23 0 0 0 .36-.72 3.07 3.07 0 0 0 .13-1A2.66 2.66 0 0 0 9.15 5 2.58 2.58 0 0 0 8.39 4Z"/></svg>mistakes</span>.</h3>
-            <p class="s1sub">Every slip gets named and explained &mdash; in plain words, as it happens. Watch a greedy queen grab a defended bishop.</p>
+            <p class="s1sub">Every move gets reviewed &mdash; your slips named in plain words, then the stronger move you missed is shown right on the board.</p>
           </div>
           <div class="s1right">
-            <div class="rev-panel">
-              <div class="rev-evalcol">
-                <span class="rev-evalnum" id="revEvalTop">0.0</span>
-                <div class="rev-evalbar"><div class="rev-evalfill" id="revEval"></div></div>
-                <span class="rev-evalnum" id="revEvalBot">0.0</span>
-              </div>
-              <div class="revboard" id="revBoard"></div>
-              <div class="rev-sidebar">
-                <!-- card 1: explanation bubble -->
-                <div class="rev-explain-card" id="revComment">
-                  <div class="rev-card-head" id="revCardHead">
-                    <img class="rev-card-ico" id="revCardIco" src="./icons/blunder.svg" alt="blunder"/>
-                    <span class="rev-card-title">Blunder</span>
-                    <span class="rev-card-move" id="revMove"><img class="rev-mv-ico" src="https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bq.png" alt="Queen">xe5</span>
-                  </div>
-                  <div class="rev-card-body">
-                    <span class="rev-idle" id="revIdle">Following the moves&hellip;</span>
-                    <span class="rev-analysing hide" id="revAnalysing"><span class="cc-spin"></span>Analysing&hellip;</span>
-                    <span class="rev-text" id="revText"></span><span class="rev-caret" id="revCaret"></span>
-                  </div>
-                </div>
-                <!-- card 2: move log (last 4 moves visible) -->
-                <div class="rev-moves-card">
-                  <div class="rev-moves-hdr">Moves</div>
-                  <div class="rev-movelog" id="revMovelog"></div>
-                </div>
-                <!-- card 3: eval graph -->
-                <div class="rev-graph-card">
-                  <div class="rev-graph-label">Eval history</div>
-                  <svg class="rev-graph" id="revGraph" viewBox="0 0 100 36" preserveAspectRatio="none">
-                    <line class="rev-graph-mid" x1="0" y1="18" x2="100" y2="18"/>
-                    <path class="rev-graph-fill" id="revGraphFill" d=""/>
-                    <polyline class="rev-graph-line" id="revGraphLine" points=""/>
-                    <circle class="rev-graph-dot" id="revGraphDot" cx="0" cy="18" r="2.5" opacity="0"/>
-                  </svg>
+            <div class="engwin r2win" id="r2Win">
+              <div class="engbar">
+                <span class="engdots"><i></i><i></i><i></i></span>
+                <div class="engurl">
+                  <svg class="englock" viewBox="0 0 24 24" width="12" height="12" aria-hidden="true"><path d="M6 10V8a6 6 0 0 1 12 0v2h1a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1h1zm2 0h8V8a4 4 0 0 0-8 0v2z"/></svg>
+                  <span>your game &middot; review</span>
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
-</section>
-
-<section class="sec s1sec" data-step="4">
-<div class="s1step s1better" data-step="4">
-          <div class="s1left">
-            <div class="s1num">Step 04</div>
-            <h3 class="s1title">See what would&rsquo;ve been better.</h3>
-            <p class="s1sub">Your move gets a tick &mdash; then the strongest move is revealed, with the reason it wins.</p>
-          </div>
-          <div class="s1right">
-            <div class="rev-panel s4panel">
-              <div class="rev-evalcol">
-                <span class="rev-evalnum" id="s4EvalTop">0.0</span>
-                <div class="rev-evalbar"><div class="rev-evalfill" id="s4Eval"></div></div>
-                <span class="rev-evalnum" id="s4EvalBot">0.0</span>
-              </div>
-              <div class="revboard" id="board4"></div>
-              <div class="rev-sidebar">
-                <!-- comment card (good move -> then best move) -->
-                <div class="rev-explain-card s4-explain" id="s4Comment">
-                  <div class="rev-card-head" id="s4CardHead">
-                    <img class="rev-card-ico" id="s4CardIco" src="./icons/good.svg" alt="good"/>
-                    <span class="rev-card-title" id="s4CardTitle">Good move</span>
-                    <span class="rev-card-move" id="s4CardMove"><img class="rev-mv-ico" src="https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wq.png" alt="Queen">f3</span>
-                  </div>
-                  <div class="rev-card-body" id="s4CardBody">
-                    <span class="rev-idle" id="s4Idle">Following the moves&hellip;</span>
-                    <span class="rev-analysing hide" id="s4Analysing"><span class="cc-spin"></span>Analysing&hellip;</span>
-                    <span class="rev-text" id="s4Text"></span><span class="rev-caret" id="s4Caret"></span>
-                    <span class="s4-strikeline" id="s4Strike"></span>
-                  </div>
-                  <button class="s4-showbtn" id="s4ShowBtn" type="button"><span class="s4-showbtn-ico">★</span>Show best move</button>
-                  <button class="s4-nextbtn" id="s4NextBtn" type="button"><span class="s4-nextbtn-ico">◂</span>Back to game analysis</button>
+              <div class="engbody">
+                <div class="engboardwrap r2boardwrap">
+                  <div class="revboard r2board" id="board4"></div>
                 </div>
-                <!-- move log -->
-                <div class="rev-moves-card">
-                  <div class="rev-moves-hdr">Moves</div>
-                  <div class="rev-movelog" id="s4Movelog"></div>
-                </div>
-                <!-- eval graph -->
-                <div class="rev-graph-card">
-                  <div class="rev-graph-label">Eval history</div>
-                  <svg class="rev-graph" id="s4Graph" viewBox="0 0 100 36" preserveAspectRatio="none">
-                    <line class="rev-graph-mid" x1="0" y1="18" x2="100" y2="18"/>
-                    <path class="rev-graph-fill" id="s4GraphFill" d=""/>
-                    <polyline class="rev-graph-line" id="s4GraphLine" points=""/>
-                    <circle class="rev-graph-dot" id="s4GraphDot" cx="0" cy="18" r="2.5" opacity="0"/>
-                  </svg>
+                <div class="engside">
+                  <div class="engcard r2-explain" id="s4Comment">
+                    <div class="engcard-h">Review</div>
+                    <div class="rev-card-head" id="s4CardHead">
+                      <img class="rev-card-ico" id="s4CardIco" src="./icons/miss.svg" alt="miss"/>
+                      <span class="rev-card-title" id="s4CardTitle">Miss</span>
+                      <span class="rev-card-move" id="s4CardMove"><img class="rev-mv-ico" src="https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wq.png" alt="Queen">f3</span>
+                    </div>
+                    <div class="rev-card-body" id="s4CardBody">
+                      <span class="rev-idle" id="s4Idle">Following the moves&hellip;</span>
+                      <span class="rev-analysing hide" id="s4Analysing"><span class="cc-spin"></span>Analysing&hellip;</span>
+                      <div class="engskel" id="s4Skel"><i></i><i></i><i></i></div>
+                      <span class="rev-text" id="s4Text"></span><span class="rev-caret" id="s4Caret"></span>
+                      <span class="s4-strikeline" id="s4Strike"></span>
+                    </div>
+                    <button class="s4-showbtn" id="s4ShowBtn" type="button"><span class="s4-showbtn-ico">★</span>Show best move</button>
+                    <button class="s4-nextbtn" id="s4NextBtn" type="button"><span class="s4-nextbtn-ico">◂</span>Back to game analysis</button>
+                  </div>
+                  <div class="engcard engml">
+                    <div class="engcard-h">Moves</div>
+                    <div class="ml-list" id="s4Movelog"></div>
+                  </div>
+                  <div class="engcard r2graph">
+                    <div class="engcard-h">Eval history</div>
+                    <svg class="rev-graph" id="s4Graph" viewBox="0 0 100 36" preserveAspectRatio="none">
+                      <defs><linearGradient id="s4GraphGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#81b64c" stop-opacity="0.45"/><stop offset="1" stop-color="#81b64c" stop-opacity="0"/></linearGradient></defs>
+                      <line class="rev-graph-mid" x1="0" y1="18" x2="100" y2="18"/>
+                      <path class="rev-graph-fill" id="s4GraphFill" d=""/>
+                      <polyline class="rev-graph-line" id="s4GraphLine" points=""/>
+                      <circle class="rev-graph-dot" id="s4GraphDot" cx="0" cy="18" r="2.5" opacity="0"/>
+                    </svg>
+                  </div>
+                  <svg class="fakecursor s4-cursor" id="s4Cursor" viewBox="0 0 24 24"><path d="M5 3l14 7-6 1.5L10 18 5 3z" fill="#fff" stroke="#000" stroke-width="1.3" stroke-linejoin="round"/></svg>
                 </div>
               </div>
-              <svg class="fakecursor s4-cursor" id="s4Cursor" viewBox="0 0 24 24"><path d="M5 3l14 7-6 1.5L10 18 5 3z" fill="#fff" stroke="#000" stroke-width="1.3" stroke-linejoin="round"/></svg>
             </div>
           </div>
         </div>
@@ -338,10 +294,17 @@
                   <div class="engbest" id="engBest"><img src="./icons/best.svg" alt="best"><span>Nxf7</span></div>
                 </div>
                 <div class="engside">
-                  <div class="engcard engexp" id="engExp">
+                  <div class="engcard r2-explain engexp" id="engExp">
                     <div class="engcard-h">Explanation</div>
-                    <div class="engskel" id="engSkel"><i></i><i></i><i></i><i></i></div>
-                    <div class="engexp-text" id="engExpText"></div>
+                    <div class="rev-card-head" id="engCardHead">
+                      <img class="rev-card-ico" src="./icons/best.svg" alt="best"/>
+                      <span class="rev-card-title">Best move</span>
+                      <span class="rev-card-move"><img class="rev-mv-ico" src="https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wn.png" alt="Knight">Nxf7</span>
+                    </div>
+                    <div class="rev-card-body">
+                      <div class="engskel" id="engSkel"><i></i><i></i><i></i><i></i></div>
+                      <div class="engexp-text" id="engExpText"></div>
+                    </div>
                   </div>
                   <div class="engcard engml">
                     <div class="engcard-h">Moves</div>
@@ -353,8 +316,10 @@
                   </div>
                   <div class="engcard enggraph">
                     <svg viewBox="0 0 200 56" preserveAspectRatio="none" aria-hidden="true">
+                      <defs><linearGradient id="engGraphGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8fe06a" stop-opacity="0.42"/><stop offset="1" stop-color="#8fe06a" stop-opacity="0"/></linearGradient></defs>
                       <polygon class="engarea" points="0,30 28,26 56,32 84,20 112,28 140,14 168,22 200,10 200,56 0,56"></polygon>
                       <polyline points="0,30 28,26 56,32 84,20 112,28 140,14 168,22 200,10"></polyline>
+                      <circle cx="200" cy="10" r="3.2" fill="#8fe06a"></circle>
                     </svg>
                   </div>
                 </div>
@@ -367,7 +332,7 @@
 
 <!-- Beat 2 — LAYOUT E · THEATER: centered header + the "number → reason" cinematic.
      The 960×540 stage's DOM + timeline are built entirely by number-to-reason.js (self-contained,
-     its own IntersectionObserver). Spec: stockthink-number-to-reason-animation.md. -->
+     its own IntersectionObserver). The code IS the source of truth (rev 4). -->
 <section class="sec s1sec" data-step="8">
 <div class="s1step hiw2 lay-theater" data-step="8">
           <div class="cv-top">
@@ -394,7 +359,7 @@
     <div class="coach-overlay" id="coachOverlay">
       <div class="coach-guide" id="coachGuide">
         <div class="cg-tl">
-          <div class="wd-kicker">THE COACH · 03 / 03</div>
+          <div class="wd-kicker">03 / 03</div>
           <div class="wd-title">A coach that studies<br>while you sleep.</div>
         </div>
         <div class="cg-br">
@@ -407,6 +372,18 @@
   </div>
 </section>
 
+<!-- The finale — "the basement endgame" (Réti–Tartakower, Vienna 1910). A scroll-driven 3D
+     cinematic in its own basement scene; the page flips to black as you enter. Scene: ender.js. -->
+<section class="sec ender">
+  <div class="ender-sticky">
+    <!-- The finale is a pre-rendered cinematic (recorded at max quality offline), so the live page runs
+         no WebGL here. Sources are injected by ender-video.js (BASE_URL-aware); muted+playsinline so it
+         can autoplay; preload none so the clip only downloads once the finale nears. -->
+    <video id="enderVideo" class="ender-canvas" muted playsinline preload="none"></video>
+    <div class="ender-overlay" id="enderOverlay"></div>
+  </div>
+</section>
+
 </main><!-- /pageClip -->
 
 <footer class="page-corners">
@@ -415,7 +392,7 @@
 </footer>
 
 <div class="s1rail" id="s1rail">
-  <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+  <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
 </div>
 
 

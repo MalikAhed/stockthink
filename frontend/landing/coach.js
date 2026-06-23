@@ -14,6 +14,8 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import gsap from 'gsap';
+import { Scrubber, gsapTransport } from './scrub.js';
+import { fpsGate, QUALITY, registerRenderer } from './perf.js';
 
 const section = document.querySelector('section.coach');
 const canvas = document.getElementById('coachScene');
@@ -47,16 +49,22 @@ const CAM = {
   react:  { pos: [0.1, 0, 3.6],   tgt: [0.22, 0, 0],      down: false }, // Claude alone — keep it centred
   wide:   { pos: [0.4, 0.25, 5.7], tgt: [0.5, 0, -0.2],   down: true },  // BOTH: Claude (left) + book (right)
   focus:  { pos: [1.1, 0.2, 4.6], tgt: [1.7, 0, -0.35],   down: true },  // centre on Claude + book
+  glance: { pos: [-0.5, 0.1, 5.2], tgt: [-0.9, 0, -0.2],  down: false }, // Claude turns left toward the glow
+  board:  { pos: [-1.7, 0.9, 4.8], tgt: [-2.4, -0.4, 0],  down: false }, // finds the board (left), tilted to see its face
+  code:   { pos: [0.05, 0.12, 3.55], tgt: [-0.2, 0, 0.2], down: false }, // FINALE: pulled in close on Claude, code panel takes the right
 };
 // scene anchor positions
 const POS = {
   home: [0, 0, 0],                // entrance: Claude dead-centre
   recoil: [-0.85, 0.32, 0.5],     // backs up here — y raised so Claude is on the SAME EYELINE as the book (Δ~0)
   book:   [1.92, 0.23, -0.55],    // where the book arrives (your tuned value); it stays here the whole scene
-  board:  [0, -0.75, 0],          // (placeholder board — the later beat, deferred)
+  board:  [-2.45, -0.85, 0],      // the board arrives on the LEFT, low in frame
+  code:   [-0.35, 0.05, 0.9],     // FINALE: Claude returns here, pulled forward CLOSE to the terminal
 };
+// FINALE: Claude turns slightly RIGHT (+yaw) to face the terminal/code panel sitting on the right
+const CODE_YAW = 0.5;
 // Claude's "look right" reaction — a real TURN about Y; kept small (not exaggerated)
-const REACT = { lookYaw: 0.7, dip: 0.1, hold: 0.55 };
+const REACT = { lookYaw: 0.7, dip: 0.1, hold: 0.3 };
 // Claude's inspect angles, OFFSETS from the book centre. GEOMETRY-VERIFIED (editor/coach-check.mjs): each
 // keeps the logo AROUND the book, never inside it (gap +0.14..+0.37), and never bigger than the book.
 //   1 front-left close · 2 right, lower + BEHIND (reads smaller) · 3 left, TOP angle + a little high
@@ -77,17 +85,31 @@ const CLONE_OFF = [
 const EMERGE = [[0, 0.55, 0], [-0.55, 0, 0], [0.55, 0, 0]];
 // per-agent loop timing — DIFFERENT for each so they desync (lively, never in lockstep)
 const CLONE_TIMING = [{ dur: 0.85, hold: 1.1 }, { dur: 0.7, hold: 0.85 }, { dur: 0.95, hold: 1.3 }];
-const SHIFT = { dur: 0.85, hold: 1.05 };      // Claude inspection: SMOOTH shift (sine), then a pause at each angle
+const SHIFT = { dur: 0.6, hold: 0.4 };        // Claude inspection: SMOOTH shift (sine), then a shorter pause at each angle (tightened)
 // size arc: entrance 0.70 → backs up + scans at 0.50 (reads ~0.84× the book) → after the scan grows to
 // 0.60 (~book size, a little bigger). Verified in editor/coach-check.mjs.
 const CLAUDE = { rest: 0.70, book: 0.50, after: 0.60 };
 const CLONE = { scale: 0.21, count: 3 };      // the smaller subagents that inspect the book (your tuned value)
 const BOOK = { fit: 1.30, show: 1.00, rx: 1.17, ry: -1.67, rz: 0.49 }; // size + orientation (your tuned values)
+const BOARD = { fit: 2.20, show: 1.00, rx: 0, ry: 0, rz: 0 };          // chess board — lies flat (tune live)
+// ACT 7 — board scene (LEFT). Claude notices a glow on the left, turns to it, the camera finds the board
+// (already sitting there), then Claude orbits SEVERAL spots all ABOVE the board, always looking down at it.
+const GLANCE = { yaw: -0.7, dur: 0.8, hold: 0.4 };   // Claude's small turn-left toward the glow (tightened)
+// inspect spots — all offsets from the board centre, all elevated (y>0). boardFace (frame()) keeps Claude
+// turned toward the board's centre and tilted down at it as it moves between these.
+const ABOVE_OFF = [
+  [0, 1.05, 0.6],       // above-front
+  [-0.8, 1.05, 0.15],   // above-left
+  [0.8, 1.05, 0.15],    // above-right
+  [0, 1.1, -0.5],       // above-behind
+];
+const ABOVE = { dur: 1.3 };    // first flight up to the board
+const BOOK_LOOK_DOWN = 0.26;   // ACT 4: Claude hovers above the book, so it tilts slightly down to read it
 // ACT 0 entrance — empty stage (just the corner titles), then the logo resolves into view
 const ENTER = {
-  hold: 0.8,           // empty-stage beat: titles alone, the "what is this?" moment
-  dur: 2.4,            // a slow, composed arrival
-  settle: 1.3,         // calm beat after it lands, before the cinematic proper begins
+  hold: 0.3,           // empty-stage beat: titles alone, the "what is this?" moment (tightened)
+  dur: 1.7,            // a composed arrival (tightened)
+  settle: 0.5,         // brief beat after it lands, before the cinematic proper begins
   z0: -1.7,            // eases gently forward from just behind (no fly-in)
   s0: 0.88,            // barely scales up — no pop
   rise: 0.16,          // floats up a touch as it resolves
@@ -96,8 +118,8 @@ const ENTER = {
 };
 
 // ---- renderer / scene ----------------------------------------------------------
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 1.75));
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: QUALITY.antialias, alpha: true });
+registerRenderer(renderer);   // perf manager owns the pixel ratio (and can lower it live)
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.4;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -123,6 +145,7 @@ const flash = new THREE.PointLight(GREEN, 0, 6, 2); scene.add(flash);
 // ---- the Claude logo -----------------------------------------------------------
 // hierarchy: logoGroup (cinematic position + turn) > bobNode (idle bob) > model (faces camera)
 const logoGroup = new THREE.Group(); logoGroup.visible = false; scene.add(logoGroup); // hidden until the entrance
+logoGroup.rotation.order = 'YXZ'; // yaw first, then pitch — so "turn toward, then look down" composes correctly
 const bobNode = new THREE.Group(); logoGroup.add(bobNode);
 const logoMats = [];          // the logo's materials — faded in during the entrance
 const cloneGroups = [];       // the 3 subagents (clay, like Claude) — filled once the logo loads
@@ -160,9 +183,11 @@ function clayMaterial(src, greenTint) {
 
 let ready = false;
 let bookModel = null;          // the inner book GLB node (so the Tune panel can resize/rotate it)
-let cloneLoops = [];           // ONE independent repeating loop per subagent (so they desync — lively)
-let claudeFace = false;        // when true, frame() turns Claude (rot Y) to keep its face on the book
+let cloneLoops = [];           // ONE repeating loop per subagent (so they desync — lively); DRIVEN by tl.time()
+let cloneStart = 0;            // tl time at which the subagent inspection begins (so the loops seek/pause WITH the scrubber)
+let claudeFace = false;        // when true, frame() turns Claude (rot Y) to keep its face on the book (+ a slight look-down)
 let clonesFace = false;        // when true, frame() turns each subagent to keep its face on the book
+let boardFace = false;         // when true, frame() keeps Claude turned toward the board AND tilted down at it
 const loader = new GLTFLoader();
 
 // turn-to-face helpers: yaw so the +Z front face points from `from` toward `to`; shortest-path lerp
@@ -196,6 +221,8 @@ loader.load(new URL('./models/claude-logo.glb', import.meta.url).href, (gltf) =>
   ready = true;
   buildTimeline();
   maybeAutoplay();
+  // dev-only universal scrubber — drives the GSAP timeline (frame() already reads tl.time()).
+  if (import.meta.env.DEV) new Scrubber(gsapTransport(tl, { name: 'coach', onClaim: () => { played = true; } }), section, { loop: true });
 }, undefined, (err) => console.warn('[coach] logo GLB failed', err));
 
 // ---- the book (real GLB) --------------------------------------------------------
@@ -215,27 +242,33 @@ loader.load(new URL('./models/book.glb', import.meta.url).href, (gltf) => {
   book.add(m); bookModel = m;
 }, undefined, (err) => console.warn('[coach] book GLB failed', err));
 
+// ---- the chess board (real GLB) -------------------------------------------------
+// group scale is what the timeline animates (0 -> BOARD.show); the model inside is fit + oriented once.
 const board = new THREE.Group();
-{
-  // simple 8x8 checker plane (placeholder for chess-board.glb)
-  const c = document.createElement('canvas'); c.width = c.height = 256;
-  const x = c.getContext('2d');
-  for (let i = 0; i < 8; i++) for (let j = 0; j < 8; j++) {
-    x.fillStyle = (i + j) % 2 ? '#3a4750' : '#cdd6dc';
-    x.fillRect(i * 32, j * 32, 32, 32);
-  }
-  const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace;
-  const plane = new THREE.Mesh(
-    new THREE.BoxGeometry(1.5, 0.08, 1.5),
-    [0, 0, new THREE.MeshStandardMaterial({ map: tex, roughness: 0.6 }), 0, 0, 0].map(
-      (m) => m || new THREE.MeshStandardMaterial({ color: 0x222831, roughness: 0.7 }),
-    ),
-  );
-  board.add(plane);
-}
+let boardModel = null;
 board.position.set(...POS.board);
 board.scale.setScalar(0.001); board.visible = false;
 scene.add(board);
+// LAZY: the board+pieces module is ~6.8MB of base64 — never load it on initial page load. Dynamic-import
+// and build only when the coach section is near (kicked off from the IntersectionObserver below). One-shot.
+let boardReq = null;
+function ensureBoard() {
+  if (boardReq) return boardReq;
+  boardReq = import('./coach-board.js')
+    .then(({ buildBoard }) => buildBoard())
+    .then((grp) => {
+      // the built group already carries the HTML's orientation + full piece set; fit it into the scene
+      let b = new THREE.Box3().setFromObject(grp);
+      const sz = b.getSize(new THREE.Vector3());
+      grp.scale.setScalar(BOARD.fit / Math.max(sz.x, sz.y, sz.z));
+      b = new THREE.Box3().setFromObject(grp);
+      grp.position.sub(b.getCenter(new THREE.Vector3()));   // centre it so POS.board places its middle
+      grp.rotation.set(BOARD.rx, BOARD.ry, BOARD.rz);        // fine-tune nudges only (default 0)
+      board.add(grp); boardModel = grp;
+    })
+    .catch((err) => console.warn('[coach] board build failed', err));
+  return boardReq;
+}
 
 // ---- helpers -------------------------------------------------------------------
 function camTo(tl, s, dur, at, ease = 'power2.inOut') {
@@ -268,17 +301,20 @@ function scanSweep(tl, targetObj, at, dur = 1.0) {
 // ---- code-file panel (Act 5, 2D overlay) ---------------------------------------
 const codePanel = document.createElement('div');
 codePanel.className = 'coach-code';
+// the lines Claude "types" — spans start EMPTY and fill in char-by-char (touch-type) when showCode runs
+const CODE_TXT = [
+  { t: 'export const concepts = [' },
+  { t: '  "fork", "pin", "skewer",' },
+  { t: '  "discovered attack",' },
+  { t: '  "rook behind a passed pawn",', add: true },
+  { t: '];' },
+];
 codePanel.innerHTML = `
-  <div class="cc-bar"><i></i><i></i><i></i><span class="cc-file">concepts.ts</span></div>
-  <div class="cc-body">${[
-    '<span class="cc-line">export const concepts = [</span>',
-    '<span class="cc-line">  "fork", "pin", "skewer",</span>',
-    '<span class="cc-line">  "discovered attack",</span>',
-    '<span class="cc-line cc-add">  "rook behind a passed pawn",</span>',
-    '<span class="cc-line">];</span>',
-  ].join('\n')}</div>`;
+  <div class="cc-bar"><i></i><i></i><i></i><span class="cc-file">concepts.ts</span><span class="cc-save">✓ Saved</span></div>
+  <div class="cc-body">${CODE_TXT.map((l) => `<span class="cc-line${l.add ? ' cc-add' : ''}"></span>`).join('\n')}</div>`;
 overlay.appendChild(codePanel);
 const codeLines = codePanel.querySelectorAll('.cc-line');
+const TYPE_CPS = 42;   // typing speed (chars/sec) for the code finale
 
 // ---- "Claude" name tag (appears beneath the logo as it arrives) ----------------
 const nameTag = document.createElement('div');
@@ -314,10 +350,20 @@ function positionBubble() {
   bubble.style.top = `${(-_pv.y * 0.5 + 0.5) * innerHeight}px`;
 }
 function showCode(tl, at) {
-  tl.add(() => codePanel.classList.add('show'), at);
-  codeLines.forEach((ln, i) => tl.add(() => ln.classList.add('on'), at + 0.4 + i * 0.28));
+  // panel slides in, then each line touch-types in sequence. Driven entirely off the timeline so the
+  // scrub bar pauses/seeks the typing too. A block caret rides the end of the line being typed.
+  tl.add(() => { codePanel.classList.add('show'); codeLines.forEach((ln) => { ln.textContent = ''; ln.classList.add('on'); }); }, at);
+  tl.to({}, { duration: 0.4 }, '>'); // wait for the panel slide-in before typing
+  codeLines.forEach((ln, i) => {
+    const full = CODE_TXT[i].t;
+    const st = { n: 0 };
+    tl.to(st, {
+      n: full.length, duration: Math.max(0.25, full.length / TYPE_CPS), ease: 'none',
+      onUpdate() { const n = Math.round(st.n); ln.textContent = full.slice(0, n) + (n < full.length ? '▌' : ''); },
+    }, i === 0 ? '>' : '>+0.12');
+  });
 }
-function hideCode(tl, at) { tl.add(() => { codePanel.classList.remove('show'); codeLines.forEach((l) => l.classList.remove('on')); }, at); }
+function hideCode(tl, at) { tl.add(() => { codePanel.classList.remove('show'); codeLines.forEach((l) => { l.classList.remove('on'); l.textContent = ''; }); }, at); }
 
 // Each subagent gets its OWN repeating shift+pause loop (its own region, axis, and timing) so the three
 // move INDEPENDENTLY — some up while others go right/down — never in lockstep. Positions only; frame()
@@ -325,18 +371,19 @@ function hideCode(tl, at) { tl.add(() => { codePanel.classList.remove('show'); c
 function killCloneLoops() { cloneLoops.forEach((l) => l.kill()); cloneLoops = []; }
 const cloneSpot = (i, k) => { const b = book.position, o = CLONE_OFF[i][k % CLONE_OFF[i].length]; return [b.x + o[0], b.y + o[1], b.z + o[2]]; };
 // builds each agent's independent loop. Assumes the agent is already sitting at its spot 0 (ACT 6 flies it
-// there first). The loop: hold → shift to the next angle → hold → … → back to spot 0, forever.
+// there first). The loop MOVES FIRST (so inspecting is visible the instant it starts), then holds to study:
+// shift → study → shift → study → … → back to spot 0, forever.
 function startCloneInspect() {
   killCloneLoops();
   clonesFace = true;
   if (RM()) { cloneGroups.forEach((g, i) => g.position.set(...cloneSpot(i, 0))); return; }
   cloneGroups.forEach((g, i) => {
     const tm = CLONE_TIMING[i], n = CLONE_OFF[i].length;
-    const lp = gsap.timeline({ repeat: -1 });
+    const lp = gsap.timeline({ repeat: -1, paused: true }); // paused — frame() scrubs it from tl.time(), so it pauses/seeks WITH the bar
     for (let k = 1; k <= n; k++) {
       const s = cloneSpot(i, k % n);
-      lp.to({}, { duration: tm.hold })                                                    // study the current angle
-        .to(g.position, { x: s[0], y: s[1], z: s[2], duration: tm.dur, ease: 'sine.inOut' }); // shift to the next
+      lp.to(g.position, { x: s[0], y: s[1], z: s[2], duration: tm.dur, ease: 'sine.inOut' }) // shift to the next angle (moves right away)
+        .to({}, { duration: tm.hold });                                                      // then study it a beat
     }
     cloneLoops.push(lp);
   });
@@ -345,17 +392,20 @@ function startCloneInspect() {
 // ---- the timeline --------------------------------------------------------------
 let tl = null;
 function buildTimeline() {
-  tl = gsap.timeline({ paused: true });
+  // First play runs the entrance (ACT 0); when it finishes while the viewer is STILL watching we loop
+  // WITHOUT the intro (see loopWithoutIntro). The full intro only returns on a fresh entry (run() restarts
+  // from 0), i.e. when they scroll away and come back.
+  tl = gsap.timeline({ paused: true, onComplete: loopWithoutIntro });
 
   // reset state at t=0 — empty stage: logo hidden far back, titles alone
   tl.add(() => {
-    killCloneLoops(); claudeFace = false; clonesFace = false;
+    killCloneLoops(); claudeFace = false; clonesFace = false; boardFace = false;
     logoGroup.visible = false;
     logoGroup.position.set(0, 0, ENTER.z0); logoGroup.rotation.set(ENTER.tilt, ENTER.spin, 0); logoGroup.scale.setScalar(CLAUDE.rest * 0.9);
     cloneGroups.forEach((g) => { g.visible = false; g.position.set(...POS.home); g.rotation.set(0, 0, 0); g.scale.setScalar(0.001); });
     book.visible = false; book.position.set(...POS.book); book.scale.setScalar(0.001);
     if (board) { board.visible = false; board.scale.setScalar(0.001); }
-    codePanel.classList.remove('show'); codeLines.forEach((l) => l.classList.remove('on'));
+    codePanel.classList.remove('show'); codePanel.classList.remove('saved'); codeLines.forEach((l) => { l.classList.remove('on'); l.textContent = ''; });
     camera.position.set(...CAM.settle.pos); lookTarget.set(...CAM.settle.tgt); // entrance: centred on Claude
     if (guide) gsap.set(guide, { opacity: 1 });
     logoMats.forEach((m) => { m.transparent = true; m.opacity = 0; m.needsUpdate = true; });
@@ -364,6 +414,7 @@ function buildTimeline() {
   });
 
   // ACT 0 — entrance: stage sits empty (titles only), then the logo resolves into view + settles
+  tl.addLabel('act0 · entrance', 0);
   const fade = { o: 0 };
   const R = CLAUDE.rest;
   tl.add(() => { logoGroup.visible = true; }, ENTER.hold);
@@ -376,12 +427,14 @@ function buildTimeline() {
   const AFTER_ENTER = ENTER.hold + ENTER.dur + ENTER.settle; // the cinematic proper starts here
 
   // ACT 1 — Claude TURNS about Y to look right, as if something is coming; then holds
+  tl.addLabel('act1 · look right', AFTER_ENTER);
   tl.to(logoGroup.rotation, { y: REACT.lookYaw, x: REACT.dip, z: 0, duration: 0.8, ease: 'power2.inOut' }, AFTER_ENTER);
   tl.to(guide, { opacity: 0, duration: 0.7, ease: 'power2.inOut' }, '<');
   camTo(tl, CAM.react, 1.1, '<');
 
   // ACT 2 — the book appears (slides in from the right); Claude just BACKS UP, keeping its current facing
   //          (NOT turning to face the book — that side-on view looked bad). claudeFace stays OFF here.
+  tl.addLabel('act2 · book arrives');
   tl.add(() => { book.visible = true; book.position.set(3.7, POS.book[1], POS.book[2]); book.scale.setScalar(0.001); }, `>+${REACT.hold}`);
   tl.to(book.position, { x: POS.book[0], duration: 1.5, ease: 'power2.out' }, '<')
     .to(book.scale, { x: BOOK.show, y: BOOK.show, z: BOOK.show, duration: 1.1, ease: 'power2.out' }, '<');
@@ -390,11 +443,13 @@ function buildTimeline() {
   tl.to(logoGroup.scale, { x: CLAUDE.book, y: CLAUDE.book, z: CLAUDE.book, duration: 0.9, ease: 'power2.inOut' }, '<'); // recede to book-scene size (reads slightly smaller than the book)
 
   // ACT 3 — light pause, then Claude wonders what it is ('?'), and lingers (both still visible)
-  tl.to({}, { duration: 0.5 });                                    // a light pause before it reacts
+  tl.addLabel('act3 · wonders (?)');
+  tl.to({}, { duration: 0.3 });                                    // a light pause before it reacts
   showBubble('>', '?');
-  tl.to({}, { duration: 1.3 });                                    // hold: '?' above Claude, book waiting on the right
+  tl.to({}, { duration: 0.5 });                                    // hold: '?' above Claude, book waiting on the right
 
   // ACT 4 — NOW Claude goes in to see: it starts facing the book, camera centres them, then shifts angle→angle
+  tl.addLabel('act4 · inspect book');
   hideBubble('>');
   tl.add(() => { claudeFace = true; });                            // from here it tracks the book (rot Y)
   camTo(tl, CAM.focus, 1.5, '<');
@@ -407,6 +462,7 @@ function buildTimeline() {
   tl.to({}, { duration: SHIFT.hold }); // hold the last angle
 
   // ACT 5 — Claude returns to the spot it backed up to and FACES THE USER again; camera back to wide
+  tl.addLabel('act5 · gets it (♞)');
   tl.add(() => { claudeFace = false; }, '>+0.1');                  // stop tracking the book — about to face the user
   tl.to(logoGroup.position, { x: POS.recoil[0], y: POS.recoil[1], z: POS.recoil[2], duration: 1.2, ease: 'power2.inOut' }, '<');
   tl.to(logoGroup.rotation, { y: 0, x: 0, z: 0, duration: 1.2, ease: 'power2.inOut' }, '<'); // face the user again
@@ -414,10 +470,11 @@ function buildTimeline() {
   camTo(tl, CAM.wide, 1.4, '<');
   // it "gets it": a chess piece thought — now Claude knows what the book is about
   showBubble('>-0.2', '<span class="cb-piece">&#9822;</span>');
-  tl.to({}, { duration: 1.4 }); // hold the chess thought
+  tl.to({}, { duration: 0.7 }); // hold the chess thought
 
   // ACT 6 — Claude pulses gently, then 3 clones bud out (top / left / right); they go scan the book.
   //          The camera STAYS WIDE here (no re-centring) so the original Claude stays in frame.
+  tl.addLabel('act6 · spawns subagents');
   hideBubble('>');
   tl.to(logoGroup.scale, { x: CLAUDE.after * 1.1, y: CLAUDE.after * 1.1, z: CLAUDE.after * 1.1, duration: 0.35, ease: 'sine.inOut' }, '>-0.05') // a slight, smooth pulse
     .to(logoGroup.scale, { x: CLAUDE.after, y: CLAUDE.after, z: CLAUDE.after, duration: 0.45, ease: 'sine.inOut' });
@@ -426,7 +483,7 @@ function buildTimeline() {
     tl.to(g.scale, { x: CLONE.scale, y: CLONE.scale, z: CLONE.scale, duration: 0.5, ease: 'back.out(1.6)' }, i ? `<+${i * 0.12}` : '<')
       .to(g.position, { x: POS.recoil[0] + EMERGE[i][0], y: POS.recoil[1] + EMERGE[i][1], z: POS.recoil[2] + EMERGE[i][2], duration: 0.6, ease: 'power2.out' }, '<'); // bud out top/left/right
   });
-  tl.to({}, { duration: 0.5 }); // hold them around Claude a beat
+  tl.to({}, { duration: 0.3 }); // hold them around Claude a beat
   showCap('>-0.1', 'It spawns subagents that study the book from every angle in parallel.');
   // they FLY OVER to the book (each to its first angle), facing it as they go — staggered so it's not in unison
   tl.add(() => { clonesFace = true; });
@@ -434,11 +491,94 @@ function buildTimeline() {
     const s = [POS.book[0] + CLONE_OFF[i][0][0], POS.book[1] + CLONE_OFF[i][0][1], POS.book[2] + CLONE_OFF[i][0][2]];
     tl.to(g.position, { x: s[0], y: s[1], z: s[2], duration: 1.25, ease: 'power2.inOut' }, i ? `<+${i * 0.18}` : '>+0.1');
   });
+  cloneStart = tl.duration();        // remember WHEN inspection begins, so frame() can scrub the loops from tl.time()
   tl.add(() => startCloneInspect()); // then each agent loops its own angles independently (lively, never in sync)
+
+  // ACT 7 — while the subagents study the book, Claude turns left; the camera pans left and the chess board
+  //          ANIMATES into being as it arrives; then Claude moves ABOVE it and studies it (facing DOWN).
+  tl.addLabel('act7a · turns left');
+  tl.to({}, { duration: 0.4 });                 // brief beat as the subagents study the book
+  // the board GROWS into being NOW (far left, off-frame) — concurrently with Claude's turn — so it has fully
+  // materialised before the camera pans over to it. A smooth rise + scale, not a pop.
+  tl.add(() => { board.visible = true; board.position.set(POS.board[0], POS.board[1] - 0.5, POS.board[2]); board.scale.setScalar(0.001); }, '>');
+  // Claude notices the board and turns toward it — turning left AND tilting down at it (it sits low on the left)
+  tl.to(logoGroup.rotation, { y: GLANCE.yaw, x: 0.34, z: 0, duration: GLANCE.dur, ease: 'power2.inOut' }, '<');
+  camTo(tl, CAM.glance, GLANCE.dur + 0.2, '<');
+  tl.to(board.scale, { x: BOARD.show, y: BOARD.show, z: BOARD.show, duration: 1.25, ease: 'power3.out' }, '<')
+    .to(board.position, { y: POS.board[1], duration: 1.25, ease: 'power3.out' }, '<'); // rise into place as it grows
+  tl.to({}, { duration: GLANCE.hold });
+  showCap('>-0.2', 'A new position to learn from.');
+  // ACT 7b — the camera pans to the board AND Claude starts inspecting right away (flies up above it as the
+  //          camera moves; boardFace keeps it turned toward the board's centre and tilted down at it).
+  tl.addLabel('act7b · camera + inspect');
+  tl.add(() => { claudeFace = false; boardFace = true; }); // frame() now owns Claude's rotation (face board + look down)
+  camTo(tl, CAM.board, 1.6, '>');
+  tl.to(logoGroup.scale, { x: CLAUDE.book, y: CLAUDE.book, z: CLAUDE.book, duration: ABOVE.dur, ease: 'power2.inOut' }, '<');
+  ABOVE_OFF.forEach((o, i) => {
+    const p = [POS.board[0] + o[0], POS.board[1] + o[1], POS.board[2] + o[2]];
+    const at = i === 0 ? '<' : `>+${SHIFT.hold}`;          // the gap between moves IS the pause at the previous spot
+    const dur = i === 0 ? ABOVE.dur : SHIFT.dur;
+    tl.to(logoGroup.position, { x: p[0], y: p[1], z: p[2], duration: dur, ease: 'sine.inOut' }, at);
+  });
+  tl.to({}, { duration: SHIFT.hold });          // hold the last spot — Claude studying from above
+
+  // ACT 8 — the study ends: the board recedes, the book shrinks, the subagents fly back INTO Claude (which
+  //          pulses as it absorbs them), then a code file appears and Claude writes what it learned into how
+  //          StockThink explains. Camera regroups centre-left so the 2D code panel owns the right side.
+  tl.addLabel('act8 · returns + codes');
+  tl.add(() => { boardFace = false; claudeFace = false; });
+  // the board recedes — reverse of its entrance (shrinks + sinks back off-frame), then hides
+  tl.to(board.scale, { x: 0.001, y: 0.001, z: 0.001, duration: 1.0, ease: 'power2.in' }, '>')
+    .to(board.position, { y: POS.board[1] - 0.5, duration: 1.0, ease: 'power2.in' }, '<')
+    .add(() => { board.visible = false; });
+  // Claude pulls in CLOSE and turns slightly right to face the terminal, growing back up
+  tl.to(logoGroup.rotation, { y: CODE_YAW, x: 0, z: 0, duration: 1.2, ease: 'power2.inOut' }, '<')
+    .to(logoGroup.position, { x: POS.code[0], y: POS.code[1], z: POS.code[2], duration: 1.2, ease: 'power2.inOut' }, '<')
+    .to(logoGroup.scale, { x: CLAUDE.after, y: CLAUDE.after, z: CLAUDE.after, duration: 1.2, ease: 'power2.inOut' }, '<');
+  camTo(tl, CAM.code, 1.4, '<');
+  showCap('>-0.3', 'Then it brings everything it learned back together.');
+
+  // the book shrinks away and the 3 subagents fly back INTO Claude (converge to its spot, scaled to nothing)
+  tl.add(() => { killCloneLoops(); clonesFace = false; }, '>');
+  tl.to(book.scale, { x: 0.001, y: 0.001, z: 0.001, duration: 0.8, ease: 'power2.in' }, '<')
+    .add(() => { book.visible = false; });
+  cloneGroups.forEach((g, i) => {
+    tl.to(g.position, { x: POS.code[0], y: POS.code[1], z: POS.code[2], duration: 0.85, ease: 'power2.in' }, i ? `<+${i * 0.1}` : '<')
+      .to(g.scale, { x: 0.001, y: 0.001, z: 0.001, duration: 0.5, ease: 'power2.in' }, '>-0.4');
+  });
+  tl.add(() => { cloneGroups.forEach((g) => { g.visible = false; }); });
+
+  // it absorbs them: a green learned-pulse + flash (the "getting smarter" colour beat)
+  const A = CLAUDE.after;
+  tl.to(logoGroup.scale, { x: A * 1.12, y: A * 1.12, z: A * 1.12, duration: 0.22, ease: 'power2.out' }, '>-0.1')
+    .to(logoGroup.scale, { x: A, y: A, z: A, duration: 0.4, ease: 'power2.in' });
+  flashAt(tl, logoGroup, '<', 2.4);
+
+  // a code file appears and Claude writes the new concept into how StockThink explains
+  showCap('>-0.1', 'It writes what it learned into how StockThink explains.');
+  showCode(tl, '>+0.2');
+  tl.to({}, { duration: 0.7 }); // read the finished code a beat
+
+  // ACT 9 — Claude SAVES the work (green confirm + flash), CLOSES the tab, recenters; then the timeline loops
+  tl.addLabel('act9 · save + recenter');
+  tl.add(() => codePanel.classList.add('saved'), '>');
+  flashAt(tl, logoGroup, '<', 1.8);
+  showCap('<', 'Saved — sharper for your next game.');
+  tl.to({}, { duration: 0.5 });
+  tl.add(() => { codePanel.classList.remove('show'); });           // close the tab — it slides out
+  hideCap('>');
+  // recenter on screen, face the user again, back to rest size; camera returns to the centred entrance shot
+  tl.to(logoGroup.position, { x: POS.home[0], y: POS.home[1], z: POS.home[2], duration: 1.0, ease: 'power2.inOut' }, '>')
+    .to(logoGroup.rotation, { y: 0, x: 0, z: 0, duration: 1.0, ease: 'power2.inOut' }, '<')
+    .to(logoGroup.scale, { x: CLAUDE.rest, y: CLAUDE.rest, z: CLAUDE.rest, duration: 1.0, ease: 'power2.inOut' }, '<');
+  camTo(tl, CAM.settle, 1.1, '<');
+  tl.add(() => codePanel.classList.remove('saved'));               // reset the badge for the next loop
+  tl.to({}, { duration: 0.4 });                                    // a beat centred, then it replays
 }
 
 // ---- autoplay on center + replay -----------------------------------------------
 let played = false;
+let visible = false;   // true while the coach section is on screen — gates the render loop (set by `io`)
 function playGuideOut() { if (guide) guide.style.opacity = '0'; }
 function playGuideIn() { if (guide) guide.style.opacity = '1'; }
 function run() {
@@ -448,9 +588,17 @@ function run() {
   tl.restart();
 }
 function maybeAutoplay() { if (played && ready) run(); }
+// Seamless replay while the viewer stays in the section: resume from act1 (skip the entrance fade-in/
+// scale-up). ACT 9 already left Claude centred at rest, so jumping to the act1 label loops cleanly.
+function loopWithoutIntro() {
+  if (RM()) return;        // reduced motion: stay parked on the final frame, don't loop
+  tl.play('act1 · look right');
+}
 
 const io = new IntersectionObserver((entries) => {
   entries.forEach((e) => {
+    visible = e.isIntersecting;             // gate the render loop — off-screen the coach scene never draws
+    if (e.isIntersecting) ensureBoard();   // start fetching/building the board the moment the section nears
     if (e.isIntersecting && e.intersectionRatio >= 0.55) {
       if (!played) { played = true; run(); }
     } else if (e.intersectionRatio <= 0.01) {
@@ -462,77 +610,8 @@ io.observe(section);
 
 replayBtn?.addEventListener('click', () => { played = true; run(); });
 
-// ---- dev-only TUNE panel: size + direction of each asset, then "Copy params" ----
-// (tree-shaken out of prod — only runs under `npm run dev`). Lets the user pose the book/
-// Claude/clones, read the numbers off, and paste them back to bake into the tunables.
-if (import.meta.env.DEV) buildTunePanel();
-function buildTunePanel() {
-  const S = {
-    bookSize: BOOK.fit, bookRX: BOOK.rx, bookRY: BOOK.ry, bookRZ: BOOK.rz,
-    bookPX: POS.book[0], bookPY: POS.book[1], bookPZ: POS.book[2],
-    claudeSize: CLAUDE.book, claudeRX: 0, claudeRY: 0, claudeRZ: 0,
-    cloneSize: CLONE.scale,
-  };
-  const panel = document.createElement('div');
-  panel.className = 'coach-tune';
-  panel.innerHTML = `<button class="ct-toggle" type="button">⚙ Tune</button><div class="ct-body"></div>`;
-  section.querySelector('.coach-sticky').appendChild(panel);
-  const body = panel.querySelector('.ct-body');
-  const toggle = panel.querySelector('.ct-toggle');
-  let open = false;
-
-  function apply() {
-    if (bookModel) { bookModel.scale.setScalar(S.bookSize); bookModel.rotation.set(S.bookRX, S.bookRY, S.bookRZ); }
-    book.visible = true; book.scale.setScalar(BOOK.show); book.position.set(S.bookPX, S.bookPY, S.bookPZ);
-    logoGroup.visible = true; logoGroup.scale.setScalar(S.claudeSize); logoGroup.rotation.set(S.claudeRX, S.claudeRY, S.claudeRZ);
-    logoMats.forEach((m) => { m.transparent = false; m.opacity = 1; m.needsUpdate = true; });
-    cloneGroups.forEach((g) => { g.visible = true; g.scale.setScalar(S.cloneSize); });
-  }
-  function pose() {                 // freeze the cinematic and lay everything out so it's all visible
-    tl?.pause(); killCloneLoops(); claudeFace = false; clonesFace = false;
-    logoGroup.position.set(POS.recoil[0], POS.recoil[1], POS.recoil[2]);
-    const b = POS.book;
-    const spots = [[b[0] - 0.6, b[1] + 0.3, b[2] + 0.6], [b[0] + 0.6, b[1] + 0.2, b[2] + 0.5], [b[0], b[1] + 0.5, b[2] - 0.3]];
-    cloneGroups.forEach((g, i) => g.position.set(...spots[i % spots.length]));
-    camera.position.set(CAM.focus.pos[0], CAM.focus.pos[1] + (CAM.focus.down ? SCENE_DOWN : 0), CAM.focus.pos[2]);
-    lookTarget.set(CAM.focus.tgt[0], CAM.focus.tgt[1] + (CAM.focus.down ? SCENE_DOWN : 0), CAM.focus.tgt[2]);
-    apply();
-  }
-  function fmt(n) { return (+n).toFixed(2); }
-  function copy() {
-    const txt =
-`BOOK = { fit: ${fmt(S.bookSize)}, show: ${fmt(BOOK.show)}, rx: ${fmt(S.bookRX)}, ry: ${fmt(S.bookRY)}, rz: ${fmt(S.bookRZ)} }
-POS.book = [${fmt(S.bookPX)}, ${fmt(S.bookPY)}, ${fmt(S.bookPZ)}]
-CLAUDE.book = ${fmt(S.claudeSize)}    // book-scene size · rot while posed: ${fmt(S.claudeRX)}, ${fmt(S.claudeRY)}, ${fmt(S.claudeRZ)}
-CLONE.scale = ${fmt(S.cloneSize)}`;
-    navigator.clipboard?.writeText(txt).then(() => { copyBtn.textContent = 'copied ✓'; setTimeout(() => (copyBtn.textContent = 'Copy params'), 1300); });
-  }
-  function addRow(label, key, min, max, step) {
-    const row = document.createElement('label'); row.className = 'ct-row';
-    const span = document.createElement('span'); span.textContent = label;
-    const rng = document.createElement('input'); rng.type = 'range'; rng.min = min; rng.max = max; rng.step = step; rng.value = S[key];
-    const num = document.createElement('input'); num.type = 'number'; num.step = step; num.value = S[key]; num.className = 'ct-num';
-    const set = (v) => { const f = parseFloat(v); if (Number.isNaN(f)) return; S[key] = f; rng.value = f; num.value = f; apply(); };
-    rng.addEventListener('input', (e) => set(e.target.value));
-    num.addEventListener('input', (e) => set(e.target.value));
-    row.append(span, rng, num); body.appendChild(row);
-  }
-  function head(t) { const h = document.createElement('div'); h.className = 'ct-head'; h.textContent = t; body.appendChild(h); }
-
-  head('Book'); addRow('size', 'bookSize', 0.2, 3, 0.01);
-  addRow('rot X', 'bookRX', -3.15, 3.15, 0.01); addRow('rot Y', 'bookRY', -3.15, 3.15, 0.01); addRow('rot Z', 'bookRZ', -3.15, 3.15, 0.01);
-  addRow('pos X', 'bookPX', -2.5, 2.5, 0.01); addRow('pos Y', 'bookPY', -2, 2, 0.01); addRow('pos Z', 'bookPZ', -2, 2, 0.01);
-  head('Claude'); addRow('size', 'claudeSize', 0.2, 2, 0.01);
-  addRow('rot X', 'claudeRX', -3.15, 3.15, 0.01); addRow('rot Y', 'claudeRY', -3.15, 3.15, 0.01); addRow('rot Z', 'claudeRZ', -3.15, 3.15, 0.01);
-  head('Subagents'); addRow('size', 'cloneSize', 0.1, 1.2, 0.01);
-  const copyBtn = document.createElement('button'); copyBtn.type = 'button'; copyBtn.className = 'ct-copy'; copyBtn.textContent = 'Copy params';
-  copyBtn.addEventListener('click', copy); body.appendChild(copyBtn);
-
-  toggle.addEventListener('click', () => {
-    open = !open; panel.classList.toggle('on', open);
-    if (open) pose(); else { played = true; run(); } // closing resumes the cinematic
-  });
-}
+// The dev-only timeline scrubber is mounted in the GLB onLoad above (new Scrubber + gsapTransport
+// from ./scrub.js) — one universal bar, replacing the old hand-rolled one.
 
 // ---- render loop ---------------------------------------------------------------
 function resize() {
@@ -543,16 +622,40 @@ function resize() {
 addEventListener('resize', resize); resize();
 
 let t = 0;
+const coachGate = fpsGate();   // cap below display refresh — cinematic, time-driven (scrub-safe)
 function frame() {
   requestAnimationFrame(frame);
+  if (!QUALITY.cinema) return;   // perf watchdog can disable the cinematics
+  if (!visible) return;   // coach off-screen → don't render (the GSAP clock keeps time on its own)
+  if (!coachGate()) return;
   t += 0.016;
-  if (!RM()) bobNode.position.y = Math.sin(t * 0.8) * BOB;
-  // turn-to-face: Claude and the subagents keep their front face on the book, even while moving
-  const k = RM() ? 1 : 0.12;
-  if (claudeFace) logoGroup.rotation.y = lerpAngle(logoGroup.rotation.y, faceYaw(logoGroup.position, book.position), k);
+  // ct = the cinematic clock. Use the TIMELINE's own time so EVERYTHING (bob, sway, the subagent loops) freezes
+  // when the scrub bar is paused and seeks when you drag it — nothing runs on its own clock anymore.
+  const ct = tl ? tl.time() : t;
+  // subagent inspection loops are paused; we scrub them from the timeline so they're fully bar-controlled
+  if (cloneLoops.length && ct >= cloneStart) {
+    const e = ct - cloneStart;
+    cloneLoops.forEach((lp) => lp.totalTime(e));
+  }
+  if (!RM()) bobNode.position.y = Math.sin(ct * 0.8) * BOB;
+  // turn-to-face: Claude and the subagents keep their front face on the book, even while moving.
+  // While paused/scrubbing, SNAP (k=1) so facing matches the seeked frame and never eases on after a pause.
+  const k = (RM() || (tl && tl.paused())) ? 1 : 0.12;
+  if (claudeFace) {
+    // above the book → turn toward it (yaw) AND tilt slightly down (pitch) to read it
+    logoGroup.rotation.y = lerpAngle(logoGroup.rotation.y, faceYaw(logoGroup.position, book.position), k);
+    logoGroup.rotation.x = THREE.MathUtils.lerp(logoGroup.rotation.x, BOOK_LOOK_DOWN, k);
+  }
+  if (boardFace) {
+    // hovering above the board → aim at its centre (yaw) and look down by however far above it is (pitch)
+    const dx = board.position.x - logoGroup.position.x, dz = board.position.z - logoGroup.position.z;
+    const dy = logoGroup.position.y - board.position.y, horiz = Math.hypot(dx, dz) || 0.001;
+    logoGroup.rotation.y = lerpAngle(logoGroup.rotation.y, Math.atan2(dx, dz) + FACE_YAW, k);
+    logoGroup.rotation.x = THREE.MathUtils.lerp(logoGroup.rotation.x, Math.atan2(dy, horiz), k);
+  }
   if (clonesFace && !RM()) cloneGroups.forEach((g, i) => {
     g.rotation.y = lerpAngle(g.rotation.y, faceYaw(g.position, book.position), k);
-    g.rotation.z = Math.sin(t * 1.6 + i * 2.1) * 0.10;  // gentle individual sway — each agent feels alive
+    g.rotation.z = Math.sin(ct * 1.6 + i * 2.1) * 0.10;  // gentle individual sway — each agent feels alive
   });
   camera.lookAt(lookTarget);
   camera.updateMatrixWorld();

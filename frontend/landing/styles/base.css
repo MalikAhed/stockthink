@@ -90,7 +90,12 @@
   #load.done{opacity:0;visibility:hidden;pointer-events:none}
   #load .lw{font-family:'Bricolage Grotesque';font-weight:800;font-size:clamp(32px,7vw,72px);letter-spacing:-0.03em;
     color:var(--load-ink);opacity:0.95;display:flex;overflow:hidden}
-  #load .lw span{display:inline-block;transform:translateY(110%);animation:loRise .7s cubic-bezier(.2,.8,.2,1) forwards}
+  /* letters rise in (transform), then ILLUMINATE one-by-one as real load progress fills (.lit, set
+     by scene.js setProgress) — the wordmark literally lights up as the page loads. */
+  #load .lw span{display:inline-block;transform:translateY(110%);opacity:.26;
+    animation:loRise .7s cubic-bezier(.2,.8,.2,1) forwards;
+    transition:opacity .45s ease, text-shadow .45s ease}
+  #load .lw span.lit{opacity:1;text-shadow:0 0 22px color-mix(in srgb, var(--load-ink) 45%, transparent)}
   @keyframes loRise{to{transform:translateY(0)}}
   #load .bar{margin-top:26px;width:min(240px,50vw);height:2px;background:color-mix(in srgb, var(--load-ink) 18%, transparent);border-radius:2px;overflow:hidden}
   #load .bar i{display:block;height:100%;width:0%;background:var(--load-ink);transition:width .3s ease;border-radius:2px}
