@@ -1,5 +1,5 @@
 /**
- * THE TRUTH — explanation-quality eval v1.
+ * THE TRUTH — explanation-quality eval v1.1.
  *
  * Runs the REAL pipeline (Stockfish 18 WASM under Node, exactly like the e2e
  * gate) over eval/positions.json and scores every comment on three rubric
@@ -9,6 +9,17 @@
  *   ECONOMY  — quiet when there is nothing to teach (NB: composeComment never
  *              returns empty text by design (R3); economy = one short line,
  *              zero false teaching — NOT emptiness)
+ *
+ * PLUS one set-level paired metric — the honesty axis the per-case dims are
+ * structurally blind to (see docs/RESEARCH-explaining-the-why.md, Phase 0.1):
+ *   COVERAGE  — of moves above the inaccuracy floor, the share that VOICE a
+ *               concrete cause (vs. a bare "X was stronger"/neutral abstention)
+ *   PRECISION — of the comments that voice a concrete cause, the share whose
+ *               lead reason is the right, grounded, non-forbidden one
+ * The arc this opens optimizes a reject-option tradeoff: PRECISION → 1.0,
+ * accepting whatever COVERAGE that implies. Falling coverage + rising precision
+ * is the intended direction, NOT a regression. Both are derived purely from the
+ * existing per-case checks — this metric adds NO behaviour, only sight.
  *
  * Determinism: pool size 1, cases scored sequentially in file order, fixed
  * node budgets, single-threaded WASM → identical output every run.
@@ -70,6 +81,9 @@ interface TruthSet {
 }
 
 const GOOD_SIDE = new Set(['brilliant', 'great', 'best', 'excellent', 'good', 'book', 'forced']);
+// "Above the inaccuracy floor" — the moves that WARRANT a causal explanation.
+// Mirrors compose.ts's own isBadMove; the COVERAGE denominator (Phase 0.1).
+const ABOVE_INACCURACY = new Set(['inaccuracy', 'mistake', 'blunder', 'miss']);
 
 /** FEN + UCI → a synthetic Ply, exactly shaped like analysis/pgn.ts produces. */
 function plyFromCase(c: EvalCase): Ply {
@@ -133,6 +147,10 @@ interface CaseResult {
   more: string | null;
   checks: Checks;
   scores: Partial<Record<Dim, number>>;
+  /** Set-level honesty axis (Phase 0.1). needsExplanation = above the inaccuracy
+   *  floor; emitted = voiced a concrete cause (a fact sentence leads the text);
+   *  correct = that voiced cause is the right, grounded, non-forbidden one. */
+  selective: { needsExplanation: boolean; emitted: boolean; correct: boolean };
 }
 
 function scoreCase(c: EvalCase, m: MoveReport, comment: Comment): CaseResult {
@@ -168,6 +186,14 @@ function scoreCase(c: EvalCase, m: MoveReport, comment: Comment): CaseResult {
       scores.economy = falseAlarm ? 0 : sentences <= maxSentences ? 2 : sentences <= maxSentences + 1 ? 1 : 0;
   }
 
+  // Set-level honesty axis (Phase 0.1) — derived from the same checks, no new behaviour.
+  // emitted: a fact's sentence leads the visible text (a bare "X was stronger" /
+  // neutral pool line is NOT a fact sentence → leadKind is null → honest abstention).
+  const needsExplanation = ABOVE_INACCURACY.has(m.classification);
+  const emitted = leadKind !== null;
+  const correct =
+    emitted && !falseAlarm && forbiddenHits.length === 0 && classOk && leadOk && factsOk;
+
   return {
     id: c.id,
     category: c.category,
@@ -179,6 +205,7 @@ function scoreCase(c: EvalCase, m: MoveReport, comment: Comment): CaseResult {
     more: comment.more,
     checks: { mentionsOk, factsOk, leadOk, forbiddenHits, classOk, sentences, maxSentences, falseAlarm },
     scores,
+    selective: { needsExplanation, emitted, correct },
   };
 }
 
@@ -227,6 +254,26 @@ function aggregate(results: CaseResult[]): Record<string, { pts: number; max: nu
   return out;
 }
 
+interface Tally {
+  num: number;
+  den: number;
+  pct: string;
+}
+
+/** The honesty axis (Phase 0.1): coverage over moves that warrant a cause,
+ *  precision over the causes actually voiced. pct() returns '—' on an empty
+ *  population, so neither denominator can divide by zero. */
+function selectiveAgg(results: CaseResult[]): { coverage: Tally; precision: Tally } {
+  const above = results.filter(r => r.selective.needsExplanation);
+  const voiced = results.filter(r => r.selective.emitted);
+  const covNum = above.filter(r => r.selective.emitted).length;
+  const precNum = voiced.filter(r => r.selective.correct).length;
+  return {
+    coverage: { num: covNum, den: above.length, pct: pct(covNum, above.length) },
+    precision: { num: precNum, den: voiced.length, pct: pct(precNum, voiced.length) },
+  };
+}
+
 function writeMetricsRow(totals: ReturnType<typeof aggregate>, nCases: number, tests: string): void {
   const path = join(ROOT, 'docs/METRICS.md');
   let md: string;
@@ -245,6 +292,25 @@ function writeMetricsRow(totals: ReturnType<typeof aggregate>, nCases: number, t
   const row = `| ${date} | ${totals.causal.pct} | ${totals.grounded.pct} | ${totals.economy.pct} | ${totals.total.pct} | ${nCases} | ${tests} | ${recallAvg()} | ${countSrcLoc()} |`;
   writeFileSync(path, md.replace(marker, `${marker}\n${row}`));
   console.log(`METRICS.md ← ${row}`);
+}
+
+function writeSelectiveRow(sel: ReturnType<typeof selectiveAgg>, nCases: number): void {
+  const path = join(ROOT, 'docs/METRICS.md');
+  let md: string;
+  try {
+    md = readFileSync(path, 'utf8');
+  } catch {
+    return; // writeMetricsRow already reported a missing file
+  }
+  const marker = '<!-- selective-history -->';
+  if (!md.includes(marker)) {
+    console.log('METRICS.md has no selective-history marker — skipping selective row.');
+    return;
+  }
+  const date = new Date().toISOString().slice(0, 10);
+  const row = `| ${date} | ${sel.coverage.pct} | ${sel.precision.pct} | ${nCases} | |`;
+  writeFileSync(path, md.replace(marker, `${marker}\n${row}`));
+  console.log(`METRICS.md (selective) ← ${row}`);
 }
 
 async function main(): Promise<void> {
@@ -286,6 +352,7 @@ async function main(): Promise<void> {
         console.log(`lead:      ${r.leadKind}`);
         console.log(`more:      ${comment.more}`);
         console.log(`checks:    ${JSON.stringify(r.checks)}`);
+        console.log(`selective: ${JSON.stringify(r.selective)}`);
         console.log('engine lines:');
         for (const line of m.lines)
           console.log(
@@ -300,6 +367,7 @@ async function main(): Promise<void> {
   if (explainId) return;
 
   const totals = aggregate(results);
+  const sel = selectiveAgg(results);
   const runtime = ((Date.now() - started) / 1000).toFixed(1);
   console.log(
     `\nCAUSAL ${totals.causal.pct} (${totals.causal.pts}/${totals.causal.max}) · ` +
@@ -308,6 +376,10 @@ async function main(): Promise<void> {
       `TOTAL ${totals.total.pct} (${totals.total.pts}/${totals.total.max}) · ` +
       `${results.length} cases in ${runtime}s`,
   );
+  console.log(
+    `COVERAGE ${sel.coverage.pct} (${sel.coverage.num}/${sel.coverage.den} above-inaccuracy moves voiced a concrete cause) · ` +
+      `PRECISION ${sel.precision.pct} (${sel.precision.num}/${sel.precision.den} voiced causes were right & grounded)`,
+  );
 
   if (dry) return;
   mkdirSync(join(ROOT, 'eval/results'), { recursive: true });
@@ -315,11 +387,13 @@ async function main(): Promise<void> {
     date: new Date().toISOString().slice(0, 10),
     defaults: truth.defaults,
     totals,
+    selective: sel,
     cases: results,
   };
   writeFileSync(join(ROOT, 'eval/results/latest.json'), `${JSON.stringify(payload, null, 2)}\n`);
   console.log('eval/results/latest.json written.');
   writeMetricsRow(totals, results.length, tests);
+  writeSelectiveRow(sel, results.length);
 }
 
 main().catch(err => {

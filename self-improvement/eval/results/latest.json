@@ -1,5 +1,5 @@
 {
-  "date": "2026-06-14",
+  "date": "2026-06-30",
   "defaults": {
     "nodes": 60000,
     "multiPv": 3,
@@ -25,6 +25,18 @@
       "pts": 70,
       "max": 76,
       "pct": "92.1%"
+    }
+  },
+  "selective": {
+    "coverage": {
+      "num": 7,
+      "den": 7,
+      "pct": "100.0%"
+    },
+    "precision": {
+      "num": 14,
+      "den": 17,
+      "pct": "82.4%"
     }
   },
   "cases": [
@@ -57,6 +69,11 @@
       "scores": {
         "causal": 1,
         "grounded": 1
+      },
+      "selective": {
+        "needsExplanation": true,
+        "emitted": true,
+        "correct": false
       }
     },
     {
@@ -90,6 +107,11 @@
         "causal": 2,
         "grounded": 2,
         "economy": 2
+      },
+      "selective": {
+        "needsExplanation": false,
+        "emitted": true,
+        "correct": true
       }
     },
     {
@@ -121,6 +143,11 @@
       "scores": {
         "grounded": 2,
         "economy": 2
+      },
+      "selective": {
+        "needsExplanation": false,
+        "emitted": true,
+        "correct": true
       }
     },
     {
@@ -152,6 +179,11 @@
       "scores": {
         "grounded": 2,
         "economy": 2
+      },
+      "selective": {
+        "needsExplanation": false,
+        "emitted": true,
+        "correct": true
       }
     },
     {
@@ -181,6 +213,11 @@
       "scores": {
         "grounded": 2,
         "economy": 2
+      },
+      "selective": {
+        "needsExplanation": false,
+        "emitted": true,
+        "correct": true
       }
     },
     {
@@ -212,6 +249,11 @@
       "scores": {
         "causal": 1,
         "grounded": 1
+      },
+      "selective": {
+        "needsExplanation": true,
+        "emitted": true,
+        "correct": false
       }
     },
     {
@@ -240,6 +282,11 @@
       },
       "scores": {
         "economy": 2
+      },
+      "selective": {
+        "needsExplanation": false,
+        "emitted": false,
+        "correct": false
       }
     },
     {
@@ -275,6 +322,11 @@
       "scores": {
         "causal": 2,
         "grounded": 2
+      },
+      "selective": {
+        "needsExplanation": true,
+        "emitted": true,
+        "correct": true
       }
     },
     {
@@ -305,6 +357,11 @@
       "scores": {
         "grounded": 2,
         "economy": 2
+      },
+      "selective": {
+        "needsExplanation": false,
+        "emitted": true,
+        "correct": true
       }
     },
     {
@@ -337,6 +394,11 @@
       "scores": {
         "grounded": 2,
         "economy": 2
+      },
+      "selective": {
+        "needsExplanation": false,
+        "emitted": true,
+        "correct": true
       }
     },
     {
@@ -371,6 +433,11 @@
       "scores": {
         "causal": 2,
         "grounded": 2
+      },
+      "selective": {
+        "needsExplanation": true,
+        "emitted": true,
+        "correct": true
       }
     },
     {
@@ -403,6 +470,11 @@
         "causal": 2,
         "grounded": 2,
         "economy": 2
+      },
+      "selective": {
+        "needsExplanation": false,
+        "emitted": true,
+        "correct": true
       }
     },
     {
@@ -432,6 +504,11 @@
       "scores": {
         "grounded": 2,
         "economy": 2
+      },
+      "selective": {
+        "needsExplanation": false,
+        "emitted": true,
+        "correct": true
       }
     },
     {
@@ -465,6 +542,11 @@
       "scores": {
         "grounded": 2,
         "economy": 2
+      },
+      "selective": {
+        "needsExplanation": false,
+        "emitted": true,
+        "correct": true
       }
     },
     {
@@ -495,6 +577,11 @@
       "scores": {
         "causal": 1,
         "grounded": 1
+      },
+      "selective": {
+        "needsExplanation": true,
+        "emitted": true,
+        "correct": false
       }
     },
     {
@@ -528,6 +615,11 @@
         "causal": 2,
         "grounded": 2,
         "economy": 2
+      },
+      "selective": {
+        "needsExplanation": false,
+        "emitted": true,
+        "correct": true
       }
     },
     {
@@ -561,6 +653,11 @@
       "scores": {
         "causal": 2,
         "grounded": 2
+      },
+      "selective": {
+        "needsExplanation": true,
+        "emitted": true,
+        "correct": true
       }
     },
     {
@@ -594,6 +691,11 @@
       "scores": {
         "causal": 2,
         "grounded": 2
+      },
+      "selective": {
+        "needsExplanation": true,
+        "emitted": true,
+        "correct": true
       }
     }
   ]

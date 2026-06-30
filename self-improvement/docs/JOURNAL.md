@@ -6,6 +6,23 @@ for /work sessions). Past ~300 lines, /reflect compresses the oldest half into
 LESSONS.md. Entries below 2026-06-12p were migrated verbatim from
 self-improvement/improve/TRACKER.md's daily log (2026-06-12) — history is not rewritten.
 
+- **2026-06-30b** · /chess (max effort) · Opened the **explain-the-why arc** on branch
+  `chess/explain-engine` (off main) and landed **Phase 0.1** — a paired COVERAGE/PRECISION
+  metric in the eval, the honesty axis the 3 per-case dims are structurally blind to.
+  Derived purely from existing per-case checks (no compose/scoreCase behaviour change):
+  COVERAGE = above-inaccuracy moves voicing a concrete cause / above-inaccuracy moves;
+  PRECISION = right-&-grounded voiced causes / voiced causes. EVIDENCE: the 3 old dims
+  reproduce byte-identical (C 85.0 · G 91.2 · E 100.0 · TOTAL 92.1) → zero regression;
+  full suite 249/250 green; baseline COVERAGE 100% (no silence layer yet) · PRECISION
+  82.4% (14/17). CONFIRMATION (not surprise — it validates the research): the 3 precision
+  misses are EXACTLY the disease cases the doc named — opera-09-b5 (invites_capture "runs
+  into Nxb5"), blk-04-nxe5 (regression "gives up the center"), pz-fork-miss-000Pw
+  (abandons_square buries the missed Ne2+). The metric pinpoints them unprompted. SYSTEM
+  UPGRADE = the metric itself (Phase 0 = make the eval able to see honesty). Brain: arc
+  wired into BACKLOG (subsumes #1/#2/#6) + ROADMAP M4 + a MEMORY bridge; research doc now
+  tracked. Logged-not-fixed: opera-09-b5's `leadFactIn` arguably needs `invites_capture`
+  (it now names Nxb5 honestly) — a Phase 0.4 spec-sharpening call. Next: Phase 0.2
+  (first-class badge-only expected outcome; stop crediting the neutral filler 2/2).
 - **2026-06-14d** · /chess · 1 unit (U2) · New `invites_capture` fact: when a
   move walks a piece/pawn onto an empty square the engine reply takes right there
   (9...b5? 10.Nxb5!), name the punishing reply WITHOUT a material claim — honest

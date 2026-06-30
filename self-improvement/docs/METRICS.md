@@ -10,6 +10,8 @@ a moved number below is a feeling, not a fact (Laws of the Loop).
 | **Eval CAUSAL** | Comments name the concrete consequence, not just a verdict (0–2/case) | `npm run eval` |
 | **Eval GROUNDED** | The stated reason is the engine's reason — never a banned true-but-wrong one (0–2/case) | `npm run eval` |
 | **Eval ECONOMY** | Quiet when there's nothing to teach: sentence caps + no complaints on good moves (0–2/case) | `npm run eval` |
+| **Eval COVERAGE** | Of moves above the inaccuracy floor, the share given a concrete causal explanation rather than a soft "X was stronger"/neutral abstention (set-level) | `npm run eval` |
+| **Eval PRECISION** | Of comments that voice a concrete cause, the share whose lead reason is the right, grounded, non-forbidden one (set-level — the honesty axis) | `npm run eval` |
 | **Tests** | vitest pass count (`231/232` = 231 pass, 1 intentionally skipped: explorer needs network) | `npx vitest run` |
 | **Recall avg** | Mean tactical recall across the 8 lichess-puzzle themes (last entry of `self-improvement/improve/metrics.json`; per-theme detail in `self-improvement/improve/TRACKER.md`) | `npx vitest run self-improvement/test/recall.test.ts` |
 | **src LOC** | Code-health proxy: total lines in `src/**/*.ts`. The premise of this project is a small deterministic pipeline — eval-score-per-LOC is leverage; unexplained growth is suspect | computed by `npm run eval` |
@@ -39,6 +41,34 @@ a moved number below is a feeling, not a fact (Laws of the Loop).
 | Date | Causal | Grounded | Economy | Total | Cases | Tests | Recall avg | src LOC |
 |---|---|---|---|---|---|---|---|---|
 <!-- eval-history -->
+| 2026-06-30 | 85.0% | 91.2% | 100.0% | 92.1% | 18 | 249/250 | 94.8% | 6831 |
 | 2026-06-14 | 85.0% | 91.2% | 100.0% | 92.1% | 18 | — | 94.8% | 6831 |
 | 2026-06-12 | 80.0% | 91.2% | 100.0% | 90.8% | 18 | 233/234 | 94.8% | 5624 |
 | 2026-06-12 | 80.0% | 85.3% | 81.8% | 82.9% | 18 | 231/232 | 94.8% | 5561 |
+
+## Selective prediction — coverage vs precision (the honesty axis)
+
+Opened 2026-06-30 with the explain-the-why arc (`docs/RESEARCH-explaining-the-why.md`).
+That arc optimizes a **reject-option** tradeoff, NOT raw coverage: speak only when a
+cause is grounded ∧ dominant ∧ stable, else fall to a badge. So the target is
+**PRECISION → 1.0, accepting whatever COVERAGE that implies** — a *falling* coverage
+paired with a *rising* precision is the intended direction here, not a regression.
+
+There is no badge/silence state yet (Phases 2–3 build it), so at baseline coverage is
+near-total and precision is the number that exposes the fake reasons the arc exists to kill.
+
+- **COVERAGE** = (above-inaccuracy moves that voice a concrete cause) / (above-inaccuracy moves)
+- **PRECISION** = (voiced causes that are right & grounded) / (voiced causes)
+
+Exact, from `score.ts` (derived from the same per-case checks — no new behaviour):
+- *above-inaccuracy* = classification ∈ {inaccuracy, mistake, blunder, miss}
+- *voiced a concrete cause* = a fact's rendered sentence leads the visible text; a bare
+  "X was stronger"/neutral pool line does NOT count — that is honest abstention
+- *right & grounded* = led by the expected fact (`leadFactIn`), grounded in the expected
+  facts, in an expected class tier, and free of the case's forbidden wrong-reason
+
+| Date | Coverage | Precision | Cases | Notes |
+|---|---|---|---|---|
+<!-- selective-history -->
+| 2026-06-30 | 100.0% | 82.4% | 18 | |
+
