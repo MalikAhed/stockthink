@@ -59,6 +59,12 @@ clean aspiration case to PROVE a gain (the positional/fork fake-reason cases are
 opera-09-b5's wrong lead is a CONTENT gap → BACKLOG #1, name the Nxb5 sac). Highest-leverage now is
 **Phase 3 (silence/confidence layer)** — all four signals are plumbed and it generalizes today's
 hand-built silence into a principled badge state. §5a everywhere; re-run gate.e2e after each.
+**Phase 3.1 ✅ (2026-07-01):** `MoveReport.confidence` { volatilityCp = |shallow−deep|, lateFlip =
+trajectory advantage-flip in the 2nd half, depth } — DATA ONLY (eval held 85.9%, suite 268/269,
+4 unit tests). **Next: Phase 3.2** (multiPV-spread "no dominant idea" ε + high-draw-WDL "equal"
+signals) → **3.3** (first-class badge-only `Comment`; route Gate-2 failures to it) → **3.4** (replace
+the position-blind NEUTRAL pool with the two honest outputs). 3.3/3.4 are the risky behaviour change —
+conservative thresholds, re-read every gate.e2e comment (must not mute delivers_mate / Qb8+ sac).
 
 | # | Tag | Item | Sev | Payoff / evidence |
 |---|---|---|---|---|

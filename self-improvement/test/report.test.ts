@@ -5,7 +5,7 @@
  * (RESEARCH §1.2–1.3, data only — no detector consumes them yet).
  */
 import { describe, expect, it } from 'vitest';
-import { annotateContext } from '@backend/analysis/report';
+import { annotateContext, moveConfidence } from '@backend/analysis/report';
 import type { EngineLine, PositionAnalysis } from '@backend/engine/engine';
 
 const line = (multipv: number, cp: number, pvUci: string[]): EngineLine => ({
@@ -65,5 +65,45 @@ describe('annotateContext — free-signal plumbing (RESEARCH §1.2–1.3)', () =
     expect(ctx.replyPv).toBeUndefined();
     expect(ctx.replyLines).toEqual([]);
     expect(ctx.shallowEval).toEqual({ cp: 120 }); // before-position signal survives
+  });
+});
+
+describe('moveConfidence — eval-stability signals (Phase 3.1)', () => {
+  const mk = (over: Partial<PositionAnalysis>): PositionAnalysis => ({
+    fen: 'b',
+    lines: [line(1, 120, ['e2e4'])],
+    bestmoveUci: 'e2e4',
+    terminal: false,
+    ...over,
+  });
+
+  it('volatilityCp is |shallowEval − deepEval| (white cp), with the reached depth', () => {
+    const c = moveConfidence(mk({ shallowEval: { cp: 30 } }), { cp: 120 });
+    expect(c!.volatilityCp).toBe(90);
+    expect(c!.depth).toBe(20);
+  });
+
+  it('flags a late trajectory sign-flip (advantage changes hands deep in the search)', () => {
+    const trajectory = [
+      { depth: 1, eval: { cp: 40 } },
+      { depth: 2, eval: { cp: 30 } },
+      { depth: 3, eval: { cp: 20 } },
+      { depth: 4, eval: { cp: -60 } }, // flips in the second half
+    ];
+    expect(moveConfidence(mk({ shallowEval: { cp: 40 }, trajectory }), { cp: -60 })!.lateFlip).toBe(true);
+  });
+
+  it('does not flag a monotone, same-sign trajectory', () => {
+    const trajectory = [
+      { depth: 1, eval: { cp: 40 } },
+      { depth: 2, eval: { cp: 70 } },
+      { depth: 3, eval: { cp: 90 } },
+      { depth: 4, eval: { cp: 120 } },
+    ];
+    expect(moveConfidence(mk({ shallowEval: { cp: 40 }, trajectory }), { cp: 120 })!.lateFlip).toBe(false);
+  });
+
+  it('is undefined when the engine emitted no shallow eval (graceful)', () => {
+    expect(moveConfidence(mk({}), { cp: 120 })).toBeUndefined();
   });
 });

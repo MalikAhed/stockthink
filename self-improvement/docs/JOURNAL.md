@@ -6,6 +6,15 @@ for /work sessions). Past ~300 lines, /reflect compresses the oldest half into
 LESSONS.md. Entries below 2026-06-12p were migrated verbatim from
 self-improvement/improve/TRACKER.md's daily log (2026-06-12) — history is not rewritten.
 
+- **2026-07-01c** · /chess · **Phase 3.1 (confidence field — silence-layer foundation)** — added
+  `MoveReport.confidence` { volatilityCp, lateFlip, depth } from the now-plumbed signals: volatilityCp =
+  |shallowEval − deepEval| (before-position), lateFlip = white-POV advantage changed sign in the 2nd half
+  of the per-depth trajectory, depth = deepest reached. DATA ONLY — nothing consumes it yet (Phase 3.3
+  gates silence on it), so eval HELD at 85.9% (every dim byte-identical), suite 268/269 (+4 units:
+  volatility math, late-flip detect, monotone no-flip, graceful undefined). R1-safe (never prose).
+  Exported `moveConfidence` for direct unit testing (like annotateContext). Next: Phase 3.2 (multiPV-spread
+  "no dominant idea" + high-draw-WDL "equal" signals), then 3.3/3.4 (route Gate-2 failures to a first-class
+  badge state — the risky behaviour change; must verify gate.e2e landmarks aren't muted).
 - **2026-07-01b** · /chess · **coinc-pin-be5 → honest silence (FIRST measurable arc WIN)** — completed
   what 2.2 set up. A best-tier move (best/great/brilliant) is never framed as a `second_candidate` —
   "only Qa6 promised more" CONTRADICTS a [best] verdict; it now falls to the honest neutral line. This

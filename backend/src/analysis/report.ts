@@ -51,6 +51,14 @@ export interface MoveReport extends Ply {
   classification: Classification;
   /** Opening name when this move is still in book. */
   openingName: string | null;
+  /**
+   * Phase 3 — eval-stability signals for the silence/confidence layer, NEVER
+   * surfaced as prose (R1). High `volatilityCp` (|shallowEval − deepEval| on the
+   * before-position) or a `lateFlip` (the advantage changed hands late in the
+   * search) marks a position whose static features are about to be overturned ⇒
+   * too deep to name a cause. `undefined` when the engine emitted no shallow eval.
+   */
+  confidence?: { volatilityCp: number; lateFlip: boolean; depth: number };
 }
 
 export interface PlayerSummary {
@@ -75,6 +83,29 @@ const PV_PLIES = 10;
 /** Eval → mover-independent white-POV cp, mate mapped to ±1000 for ACPL. */
 const cpForAcpl = (ev: EvalScore): number =>
   ev.mate !== undefined ? (ev.mate > 0 ? 1000 : -1000) : Math.max(-1000, Math.min(1000, ev.cp ?? 0));
+
+/**
+ * Phase 3 — eval-stability signals for the silence layer (R1: never prose).
+ * `volatilityCp` is the |shallow − deep| margin on the before-position
+ * (arXiv:2412.17948, inverted); `lateFlip` is true when the white-POV advantage
+ * changed sign in the second half of the search (a per-depth trajectory flip).
+ */
+export function moveConfidence(
+  before: PositionAnalysis,
+  evalBefore: EvalScore,
+): MoveReport['confidence'] {
+  if (!before.shallowEval) return undefined;
+  const volatilityCp = Math.abs(cpForAcpl(before.shallowEval) - cpForAcpl(evalBefore));
+  const traj = before.trajectory;
+  let lateFlip = false;
+  if (traj && traj.length >= 3) {
+    const sign = (e: EvalScore): number => Math.sign(e.mate ?? e.cp ?? 0);
+    const mid = sign(traj[Math.floor(traj.length / 2)].eval);
+    const last = sign(traj[traj.length - 1].eval);
+    lateFlip = mid !== 0 && last !== 0 && mid !== last;
+  }
+  return { volatilityCp, lateFlip, depth: before.lines[0]?.depth ?? 0 };
+}
 
 /**
  * Assemble the annotator context from the before/after engine analyses.
@@ -138,6 +169,7 @@ export function buildMoveReport(
     facts,
     classification: 'good' as Classification,
     openingName: book.get(ply.epdAfter)?.name ?? null,
+    confidence: moveConfidence(before, evalBefore),
   };
   m.classification = classifyMove(m, m.openingName !== null || inMasterBook);
   return m;
