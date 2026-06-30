@@ -15,6 +15,20 @@ live via the browser MCP, and get the user's screenshot approval before
 committing. Run all UI work through CLAUDE.md → "The UX loop". The chess-quality
 queue below (self-aware arc) continues in parallel via /work and "improve analysis".
 
+## Active arc — Explain the *why* (chess, opened 2026-06-30, branch `chess/explain-engine`)
+The systematic fix for the "fake reason / can't stay silent" cluster. Full plan +
+6-phase backlog: `docs/RESEARCH-explaining-the-why.md` (deep-research, hand-verified).
+Two diseases: facts are born from board geometry and never grounded against the
+engine's own PV (a coincidental pin headlines a quiet good move), and abstention
+fires only on fact *absence*, never on irrelevance. Cure A (PV-grounding) + Cure C
+(dual-gate silence/badge layer), both $0/client-side. **This arc subsumes table items
+#1, #2, #6** — they are its facets, not independent work.
+**Phase 0.1 ✅ 2026-06-30:** paired COVERAGE/PRECISION metric in the eval (the honesty
+axis the 3 per-case dims were blind to); baseline 100% / 82.4%, the 82.4% being exactly
+the 3 fake-reason cases, now measurable. **Next block: Phase 0.2** — give the eval a
+first-class *badge-only / honest-silence* expected outcome and stop crediting the
+neutral filler 2/2 (then 0.3 kill the free GROUNDED 1/2, 0.4 author fake-reason cases).
+
 | # | Tag | Item | Sev | Payoff / evidence |
 |---|---|---|---|---|
 | 1 | [T1] | **U2 deeper why-bad explanations** (self-improvement/improve/TODO.md TONIGHT block) — PV-based punishment narration; absorbs the last eval-v1 cluster: bad moves lead with regression platitudes instead of the concrete punishment (`opera-09-b5` C0/G1: says "falls behind in development", real cause Nxb5!; `blk-04-nxe5` C1/G1: regression lead buries the missed Nxd4) | S1 | CAUSAL 80.0% is now the weakest dimension by 11+ pts (G 91.2 · E 100.0, 2026-06-12r) |

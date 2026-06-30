@@ -45,11 +45,25 @@ regressions.** The two CAUSAL-side gaps (b5 punishment narration,
 lead-priority) carry on as BACKLOG #1–2 — the exit bar, not the gap list,
 defined done.
 
-### M3 — Ratchet and guard  ← WE ARE HERE
+### M3 — Ratchet and guard  (ratchet/expand intent folded into M4 Phase 0)
 Eval floor asserted in a vitest suite (same ratchet pattern as recall FLOORS in
 self-improvement/test/recall.test.ts) so a falling score blocks a commit like a red gate. Expand
 to 25+ cases: STS positional traps (TODO DS2), more trap-wrong-reason cases,
 endgame cases. **Exit: red eval = red gate; 25+ cases; runtime still < 60s.**
+
+### M4 — Explain the *why*: honest cause + principled silence  ← WE ARE HERE (chess)
+The concrete route to this arc's stated destination (line 7). Plan:
+`docs/RESEARCH-explaining-the-why.md` (deep-research, every code claim hand-verified).
+Two diseases — **fake reasons** (facts born from geometry, never grounded against the
+engine's own line) and **can't stay silent** (abstention only on fact *absence*). Cure:
+ground every spoken fact on the engine's relevant PV (Cure A) + a dual-gate
+confidence/silence layer that shows a badge instead of inventing a reason (Cure C),
+both $0/client-side; surgical counterfactual ablation (Cure B) for the worst cases;
+local-LLM phrasing (Cure D) deferred. Six phases (0 methodology → 5 optional);
+subsumes BACKLOG #1/#2/#6 and M3's ratchet intent. **Phase 0.1 ✅ 2026-06-30** —
+paired COVERAGE/PRECISION metric in the eval (baseline 100% / 82.4%; the 82.4% is the
+3 fake-reason cases, now a number). **Exit: PRECISION ≥ ~0.95 at meaningful coverage,
+with the badge/silence tier shipped.**
 
 ### Beyond (unscheduled)
 Type-1 content arcs continue in parallel via self-improvement/improve/ (book chunks B6–B19,
