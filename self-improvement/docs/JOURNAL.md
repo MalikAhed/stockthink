@@ -6,6 +6,20 @@ for /work sessions). Past ~300 lines, /reflect compresses the oldest half into
 LESSONS.md. Entries below 2026-06-12p were migrated verbatim from
 self-improvement/improve/TRACKER.md's daily log (2026-06-12) — history is not rewritten.
 
+- **2026-06-30h** · /chess · **Phase 1.4 → Phase 1 COMPLETE** — `analyze()` now accumulates the
+  multipv-1 white-POV eval at each new depth (same "first exact per depth" semantics as the existing
+  `onDepth`/`shallowEval`) and returns it on `PositionAnalysis.trajectory` — a late sign-flip / large
+  late swing is the silence layer's instability signal (Phase 3). Captured INSIDE analyze (not via an
+  onDepth side-channel through the pool), so it flows through the pool + live with ZERO new plumbing;
+  `onDepth` firing unchanged. The "pass the full before best-PV" clause was already met —
+  `AnnotateContext.lines[0].pvUci` carries the untruncated PV (sanifyLine's 10-ply cut only hits
+  MoveReport.lines). DATA ONLY: trajectory unread ⇒ eval HELD at 84.6%/77.8%, suite 260/261 (+3:
+  2 synthetic-transport units incl. a sign-flip + same-depth-refine de-dup, 1 real-engine
+  ascending/unique ratchet), tsc clean. Added a reusable `ScriptedTransport` double (canned UCI lines
+  on `go`) — first way to unit-test `analyze()` without the real engine. Reverted the no-change tool
+  appends. **Phase 1 (free engine signals) DONE: WDL (1.1) · shallowEval+replyLines (1.2/1.3) ·
+  trajectory (1.4).** Next: Phase 2 — the first BEHAVIOUR change (ground every spoken fact on the
+  engine's own PV; §5a: at compose/lead-selection, never the recall-tested detector predicates).
 - **2026-06-30g** · /chess · **Phase 1.1** — enabled `UCI_ShowWDL` and parsed the `wdl` triple
   onto `EngineLine` (white-POV `{win,draw,loss}` permille; win/loss swapped for black-to-move),
   graceful when absent. PROBED the §5a unknown first against the real lite WASM: it advertises the

@@ -4,9 +4,22 @@
  * browser Worker (same engine file, same line protocol).
  */
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { Engine, parseInfo } from '@backend/engine/engine';
+import { Engine, parseInfo, type UciTransport } from '@backend/engine/engine';
 import { EnginePool } from '@backend/engine/pool';
 import { ChildProcessTransport, setupEngineFiles } from './helpers/transport';
+
+/** A scripted UCI transport: emits canned info/bestmove lines on `go`. */
+class ScriptedTransport implements UciTransport {
+  private cb: ((line: string) => void) | null = null;
+  constructor(private onGo: (emit: (line: string) => void) => void) {}
+  send(cmd: string): void {
+    if (cmd.startsWith('go')) this.onGo(l => this.cb?.(l));
+  }
+  onLine(cb: (line: string) => void): void {
+    this.cb = cb;
+  }
+  terminate(): void {}
+}
 
 let enginePath: string;
 beforeAll(() => {
@@ -40,6 +53,37 @@ describe('parseInfo', () => {
   });
 });
 
+describe('analyze — per-depth trajectory (Phase 1.4, synthetic transport)', () => {
+  const startFen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+  it('captures the multipv-1 eval at each new depth in order (one per depth, incl. a sign flip)', async () => {
+    const engine = new Engine(
+      new ScriptedTransport(emit => {
+        emit('info depth 1 multipv 1 score cp 50 pv e2e4');
+        emit('info depth 2 multipv 1 score cp 30 pv e2e4');
+        emit('info depth 2 multipv 1 score cp 33 pv e2e4'); // same depth refine → no dup entry
+        emit('info depth 1 multipv 2 score cp 10 pv g1f3'); // mpv2 never enters the trajectory
+        emit('info depth 3 multipv 1 score cp -20 pv d2d4'); // advantage flips sign
+        emit('info depth 4 multipv 1 score cp -45 pv d2d4');
+        emit('bestmove d2d4');
+      }),
+    );
+    const a = await engine.analyze(startFen, { depth: 4 });
+    expect(a.trajectory).toEqual([
+      { depth: 1, eval: { cp: 50 } },
+      { depth: 2, eval: { cp: 30 } },
+      { depth: 3, eval: { cp: -20 } },
+      { depth: 4, eval: { cp: -45 } },
+    ]);
+    expect(a.shallowEval).toEqual(a.trajectory![0].eval); // [0] is the shallow eval
+  });
+  it('is undefined for a terminal position (only bestmove (none))', async () => {
+    const engine = new Engine(new ScriptedTransport(emit => emit('bestmove (none)')));
+    const a = await engine.analyze('6k1/5ppp/8/8/8/8/5PPP/R5K1 b - - 0 1', { depth: 4 });
+    expect(a.terminal).toBe(true);
+    expect(a.trajectory).toBeUndefined();
+  });
+});
+
 describe('Engine (real Stockfish 18 WASM)', () => {
   let engine: Engine;
   beforeAll(async () => {
@@ -57,6 +101,18 @@ describe('Engine (real Stockfish 18 WASM)', () => {
     expect(a.lines.length).toBe(2);
     expect(a.bestmoveUci).toMatch(/^[a-h][1-8][a-h][1-8]$/);
     expect(Math.abs(a.lines[0].eval.cp ?? 0)).toBeLessThan(120);
+  }, 60_000);
+
+  it('captures a per-depth eval trajectory, ascending and unique (Phase 1.4)', async () => {
+    const a = await engine.analyze(
+      'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+      { depth: 12 },
+    );
+    expect(a.trajectory!.length).toBeGreaterThan(1);
+    const depths = a.trajectory!.map(t => t.depth);
+    expect(depths).toEqual([...depths].sort((x, y) => x - y)); // ascending
+    expect(new Set(depths).size).toBe(depths.length); // one entry per depth
+    expect(a.trajectory![0].eval).toEqual(a.shallowEval); // [0] is the shallow eval
   }, 60_000);
 
   it('emits a white-POV WDL triple under UCI_ShowWDL (lite WASM capability ratchet)', async () => {

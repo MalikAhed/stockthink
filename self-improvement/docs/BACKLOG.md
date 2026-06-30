@@ -38,10 +38,15 @@ margin) + the full after-position `replyLines[]` with evals (1.3, the Phase-2.3 
 DATA ONLY — no detector reads them yet, so eval HELD at 84.6%/77.8%, suite 253/254, §5a honoured
 (gate stays OUT of the recall-tested predicates). **Phase 1.1 ✅ (2026-06-30):** enabled `UCI_ShowWDL` + parsed `wdl` onto `EngineLine` (white-POV
 permille, graceful when absent). PROBED the real lite WASM first — it emits `wdl` (startpos
-`84 911 5`); eval HELD byte-identical (reporting-only, doesn't perturb search). **Next: Phase 1.4**
-(per-depth eval trajectory via the existing `onDepth` hook) closes Phase 1, then Phase 2 (ground
-every spoken fact on the engine's PV). 0.4's 2–3 remaining fake-reason cases stay open — deferred,
-not blocked.
+`84 911 5`); eval HELD byte-identical (reporting-only, doesn't perturb search). **Phase 1.4 ✅ → Phase 1 COMPLETE (2026-06-30):** `analyze()` now captures a per-depth eval
+trajectory onto `PositionAnalysis.trajectory` (internal accumulation → flows through pool + live,
+no new plumbing); the "full before best-PV" clause was already met by `AnnotateContext.lines[0].pvUci`.
+DATA ONLY — eval HELD at 84.6%/77.8%, suite 260/261. **All four free signals are now plumbed: WDL ·
+shallowEval · replyLines · trajectory.** **Next: Phase 2** — the first BEHAVIOUR change: ground every
+spoken fact on the engine's own PV (good move → mover's best PV; bad move → refutation PV), demoting
+ungrounded geometry to badge/"explain more". §5a: gate at compose/lead-selection, NEVER the
+recall-tested detector predicates; re-run gate.e2e after every block. 0.4's 2–3 fake-reason cases
+stay open — deferred, not blocked.
 
 | # | Tag | Item | Sev | Payoff / evidence |
 |---|---|---|---|---|

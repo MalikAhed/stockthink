@@ -78,6 +78,16 @@ export interface PositionAnalysis {
    * filter, inverted).
    */
   shallowEval?: EvalScore;
+  /**
+   * White-POV eval of the best (multipv-1) line at each completed search depth,
+   * in depth order. A late sign-flip or large late swing marks an unstable
+   * position whose static features are about to be overturned — the silence
+   * layer's trajectory-stability signal (Phase 3). Same per-depth semantics as
+   * `onDepth`/`shallowEval` (first exact line at each new depth), so
+   * `trajectory[0].eval` equals `shallowEval` and the last entry is the deepest
+   * depth reached. `undefined` on terminal positions.
+   */
+  trajectory?: { depth: number; eval: EvalScore }[];
 }
 
 export interface EngineOptions {
@@ -142,6 +152,7 @@ export class Engine {
     const stm = sideToMove(fen);
     const lines = new Map<number, EngineLine>();
     let shallow: EngineLine | undefined;
+    const trajectory: { depth: number; eval: EvalScore }[] = [];
 
     return new Promise((resolve, reject) => {
       const timer = setTimeout(
@@ -155,8 +166,10 @@ export class Engine {
           if (line.multipv === 1 && shallow === undefined) shallow = line;
           const prev = lines.get(line.multipv);
           if (!prev || line.depth >= prev.depth) lines.set(line.multipv, line);
-          if (line.multipv === 1 && (!prev || line.depth > prev.depth) && onDepth)
-            onDepth(line.depth, line);
+          if (line.multipv === 1 && (!prev || line.depth > prev.depth)) {
+            trajectory.push({ depth: line.depth, eval: line.eval });
+            onDepth?.(line.depth, line);
+          }
         } else if (raw.startsWith('bestmove')) {
           clearTimeout(timer);
           this.lineHandler = null;
@@ -168,6 +181,7 @@ export class Engine {
             bestmoveUci: terminal ? null : best,
             terminal,
             shallowEval: shallow?.eval,
+            trajectory: trajectory.length ? trajectory : undefined,
           });
         }
       };
