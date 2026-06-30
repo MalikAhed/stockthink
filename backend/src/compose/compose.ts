@@ -84,6 +84,34 @@ const NEUTRAL: Partial<Record<MoveReport['classification'], string[]>> = {
   ],
 };
 
+/** How deep into the played move's own continuation a created pin must matter. */
+const PIN_PV_PLIES = 10;
+
+/**
+ * Phase 2 (PV-grounding) — a created pin is GROUNDED only if the engine's own
+ * line FROM THE PLAYED MOVE actually acts on the pinned square. A pin the
+ * engine never touches is decorative geometry, not the cause — even when the
+ * detector found a plausible `exploit` move (that move can sit on the PV for
+ * unrelated reasons, so the pinned square is the load-bearing test, not the
+ * exploit). Voicing such a pin invents a reason — the fake-reason disease this
+ * arc exists to kill.
+ *
+ * The line judged is the played move's OWN continuation (`[uci, ...replyPv]`),
+ * never `lines[0]`: under hash carryover `lines[0]` can be a *different* move's
+ * line whose unrelated play (e.g. the formerly-pinned knight escaping) fakes a
+ * touch on the square. Conservative: with no post-move line to read, never demote.
+ */
+function pinGrounded(f: Extract<Fact, { kind: 'creates_pin' }>, m: MoveReport): boolean {
+  if (!m.replyPv || m.replyPv.length === 0) return true; // no continuation to judge
+  const touched = new Set<string>();
+  for (const uci of [m.uci, ...m.replyPv].slice(0, PIN_PV_PLIES))
+    if (uci.length >= 4) {
+      touched.add(uci.slice(0, 2));
+      touched.add(uci.slice(2, 4));
+    }
+  return touched.has(f.pinned.square);
+}
+
 /** The concrete engine-verified reply a bad move failed against (GM-4 gate). */
 const concreteReply = (facts: Fact[]): string | null => {
   for (const f of facts) {
@@ -113,11 +141,17 @@ export function composeComment(m: MoveReport): Comment {
 
   const sentence = (f: Fact | undefined): string | null => (f ? renderFact(f) : null);
 
+  // Phase 2 grounding: a decorative pin the engine's own best line never acts on
+  // is geometry, not the cause — suppress it from the prose entirely (lead AND
+  // "explain more") so the move falls to its real purpose or a neutral line
+  // instead of inventing a tactical reason.
+  const speakable = (f: Fact): boolean => !(f.kind === 'creates_pin' && !pinGrounded(f, m));
+
   const badFacts = facts.filter(isBad);
   const missedFacts = facts.filter(isMissed);
   // "a fair trade" is redundant next to "wins a piece" — keep the stronger story
   const wonMaterial = facts.some(f => f.kind === 'wins_free_piece' || f.kind === 'captures_higher');
-  const purposeFacts = facts.filter(f => isPurpose(f) && !(wonMaterial && f.kind === 'trade'));
+  const purposeFacts = facts.filter(f => isPurpose(f) && speakable(f) && !(wonMaterial && f.kind === 'trade'));
 
   const used: Fact[] = [];
   const parts: string[] = [];
@@ -197,7 +231,7 @@ export function composeComment(m: MoveReport): Comment {
 
   // "explain more": remaining facts, one sentence each — but classification-aware.
   // On a bad move, purpose facts must read as the (failed) intent, never as praise.
-  const remaining = facts.filter(f => !used.includes(f) && !CONTEXT_KINDS.includes(f.kind));
+  const remaining = facts.filter(f => !used.includes(f) && !CONTEXT_KINDS.includes(f.kind) && speakable(f));
   let rest: string[];
   if (isBadMove) {
     rest = remaining

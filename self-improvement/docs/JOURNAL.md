@@ -6,6 +6,23 @@ for /work sessions). Past ~300 lines, /reflect compresses the oldest half into
 LESSONS.md. Entries below 2026-06-12p were migrated verbatim from
 self-improvement/improve/TRACKER.md's daily log (2026-06-12) — history is not rewritten.
 
+- **2026-07-01a** · /chess · **Phase 2.2 (PV-grounding: demote decorative pins)** — first BEHAVIOUR
+  change of the arc. A `creates_pin` may be voiced only if the engine's line FROM THE PLAYED MOVE
+  (`[uci, ...replyPv]`) actually acts on the pinned square; an untouched pin is geometry, not cause,
+  and is now cut from prose (lead AND "explain more"). Threaded `replyPv` (after-position best line)
+  onto `MoveReport`. Gate lives in compose (§5a — detectors/recall untouched: recall 263/264 incl.
+  skip). KEY BUG caught mid-build: grounding against `lines[0]` is doubly wrong — under hash carryover
+  `lines[0]` is often a DIFFERENT move's line (coinc-pin-be5 full-run #1 = Qa6, not the played Be5)
+  whose play (knight escaping f6→d5) FAKES a touch on f6. `[uci, ...replyPv]` is the played move's
+  OWN line and is stable (pin suppressed identically across 2 full runs). DISCRIMINATES correctly:
+  the gate's REAL pin (dxe5 pins d6, engine plays exd6 → d6 on the continuation → KEPT) vs the
+  decorative one (coinc-pin-be5 f6 absent → CUT). Unit-tested (grounded / ungrounded / no-continuation).
+  EVAL FLAT at 84.6% ON PURPOSE: the fake pin IS gone (comment went FALSE→true), but coinc-pin-be5 is
+  hash-borderline — when Be5 isn't the literal #1 a TRUE `second_candidate` framing fills the gap, so
+  economy stays 0 (emitted). That residual is Phase 3's badge-state job (the case's realCause always
+  said it needs 2+3). LESSON: never ground a move-fact against `lines[0]` — under hash carryover it
+  isn't the played move's line; use `[uci, ...replyPv]`. Next: Phase 2.3 (refutation-PV grounding for
+  bad-move causes) or 2.1 (general positional/fork grounding).
 - **2026-06-30h** · /chess · **Phase 1.4 → Phase 1 COMPLETE** — `analyze()` now accumulates the
   multipv-1 white-POV eval at each new depth (same "first exact per depth" semantics as the existing
   `onDepth`/`shallowEval`) and returns it on `PositionAnalysis.trajectory` — a late sign-flip / large

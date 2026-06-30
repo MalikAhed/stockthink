@@ -705,12 +705,12 @@
         "economy"
       ],
       "classification": "best",
-      "leadKind": "creates_pin",
+      "leadKind": "second_candidate",
       "factKinds": [
         "creates_pin",
         "second_candidate"
       ],
-      "text": "This pins the knight on f6 against the king — it cannot move without losing everything behind it. Qf3 comes next to cash in on it.",
+      "text": "One of the main candidate moves here — only Qxa6 promised a bit more.",
       "more": null,
       "checks": {
         "mentionsOk": true,
@@ -718,7 +718,7 @@
         "leadOk": true,
         "forbiddenHits": [],
         "classOk": true,
-        "sentences": 2,
+        "sentences": 1,
         "maxSentences": 2,
         "falseAlarm": false
       },

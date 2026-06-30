@@ -281,3 +281,47 @@ describe('composeComment — good moves (purpose)', () => {
     assertNoEvalSpeak(c.text + ' ' + (c.more ?? ''));
   });
 });
+
+describe('composeComment — PV-grounding (Phase 2: demote decorative pins)', () => {
+  const pinFact: Fact = {
+    kind: 'creates_pin',
+    pinned: { role: 'knight', square: 'f6' },
+    against: { role: 'king', square: 'g7' },
+    exploit: { san: 'Qf3', uci: 'd3f3' },
+  };
+  // Be5 (f4e5) creates the pin; replyPv is the played move's OWN continuation
+  // (opponent reply + follow-ups) — the line grounding judges.
+  const goodPin = (replyPv: string[] | undefined): MoveReport =>
+    move({
+      classification: 'best',
+      san: 'Be5',
+      uci: 'f4e5',
+      evalBefore: { cp: 140 },
+      evalAfter: { cp: 140 },
+      winDrop: 0,
+      facts: [pinFact],
+      lines: [{ eval: { cp: 140 }, sanPv: [], uciPv: ['f4e5'] }],
+      replyPv,
+    });
+
+  it("voices the pin when the played move's own line acts on the pinned square", () => {
+    // ...e5f6 lands on f6 → the engine exploits the pin → grounded
+    const c = composeComment(goodPin(['b7b5', 'e5f6']));
+    expect(c.text).toContain('pins the knight on f6');
+  });
+
+  it('suppresses the pin (lead AND more) when f6 never appears in the continuation', () => {
+    // Be5 b5 Qf3 h6 ... — the engine never touches f6; the pin is decorative
+    const c = composeComment(goodPin(['b7b5', 'd3f3', 'h7h6']));
+    expect(c.text).not.toMatch(/pin/i);
+    expect(c.text).not.toContain('f6');
+    expect(c.more ?? '').not.toMatch(/pin/i); // cut, not just demoted to "explain more"
+    expect(c.text.length).toBeGreaterThan(0); // an honest neutral line, never empty
+    assertNoEvalSpeak(c.text);
+  });
+
+  it('never demotes when there is no post-move continuation to judge (replyPv absent)', () => {
+    const c = composeComment(goodPin(undefined));
+    expect(c.text).toContain('pins the knight on f6');
+  });
+});

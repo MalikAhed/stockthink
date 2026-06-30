@@ -42,11 +42,17 @@ permille, graceful when absent). PROBED the real lite WASM first — it emits `w
 trajectory onto `PositionAnalysis.trajectory` (internal accumulation → flows through pool + live,
 no new plumbing); the "full before best-PV" clause was already met by `AnnotateContext.lines[0].pvUci`.
 DATA ONLY — eval HELD at 84.6%/77.8%, suite 260/261. **All four free signals are now plumbed: WDL ·
-shallowEval · replyLines · trajectory.** **Next: Phase 2** — the first BEHAVIOUR change: ground every
-spoken fact on the engine's own PV (good move → mover's best PV; bad move → refutation PV), demoting
-ungrounded geometry to badge/"explain more". §5a: gate at compose/lead-selection, NEVER the
-recall-tested detector predicates; re-run gate.e2e after every block. 0.4's 2–3 fake-reason cases
-stay open — deferred, not blocked.
+shallowEval · replyLines · trajectory.**
+**Phase 2.2 ✅ (2026-07-01) — first BEHAVIOUR change:** a `creates_pin` is voiced only if the engine's
+line FROM THE PLAYED MOVE (`[uci, ...replyPv]`, threaded onto `MoveReport`) acts on the pinned square;
+an untouched pin is cut from prose. Gate in compose (§5a — recall untouched). DISCRIMINATES: gate's
+real pin (dxe5/d6, engine plays exd6) KEPT, decorative coinc-pin-be5 (f6 absent) CUT — unit-tested,
+stable across runs. LESSON baked in: ground against `[uci,...replyPv]`, NEVER `lines[0]` (hash carryover
+makes it a different move's line). Eval flat at 84.6% on purpose (fake pin gone = FALSE→true, but the
+case is hash-borderline so a true `second_candidate` fills the gap → economy 0; full silence is Phase 3).
+**Next: Phase 2.3** (gate bad-move causes on the refutation PV) · **2.1** (general positional/fork
+grounding) · **2.4** (magnitude-coherence guard). §5a everywhere; re-run gate.e2e after each. 0.4's 2–3
+fake-reason cases stay open — deferred, not blocked.
 
 | # | Tag | Item | Sev | Payoff / evidence |
 |---|---|---|---|---|

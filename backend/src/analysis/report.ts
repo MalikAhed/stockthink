@@ -42,6 +42,10 @@ export interface MoveReport extends Ply {
   wasBest: boolean;
   /** Top engine lines (MultiPV) from the position before the move. */
   lines: EngineLineReport[];
+  /** Best line from the position AFTER the move (opponent's reply + the played
+   *  move's forward continuation). The played move's OWN line — used for
+   *  compose-level PV-grounding (Phase 2). `undefined` on terminal after-positions. */
+  replyPv?: string[];
   /** Stage-2 typed facts (concept annotator), priority-sorted. */
   facts: Fact[];
   classification: Classification;
@@ -130,6 +134,7 @@ export function buildMoveReport(
     bestSan: bestUci ? sanOf(pos, bestUci) : null,
     wasBest: bestUci === ply.uci,
     lines,
+    replyPv: after?.lines[0]?.pvUci,
     facts,
     classification: 'good' as Classification,
     openingName: book.get(ply.epdAfter)?.name ?? null,
