@@ -62,8 +62,10 @@ both $0/client-side; surgical counterfactual ablation (Cure B) for the worst cas
 local-LLM phrasing (Cure D) deferred. Six phases (0 methodology → 5 optional);
 subsumes BACKLOG #1/#2/#6 and M3's ratchet intent. **Phase 0.1 ✅ 2026-06-30** —
 paired COVERAGE/PRECISION metric in the eval (baseline 100% / 82.4%; the 82.4% is the
-3 fake-reason cases, now a number). **Exit: PRECISION ≥ ~0.95 at meaningful coverage,
-with the badge/silence tier shipped.**
+3 fake-reason cases, now a number). **Phase 0.2 ✅ 2026-06-30** — first-class badge-only
+(`expectSilence`) eval outcome; the neutral filler no longer scores ECONOMY 2/2 when
+silence is honest (ECONOMY 100→95.5% on purpose, the gap Phase 3 closes). **Exit:
+PRECISION ≥ ~0.95 at meaningful coverage, with the badge/silence tier shipped.**
 
 ### Beyond (unscheduled)
 Type-1 content arcs continue in parallel via self-improvement/improve/ (book chunks B6–B19,

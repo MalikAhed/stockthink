@@ -8,7 +8,9 @@
  *   GROUNDED — the stated reason is the engine's reason, not merely true
  *   ECONOMY  — quiet when there is nothing to teach (NB: composeComment never
  *              returns empty text by design (R3); economy = one short line,
- *              zero false teaching — NOT emptiness)
+ *              zero false teaching — NOT emptiness). 0.2: on an `expectSilence`
+ *              case the honest output is the badge alone, so a neutral filler
+ *              caps at 1 and a voiced cause scores 0 until the badge state ships.
  *
  * PLUS one set-level paired metric — the honesty axis the per-case dims are
  * structurally blind to (see docs/RESEARCH-explaining-the-why.md, Phase 0.1):
@@ -69,6 +71,12 @@ interface EvalCase {
   /** Flat list of banned substrings (the tempting-but-wrong reason). */
   mustNotMention?: string[];
   notMentionScope?: 'text' | 'text+more';
+  /** The honest output here is BADGE-ONLY silence, not a voiced cause: the move's
+   *  real reason is too deep/diffuse to name, or there is genuinely nothing to teach.
+   *  Voicing a concrete cause invents a reason; even a neutral filler line over-speaks.
+   *  Aspiration until compose gains a real badge-only state (Phase 3) — see §6 of
+   *  docs/RESEARCH-explaining-the-why.md. Mutually exclusive with expectFacts/leadFactIn. */
+  expectSilence?: boolean;
   maxSentences?: number;
   realCause: string;
   nodes?: number;
@@ -176,23 +184,33 @@ function scoreCase(c: EvalCase, m: MoveReport, comment: Comment): CaseResult {
     leadKind !== null &&
     (BAD_KINDS.includes(leadKind) || MISSED_KINDS.includes(leadKind) || leadKind === 'regression');
 
+  // Set-level honesty axis (Phase 0.1/0.2) — derived from the same checks, no new
+  // behaviour. emitted: a fact's sentence leads the visible text (a bare "X was
+  // stronger" / neutral pool line is NOT a fact sentence → leadKind null → honest
+  // abstention). needsExplanation: a badge-only silence case never needs a voiced cause.
+  const needsExplanation = !c.expectSilence && ABOVE_INACCURACY.has(m.classification);
+  const emitted = leadKind !== null;
+
   const scores: Partial<Record<Dim, number>> = {};
   for (const dim of c.dims) {
     if (dim === 'causal')
       scores.causal = mentionsOk && factsOk && leadOk ? 2 : mentionsOk || (factsOk && leadOk) ? 1 : 0;
     if (dim === 'grounded')
       scores.grounded = forbiddenHits.length > 0 || !classOk ? 0 : factsOk && leadOk ? 2 : 1;
-    if (dim === 'economy')
-      scores.economy = falseAlarm ? 0 : sentences <= maxSentences ? 2 : sentences <= maxSentences + 1 ? 1 : 0;
+    if (dim === 'economy') {
+      // Phase 0.2: when badge-only silence was the honest call, voicing a concrete
+      // cause invents a reason (0) and a neutral filler line over-speaks (1). A real
+      // badge-only output would earn 2, but that is impossible until compose gains a
+      // badge state (Phase 3) — so an expectSilence case caps at 1 today (aspiration).
+      if (c.expectSilence) scores.economy = emitted ? 0 : 1;
+      else scores.economy = falseAlarm ? 0 : sentences <= maxSentences ? 2 : sentences <= maxSentences + 1 ? 1 : 0;
+    }
   }
 
-  // Set-level honesty axis (Phase 0.1) — derived from the same checks, no new behaviour.
-  // emitted: a fact's sentence leads the visible text (a bare "X was stronger" /
-  // neutral pool line is NOT a fact sentence → leadKind is null → honest abstention).
-  const needsExplanation = ABOVE_INACCURACY.has(m.classification);
-  const emitted = leadKind !== null;
+  // correct: an expectSilence case that voices ANY cause is a precision failure (it
+  // should have stayed quiet); otherwise the voiced lead must be right & grounded.
   const correct =
-    emitted && !falseAlarm && forbiddenHits.length === 0 && classOk && leadOk && factsOk;
+    emitted && !c.expectSilence && !falseAlarm && forbiddenHits.length === 0 && classOk && leadOk && factsOk;
 
   return {
     id: c.id,

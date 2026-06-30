@@ -89,15 +89,16 @@
     },
     {
       "id": "blk-04b-qg5",
-      "name": "Blackburne: 4...Qg5! — strong move, neutral silence is fine",
+      "name": "Blackburne: 4...Qg5! — strong move, badge-only is the honest call (no clean fact to voice)",
       "source": "gate:blackburne",
       "fen": "r1bqkbnr/pppp1ppp/8/4N3/2BnP3/8/PPPP1PPP/RNBQK2R b KQkq - 0 4",
       "playedUci": "d8g5",
       "category": "good-quiet",
+      "expectSilence": true,
       "dims": ["economy"],
       "expectClass": ["best", "excellent", "good", "great", "brilliant"],
       "maxSentences": 1,
-      "realCause": "The trap move. With no clean single fact to voice, one quiet neutral line is correct — no lecture, no false praise of details."
+      "realCause": "ASPIRATION (badge-only, Phase 0.2): a strong move with no clean single fact to voice. Under the explain-the-why arc the honest output is the badge alone — the 'best/great' tier already says it; the neutral filler ('The best move here, no doubt about it.') over-speaks. ECONOMY caps at 1 until compose gains a real badge-only state (Phase 3) — then this returns to 2."
     },
     {
       "id": "blk-05-nxf7",

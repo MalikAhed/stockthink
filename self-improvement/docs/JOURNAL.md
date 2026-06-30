@@ -6,6 +6,20 @@ for /work sessions). Past ~300 lines, /reflect compresses the oldest half into
 LESSONS.md. Entries below 2026-06-12p were migrated verbatim from
 self-improvement/improve/TRACKER.md's daily log (2026-06-12) — history is not rewritten.
 
+- **2026-06-30c** · /chess · **Phase 0.2** — first-class badge-only / honest-silence
+  outcome in the eval. New `expectSilence` field on EvalCase; ECONOMY now scores a silence
+  case by honesty (voiced cause = 0 invented reason · neutral filler = 1 over-speak · real
+  badge-only = 2, impossible until Phase 3 → aspiration cap). Re-marked `blk-04b-qg5` (the
+  "no clean fact to voice" case) as the first badge-only case. EVIDENCE: perfectly isolated
+  — only blk-04b-qg5 moved (E2→E1); CAUSAL/GROUNDED/COVERAGE/PRECISION byte-identical;
+  ECONOMY 100→95.5%, TOTAL 92.1→90.8% ON PURPOSE (the metric learning to see over-speak,
+  not a regression — documented in METRICS.md "How to read"); full suite 249/250; --explain
+  confirms selective {needsExpl:false, emitted:false, correct:false} + economy 1. Coverage/
+  precision unchanged BY DESIGN — a non-emitting filler was already honest abstention in
+  0.1's accounting, so 0.2 only sharpens ECONOMY. Also wired silence-aware overrides for
+  future cases (an expectSilence case that VOICES a cause → precision failure; needsExpl
+  forced false) — logic in place, first exercised when Phase 0.4 authors a real-drop/
+  no-nameable-cause case. Next: Phase 0.3 (kill the free GROUNDED 1/2).
 - **2026-06-30b** · /chess (max effort) · Opened the **explain-the-why arc** on branch
   `chess/explain-engine` (off main) and landed **Phase 0.1** — a paired COVERAGE/PRECISION
   metric in the eval, the honesty axis the 3 per-case dims are structurally blind to.

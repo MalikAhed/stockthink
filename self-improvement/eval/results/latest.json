@@ -17,14 +17,14 @@
       "pct": "91.2%"
     },
     "economy": {
-      "pts": 22,
+      "pts": 21,
       "max": 22,
-      "pct": "100.0%"
+      "pct": "95.5%"
     },
     "total": {
-      "pts": 70,
+      "pts": 69,
       "max": 76,
-      "pct": "92.1%"
+      "pct": "90.8%"
     }
   },
   "selective": {
@@ -281,7 +281,7 @@
         "falseAlarm": false
       },
       "scores": {
-        "economy": 2
+        "economy": 1
       },
       "selective": {
         "needsExplanation": false,

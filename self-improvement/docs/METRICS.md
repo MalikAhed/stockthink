@@ -9,7 +9,7 @@ a moved number below is a feeling, not a fact (Laws of the Loop).
 |---|---|---|
 | **Eval CAUSAL** | Comments name the concrete consequence, not just a verdict (0–2/case) | `npm run eval` |
 | **Eval GROUNDED** | The stated reason is the engine's reason — never a banned true-but-wrong one (0–2/case) | `npm run eval` |
-| **Eval ECONOMY** | Quiet when there's nothing to teach: sentence caps + no complaints on good moves (0–2/case) | `npm run eval` |
+| **Eval ECONOMY** | Quiet when there's nothing to teach: sentence caps + no complaints on good moves (0–2/case). On an `expectSilence` (badge-only) case the honest output is the badge alone — a neutral filler caps at 1, a voiced cause scores 0, until the badge state ships (Phase 3) | `npm run eval` |
 | **Eval COVERAGE** | Of moves above the inaccuracy floor, the share given a concrete causal explanation rather than a soft "X was stronger"/neutral abstention (set-level) | `npm run eval` |
 | **Eval PRECISION** | Of comments that voice a concrete cause, the share whose lead reason is the right, grounded, non-forbidden one (set-level — the honesty axis) | `npm run eval` |
 | **Tests** | vitest pass count (`231/232` = 231 pass, 1 intentionally skipped: explorer needs network) | `npx vitest run` |
@@ -24,9 +24,17 @@ a moved number below is a feeling, not a fact (Laws of the Loop).
 - **Silence is a feature, emptiness is not**: `composeComment` never returns
   empty text by design (R3). ECONOMY scores one-short-line behavior. Never
   "improve" ECONOMY by emitting empty comments — that violates R3 and the gate.
-- Aspiration cases (e.g. `opera-09-b5`) are EXPECTED to fail at baseline —
-  they encode where we want to go (see each case's `realCause`). A falling
-  score on a previously-passing case is a regression; treat it like a red gate.
+- Aspiration cases (e.g. `opera-09-b5`, and `blk-04b-qg5` since Phase 0.2) are
+  EXPECTED to fail at baseline — they encode where we want to go (see each case's
+  `realCause`). A falling score caused by a CODE change is a regression; treat it
+  like a red gate. A falling score caused by a DELIBERATE rubric-tightening — the
+  metric learning to see a flaw it was blind to — is the opposite, and must be
+  recorded in the JOURNAL for that session so the two are never confused.
+- `expectSilence` cases are the badge-only tier (§6 of the research doc): the honest
+  output is the badge alone, so today's neutral filler over-speaks and caps ECONOMY at
+  1. Phase 0.2 re-marked `blk-04b-qg5`, dropping ECONOMY 100.0→95.5% and TOTAL
+  92.1→90.8% on purpose — the gap Phase 3's badge state closes. (Coverage/precision
+  are unchanged: a non-emitting filler was already honest abstention.)
 - Determinism: pool size 1, fixed nodes, sequential cases → identical
   `latest.json` on every run. Changing the CASE LIST can shift borderline
   classifications of OTHER cases (engine hash carries across positions within
@@ -41,6 +49,7 @@ a moved number below is a feeling, not a fact (Laws of the Loop).
 | Date | Causal | Grounded | Economy | Total | Cases | Tests | Recall avg | src LOC |
 |---|---|---|---|---|---|---|---|---|
 <!-- eval-history -->
+| 2026-06-30 | 85.0% | 91.2% | 95.5% | 90.8% | 18 | 249/250 | 94.8% | 6831 |
 | 2026-06-30 | 85.0% | 91.2% | 100.0% | 92.1% | 18 | 249/250 | 94.8% | 6831 |
 | 2026-06-14 | 85.0% | 91.2% | 100.0% | 92.1% | 18 | — | 94.8% | 6831 |
 | 2026-06-12 | 80.0% | 91.2% | 100.0% | 90.8% | 18 | 233/234 | 94.8% | 5624 |
@@ -70,5 +79,6 @@ Exact, from `score.ts` (derived from the same per-case checks — no new behavio
 | Date | Coverage | Precision | Cases | Notes |
 |---|---|---|---|---|
 <!-- selective-history -->
+| 2026-06-30 | 100.0% | 82.4% | 18 | |
 | 2026-06-30 | 100.0% | 82.4% | 18 | |
 

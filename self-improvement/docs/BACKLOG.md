@@ -23,11 +23,13 @@ engine's own PV (a coincidental pin headlines a quiet good move), and abstention
 fires only on fact *absence*, never on irrelevance. Cure A (PV-grounding) + Cure C
 (dual-gate silence/badge layer), both $0/client-side. **This arc subsumes table items
 #1, #2, #6** — they are its facets, not independent work.
-**Phase 0.1 ✅ 2026-06-30:** paired COVERAGE/PRECISION metric in the eval (the honesty
-axis the 3 per-case dims were blind to); baseline 100% / 82.4%, the 82.4% being exactly
-the 3 fake-reason cases, now measurable. **Next block: Phase 0.2** — give the eval a
-first-class *badge-only / honest-silence* expected outcome and stop crediting the
-neutral filler 2/2 (then 0.3 kill the free GROUNDED 1/2, 0.4 author fake-reason cases).
+**Phase 0.1 ✅ 2026-06-30:** paired COVERAGE/PRECISION metric in the eval (baseline
+100% / 82.4% — the 82.4% is exactly the 3 fake-reason cases, now measurable).
+**Phase 0.2 ✅ 2026-06-30:** first-class `expectSilence` badge-only outcome on EvalCase;
+the neutral filler no longer scores ECONOMY 2/2 when silence is the honest call
+(`blk-04b-qg5` E2→E1; ECONOMY 100→95.5%, TOTAL 92.1→90.8% on purpose — the aspiration
+gap Phase 3's badge state closes; coverage/precision unchanged). **Next block: Phase 0.3**
+— make GROUNDED a real signal (kill the free 1/2), then 0.4 author fake-reason cases.
 
 | # | Tag | Item | Sev | Payoff / evidence |
 |---|---|---|---|---|
