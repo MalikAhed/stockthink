@@ -23,15 +23,18 @@ engine's own PV (a coincidental pin headlines a quiet good move), and abstention
 fires only on fact *absence*, never on irrelevance. Cure A (PV-grounding) + Cure C
 (dual-gate silence/badge layer), both $0/client-side. **This arc subsumes table items
 #1, #2, #6** — they are its facets, not independent work.
-**Phase 0.1 ✅:** paired COVERAGE/PRECISION metric (baseline 100% / 82.4%). **Phase 0.2 ✅:**
-first-class `expectSilence` badge-only outcome; filler no longer scores ECONOMY 2/2 when
-silence is honest (ECONOMY→95.5%). **Phase 0.3 ✅:** GROUNDED requires a right LEAD — a
-wrong-lead comment scores 0, killing the free 1/2 (GROUNDED→82.4%). The three same-day TOTAL
-descents (92.1→90.8→86.8%) are intentional metric-honesty, documented in METRICS.md "How to read".
-**Next block: Phase 0.4** — author 3–4 engine+chessops-verified aspiration cases for the
-fake-reason class, AND revisit `opera-09-b5`'s `leadFactIn`: it now names Nxb5 honestly via
-`invites_capture` but scores G0 / precision-miss against a possibly-stale spec — decide whether
-to bless that lead. (Then Phase 1 plumbs the free engine signals.)
+**Phase 0.1–0.3 ✅:** the eval can now see honesty — paired COVERAGE/PRECISION (0.1), a
+first-class `expectSilence` badge-only tier (0.2), and GROUNDED requiring a right LEAD (0.3).
+The same-day TOTAL descent (92.1→86.8%) is intentional metric-honesty, documented in METRICS.md.
+**Phase 0.4 ⏳ (begun 2026-06-30):** built `eval/probe.ts` (safe case-vetting) and added the
+first fake-reason aspiration case `coinc-pin-be5` — a decorative pin the composer voices as a
+win though the engine never exploits it (TOTAL→84.6%, PRECISION→77.8%). A 2nd crafted case
+broke on hash-carry (full run flipped its borderline class — LESSONS.md) and was dropped.
+DECIDED on `opera-09-b5`: do NOT bless `invites_capture` — "runs into Nxb5" undersells the
+knight SAC as a pawn-grab; the real fix is a fact that names the attack (future U2b / Phase 2),
+not relaxing the spec. **Next: finish 0.4** (2–3 more probe-verified fake-reason cases —
+pins/forks/"develops", each RE-CHECKED in the full `--dry` run) **then Phase 1** (plumb the free
+engine signals: WDL, shallowEval, the dropped after-PVs, per-depth trajectory).
 
 | # | Tag | Item | Sev | Payoff / evidence |
 |---|---|---|---|---|

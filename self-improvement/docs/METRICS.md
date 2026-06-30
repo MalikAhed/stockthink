@@ -18,9 +18,10 @@ a moved number below is a feeling, not a fact (Laws of the Loop).
 
 ## How to read the eval
 
-- The truth set is `self-improvement/eval/positions.json` (18 cases: bad moves needing causal
-  explanations · good moves deserving ≤1–2 quiet lines · trap cases where a
-  true-but-wrong reason is tempting). Per-case detail: `self-improvement/eval/results/latest.json`.
+- The truth set is `self-improvement/eval/positions.json` (19 cases: bad moves needing causal
+  explanations · good moves deserving ≤1–2 quiet lines · trap/fake-reason cases where a
+  true-but-wrong reason is tempting, incl. the coincidental-pin class from Phase 0.4).
+  Per-case detail: `self-improvement/eval/results/latest.json`.
 - **Silence is a feature, emptiness is not**: `composeComment` never returns
   empty text by design (R3). ECONOMY scores one-short-line behavior. Never
   "improve" ECONOMY by emitting empty comments — that violates R3 and the gate.
@@ -42,6 +43,11 @@ a moved number below is a feeling, not a fact (Laws of the Loop).
   the metric shedding free points; Phases 1–3 climb back up by GROUNDING reasons and
   shipping the badge tier, not by handing out credit. (Coverage/precision unchanged — the
   Phase 0.1 `correct` signal already required a right lead.)
+- Phase 0.4 began populating the **fake-reason class** the arc exists to kill: `coinc-pin-be5`
+  is a probe-verified good move whose DECORATIVE absolute pin the composer voices as a win
+  ("losing everything behind it") though the engine never exploits it. It's an `expectSilence`
+  aspiration (ECONOMY 0 / precision-miss today), dropping TOTAL 86.8→84.6% and PRECISION
+  82.4→77.8% on purpose. (More such cases are a follow-up — vet each one per the probe note below.)
 - Determinism: pool size 1, fixed nodes, sequential cases → identical
   `latest.json` on every run. Changing the CASE LIST can shift borderline
   classifications of OTHER cases (engine hash carries across positions within
@@ -50,12 +56,18 @@ a moved number below is a feeling, not a fact (Laws of the Loop).
 - Score script: `self-improvement/eval/score.ts`. Flags: `-- --dry` (no writes),
   `-- --explain <id>` (full facts/lines/checks for one case),
   `-- --tests N/M` (record suite pass rate in the history row).
+- Case-vetting probe: `self-improvement/eval/probe.ts -- "<fen>" <uci> [...]` runs the real
+  pipeline on candidate FEN+move pairs BEFORE they enter positions.json (classification,
+  winDrop, facts, lead, comment, PVs). ALWAYS re-verify a kept candidate in the full
+  `npm run eval --dry` too — the standalone probe can read a borderline class the full
+  hash-carry run then flips (LESSONS.md, bit 2026-06-12 and again 2026-06-30).
 
 ## History (newest on top — the eval row is script-written)
 
 | Date | Causal | Grounded | Economy | Total | Cases | Tests | Recall avg | src LOC |
 |---|---|---|---|---|---|---|---|---|
 <!-- eval-history -->
+| 2026-06-30 | 85.0% | 82.4% | 87.5% | 84.6% | 19 | 249/250 | 94.8% | 6831 |
 | 2026-06-30 | 85.0% | 82.4% | 95.5% | 86.8% | 18 | 249/250 | 94.8% | 6831 |
 | 2026-06-30 | 85.0% | 91.2% | 95.5% | 90.8% | 18 | 249/250 | 94.8% | 6831 |
 | 2026-06-30 | 85.0% | 91.2% | 100.0% | 92.1% | 18 | 249/250 | 94.8% | 6831 |
@@ -87,6 +99,7 @@ Exact, from `score.ts` (derived from the same per-case checks — no new behavio
 | Date | Coverage | Precision | Cases | Notes |
 |---|---|---|---|---|
 <!-- selective-history -->
+| 2026-06-30 | 100.0% | 77.8% | 19 | |
 | 2026-06-30 | 100.0% | 82.4% | 18 | |
 | 2026-06-30 | 100.0% | 82.4% | 18 | |
 | 2026-06-30 | 100.0% | 82.4% | 18 | |

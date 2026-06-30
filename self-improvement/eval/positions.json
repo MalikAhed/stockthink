@@ -258,6 +258,19 @@
       "mustMention": [["hxg5", "g5"]],
       "mustNotMention": ["develop"],
       "realCause": "After 1.d4 d5 2.Bg5 h6, the bishop is attacked; 3.Nf3?? ignores it and ...hxg5 wins a piece. 'Develops the knight' is true and utterly beside the point — it may appear only inside the failed-idea frame, never as the visible verdict."
+    },
+    {
+      "id": "coinc-pin-be5",
+      "name": "CRAFTED (fake reason): Be5 'pins the knight, it's lost' — a decorative absolute pin the engine never exploits",
+      "source": "crafted",
+      "fen": "3r4/4qpkp/pp2pnp1/2p5/3P1B2/3Q4/PPP2PPP/3R2K1 w - - 0 20",
+      "playedUci": "f4e5",
+      "category": "trap-wrong-reason",
+      "expectSilence": true,
+      "dims": ["economy"],
+      "expectClass": ["best", "great", "excellent", "good"],
+      "maxSentences": 2,
+      "realCause": "ASPIRATION (fake reason — coincidental pin, badge-only honest): Be5 is the engine's #1 (a strong central outpost in an already-good position, +1.4). The absolute pin on Nf6 against Kg7 is DECORATIVE — there is no exploit (Bxf6+ only trades B for N) and the engine PV never touches it (Be5 cxd4 Qf3 Rd5 Qf4 ...). No other fact fires, so once the empty pin is demoted the honest output is the badge alone — NOT 'it cannot move without losing everything behind it', which is simply false. Phase 2 (demote unexploited pins) + Phase 3 (badge state) fix it; probe-verified 2026-06-30 with eval/probe.ts."
     }
   ]
 }

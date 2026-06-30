@@ -6,6 +6,21 @@ for /work sessions). Past ~300 lines, /reflect compresses the oldest half into
 LESSONS.md. Entries below 2026-06-12p were migrated verbatim from
 self-improvement/improve/TRACKER.md's daily log (2026-06-12) — history is not rewritten.
 
+- **2026-06-30e** · /chess · **Phase 0.4 (begun)** — started populating the fake-reason class the
+  arc exists to kill. SYSTEM UPGRADE: `eval/probe.ts` runs the real pipeline on candidate FEN+move
+  pairs BEFORE positions.json (class, winDrop, facts, lead, comment, PVs) → crafted cases verified,
+  not assumed. Added one probe-verified case `coinc-pin-be5`: a [best] move whose DECORATIVE
+  absolute pin (no exploit; engine PV never touches it) the composer voices as a win ("losing
+  everything behind it"). expectSilence aspiration → ECONOMY 0 + precision-miss today; TOTAL
+  86.8→84.6%, PRECISION 82.4→77.8% on purpose; existing 18 byte-identical, suite 249/250, dry==real.
+  BURN (caught pre-commit): a 2nd case `coinc-pin-re1` read [good]+fake-pin under the standalone
+  probe but [inaccuracy]+"Qf3 was better" in the FULL run — hash-carry flipped its borderline class.
+  This re-violated the 2026-06-12 hash-carryover lesson; strengthened that LESSONS.md entry (ALWAYS
+  re-verify a kept candidate in the full --dry run; pick positions far from a class boundary — the
+  kept case was +1.4). DECIDED opera-09-b5: do NOT bless invites_capture — "runs into Nxb5" undersells
+  the knight SAC as a pawn-grab; the honest fix names the attack (future U2b/Phase 2), not a looser
+  spec. The metric methodology (0.1–0.3) is DONE; ~84.6% is the honest baseline. Next: finish 0.4
+  (2–3 more full-run-verified cases) and/or Phase 1 (plumb the free engine signals).
 - **2026-06-30d** · /chess · **Phase 0.3** — made GROUNDED a real signal. A comment that
   LEADS with the wrong fact now scores GROUNDED 0, not a free 1: added `!leadOk` to the
   zero-condition (`forbiddenHits || !classOk || !leadOk ? 0 : factsOk ? 2 : 1`), killing the

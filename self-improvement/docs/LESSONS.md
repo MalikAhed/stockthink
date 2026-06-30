@@ -22,6 +22,12 @@ step 8). Delete a lesson only when its rule is enforced by code/tests.
   game-sequence context but good in the eval's context (hash carryover at
   fixed nodes); a case that punishes borderline verdict tiers is
   mis-specified. Spec `expectClass` tolerantly; judge the COMMENT.
+  **Bit again 2026-06-30** (Phase 0.4): a crafted "good-move fake-pin" case
+  (`coinc-pin-re1`) read `good` under the standalone `probe.ts` but `inaccuracy`
+  in the full `eval` run — hash-carry across the case sequence flipped its
+  borderline class. Dropped it. ALWAYS vet a new case in the FULL `npm run eval --dry`,
+  never the standalone probe alone; pick positions whose eval is FAR from a class
+  boundary (the kept case, `coinc-pin-be5`, was +1.4 → stably `best`).
 - **A named-positions EPD map is not "book" ground truth.** chess.com marks
   ~6 more book moves; external truth (masters explorer) needed (2026-06-12i).
   Corollary: network features must be verified in a real browser — the dev

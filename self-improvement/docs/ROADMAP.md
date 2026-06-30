@@ -66,9 +66,13 @@ paired COVERAGE/PRECISION metric in the eval (baseline 100% / 82.4%; the 82.4% i
 (`expectSilence`) eval outcome; the neutral filler no longer scores ECONOMY 2/2 when
 silence is honest (ECONOMY 100→95.5% on purpose, the gap Phase 3 closes). **Phase 0.3 ✅
 2026-06-30** — GROUNDED requires a verified-correct lead (wrong lead → 0), killing the free
-1/2 (GROUNDED 91.2→82.4%). The Phase-0 metric-honesty descent (TOTAL 92.1→86.8%) is now
-complete bar 0.4's aspiration cases; **~86.8% is the honest baseline** the cures climb from.
-**Exit: PRECISION ≥ ~0.95 at meaningful coverage, with the badge/silence tier shipped.**
+1/2 (GROUNDED 91.2→82.4%). **Phase 0.4 ⏳ 2026-06-30** — built `eval/probe.ts` (safe
+case-vetting) and landed the first fake-reason aspiration case `coinc-pin-be5` (a decorative
+pin voiced as a win; TOTAL→84.6%, PRECISION→77.8%); 2–3 more cases to go. **The metric
+methodology (0.1–0.3) is DONE — the eval finally sees honesty; ~84.6% is the honest baseline**
+the cures climb from. Phase 1 (plumb the free engine signals) can start in parallel with
+finishing 0.4's cases. **Exit: PRECISION ≥ ~0.95 at meaningful coverage, with the badge/silence
+tier shipped.**
 
 ### Beyond (unscheduled)
 Type-1 content arcs continue in parallel via self-improvement/improve/ (book chunks B6–B19,

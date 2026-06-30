@@ -18,13 +18,13 @@
     },
     "economy": {
       "pts": 21,
-      "max": 22,
-      "pct": "95.5%"
+      "max": 24,
+      "pct": "87.5%"
     },
     "total": {
       "pts": 66,
-      "max": 76,
-      "pct": "86.8%"
+      "max": 78,
+      "pct": "84.6%"
     }
   },
   "selective": {
@@ -35,8 +35,8 @@
     },
     "precision": {
       "num": 14,
-      "den": 17,
-      "pct": "82.4%"
+      "den": 18,
+      "pct": "77.8%"
     }
   },
   "cases": [
@@ -696,6 +696,39 @@
         "needsExplanation": true,
         "emitted": true,
         "correct": true
+      }
+    },
+    {
+      "id": "coinc-pin-be5",
+      "category": "trap-wrong-reason",
+      "dims": [
+        "economy"
+      ],
+      "classification": "best",
+      "leadKind": "creates_pin",
+      "factKinds": [
+        "creates_pin",
+        "second_candidate"
+      ],
+      "text": "This pins the knight on f6 against the king — it cannot move without losing everything behind it. Qf3 comes next to cash in on it.",
+      "more": null,
+      "checks": {
+        "mentionsOk": true,
+        "factsOk": true,
+        "leadOk": true,
+        "forbiddenHits": [],
+        "classOk": true,
+        "sentences": 2,
+        "maxSentences": 2,
+        "falseAlarm": false
+      },
+      "scores": {
+        "economy": 0
+      },
+      "selective": {
+        "needsExplanation": false,
+        "emitted": true,
+        "correct": false
       }
     }
   ]
