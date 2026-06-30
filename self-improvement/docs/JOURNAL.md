@@ -6,6 +6,19 @@ for /work sessions). Past ~300 lines, /reflect compresses the oldest half into
 LESSONS.md. Entries below 2026-06-12p were migrated verbatim from
 self-improvement/improve/TRACKER.md's daily log (2026-06-12) — history is not rewritten.
 
+- **2026-07-01d** · /chess · **Phase 3.2 (silence signals: "no dominant idea" + "equal")** — extended
+  `MoveReport.confidence` with `topSpreadCp` (|PV1−PV2| eval gap — small ⇒ many equal moves, no dominant
+  idea) and `drawPermille` (best-line WDL draw share — high + cp≈0 ⇒ genuinely equal). DATA ONLY, eval
+  HELD at 85.9%, suite 271/272 (+3 units). **The silence-layer SIGNAL FOUNDATION is now complete:**
+  volatility · trajectory-flip · multiPV-spread · WDL-draw, all on `confidence`, R1-safe, nothing consumes
+  yet. STOPPED here deliberately: 3.3/3.4 (route Gate-2 failures to a first-class badge state) is the risky
+  BEHAVIOUR change AND has no current eval evidence (coinc-pin-be5 solved, blk-04b already silent) — it
+  needs threshold calibration + per-comment gate.e2e verification (must not mute delivers_mate / Qb8+
+  sac), best done with the user in the loop. Also surfaced: pz-fork-miss-000Pw (BACKLOG #2) is
+  hash-borderline like coinc-pin — clean C2/G2 isolated, C1/G0 in the full run (a hash-dependent
+  abandons_square buries the missed fork); a safe fix needs a non-borderline crafted case (LESSONS:
+  crafted FENs burn). RESUME OPTIONS next session: (a) 3.3/3.4 badge state w/ thresholds; (b) BACKLOG
+  #1/#2 content (name the Nxb5 sac / fork-priority); (c) author non-borderline fake-reason cases for 2.1.
 - **2026-07-01c** · /chess · **Phase 3.1 (confidence field — silence-layer foundation)** — added
   `MoveReport.confidence` { volatilityCp, lateFlip, depth } from the now-plumbed signals: volatilityCp =
   |shallowEval − deepEval| (before-position), lateFlip = white-POV advantage changed sign in the 2nd half

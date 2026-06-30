@@ -57,8 +57,18 @@ export interface MoveReport extends Ply {
    * before-position) or a `lateFlip` (the advantage changed hands late in the
    * search) marks a position whose static features are about to be overturned ⇒
    * too deep to name a cause. `undefined` when the engine emitted no shallow eval.
+   *
+   * `topSpreadCp` (|PV1 − PV2| cp) small ⇒ "no dominant idea" — many equal moves,
+   * so naming one cause misleads. `drawPermille` (WDL draw share) high with cp≈0
+   * ⇒ genuinely equal ⇒ nothing to say. Both feed Gate 2 of the silence rule (§6).
    */
-  confidence?: { volatilityCp: number; lateFlip: boolean; depth: number };
+  confidence?: {
+    volatilityCp: number;
+    lateFlip: boolean;
+    depth: number;
+    topSpreadCp?: number;
+    drawPermille?: number;
+  };
 }
 
 export interface PlayerSummary {
@@ -89,6 +99,8 @@ const cpForAcpl = (ev: EvalScore): number =>
  * `volatilityCp` is the |shallow − deep| margin on the before-position
  * (arXiv:2412.17948, inverted); `lateFlip` is true when the white-POV advantage
  * changed sign in the second half of the search (a per-depth trajectory flip).
+ * `topSpreadCp` is the |PV1 − PV2| eval gap ("no dominant idea" when small);
+ * `drawPermille` the WDL draw share ("equal" when high with cp≈0) — Gate 2 (§6).
  */
 export function moveConfidence(
   before: PositionAnalysis,
@@ -104,7 +116,17 @@ export function moveConfidence(
     const last = sign(traj[traj.length - 1].eval);
     lateFlip = mid !== 0 && last !== 0 && mid !== last;
   }
-  return { volatilityCp, lateFlip, depth: before.lines[0]?.depth ?? 0 };
+  const topSpreadCp =
+    before.lines.length >= 2
+      ? Math.abs(cpForAcpl(before.lines[0].eval) - cpForAcpl(before.lines[1].eval))
+      : undefined;
+  return {
+    volatilityCp,
+    lateFlip,
+    depth: before.lines[0]?.depth ?? 0,
+    topSpreadCp,
+    drawPermille: before.lines[0]?.wdl?.draw,
+  };
 }
 
 /**

@@ -106,4 +106,20 @@ describe('moveConfidence — eval-stability signals (Phase 3.1)', () => {
   it('is undefined when the engine emitted no shallow eval (graceful)', () => {
     expect(moveConfidence(mk({}), { cp: 120 })).toBeUndefined();
   });
+
+  it('topSpreadCp is |PV1 − PV2| (small ⇒ no dominant idea)', () => {
+    const lines = [line(1, 120, ['e2e4']), line(2, 40, ['d2d4'])];
+    expect(moveConfidence(mk({ shallowEval: { cp: 100 }, lines }), { cp: 120 })!.topSpreadCp).toBe(80);
+  });
+
+  it('topSpreadCp is undefined with a single line (no PV2 to compare)', () => {
+    expect(moveConfidence(mk({ shallowEval: { cp: 100 } }), { cp: 120 })!.topSpreadCp).toBeUndefined();
+  });
+
+  it('drawPermille is the WDL draw share of the best line', () => {
+    const lines: EngineLine[] = [
+      { multipv: 1, depth: 20, eval: { cp: 5 }, pvUci: ['e2e4'], wdl: { win: 90, draw: 880, loss: 30 } },
+    ];
+    expect(moveConfidence(mk({ shallowEval: { cp: 5 }, lines }), { cp: 5 })!.drawPermille).toBe(880);
+  });
 });

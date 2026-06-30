@@ -59,12 +59,20 @@ clean aspiration case to PROVE a gain (the positional/fork fake-reason cases are
 opera-09-b5's wrong lead is a CONTENT gap → BACKLOG #1, name the Nxb5 sac). Highest-leverage now is
 **Phase 3 (silence/confidence layer)** — all four signals are plumbed and it generalizes today's
 hand-built silence into a principled badge state. §5a everywhere; re-run gate.e2e after each.
-**Phase 3.1 ✅ (2026-07-01):** `MoveReport.confidence` { volatilityCp = |shallow−deep|, lateFlip =
-trajectory advantage-flip in the 2nd half, depth } — DATA ONLY (eval held 85.9%, suite 268/269,
-4 unit tests). **Next: Phase 3.2** (multiPV-spread "no dominant idea" ε + high-draw-WDL "equal"
-signals) → **3.3** (first-class badge-only `Comment`; route Gate-2 failures to it) → **3.4** (replace
-the position-blind NEUTRAL pool with the two honest outputs). 3.3/3.4 are the risky behaviour change —
-conservative thresholds, re-read every gate.e2e comment (must not mute delivers_mate / Qb8+ sac).
+**Phase 3.1 + 3.2 ✅ (2026-07-01) — silence SIGNAL FOUNDATION complete:** `MoveReport.confidence`
+now carries { volatilityCp = |shallow−deep|, lateFlip = trajectory advantage-flip 2nd-half, depth,
+topSpreadCp = |PV1−PV2| ("no dominant idea"), drawPermille = WDL draw share ("equal") } — all DATA
+ONLY, R1-safe, nothing consumes yet (eval held 85.9%, suite 271/272, 7 unit tests).
+**◄ RESUME HERE (next /chess session):** pick ONE —
+  **(a) Phase 3.3/3.4** — consume `confidence`: add a first-class badge-only `Comment` and route
+  Gate-2 failures (high volatilityCp / lateFlip / small topSpreadCp / high drawPermille + no grounded
+  cause) to it, replacing the position-blind NEUTRAL pool. RISKY behaviour change with NO current eval
+  case to prove a gain (coinc-pin-be5 already solved, blk-04b already silent) → use conservative
+  thresholds and re-read EVERY gate.e2e comment (must not mute delivers_mate / Qb8+ sac).
+  **(b) BACKLOG #2 fork-priority** — but pz-fork-miss-000Pw is hash-borderline (clean isolated, C1/G0 in
+  the full run); needs a non-borderline crafted case first (LESSONS: crafted FENs burn).
+  **(c) BACKLOG #1 content** — name the Nxb5 sac (opera-09-b5) — this is [T1], runs via the improve workshop.
+§5a everywhere; re-run gate.e2e after every block. 0.4's 2–3 fake-reason cases stay open — deferred.
 
 | # | Tag | Item | Sev | Payoff / evidence |
 |---|---|---|---|---|
