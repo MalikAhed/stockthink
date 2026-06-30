@@ -36,9 +36,12 @@ not relaxing the spec. **Phase 1.2–1.3 ✅ (2026-06-30):** threaded the two si
 `AnnotateContext` via a new `annotateContext()` seam — `before.shallowEval` (1.2, the volatility
 margin) + the full after-position `replyLines[]` with evals (1.3, the Phase-2.3 uniqueness input).
 DATA ONLY — no detector reads them yet, so eval HELD at 84.6%/77.8%, suite 253/254, §5a honoured
-(gate stays OUT of the recall-tested predicates). **Next: Phase 1.1** (`UCI_ShowWDL` + runtime-probe
-onto `EngineLine`) **then 1.4** (per-depth trajectory via the existing `onDepth` hook); 0.4's 2–3
-remaining fake-reason cases stay open — deferred, not blocked.
+(gate stays OUT of the recall-tested predicates). **Phase 1.1 ✅ (2026-06-30):** enabled `UCI_ShowWDL` + parsed `wdl` onto `EngineLine` (white-POV
+permille, graceful when absent). PROBED the real lite WASM first — it emits `wdl` (startpos
+`84 911 5`); eval HELD byte-identical (reporting-only, doesn't perturb search). **Next: Phase 1.4**
+(per-depth eval trajectory via the existing `onDepth` hook) closes Phase 1, then Phase 2 (ground
+every spoken fact on the engine's PV). 0.4's 2–3 remaining fake-reason cases stay open — deferred,
+not blocked.
 
 | # | Tag | Item | Sev | Payoff / evidence |
 |---|---|---|---|---|

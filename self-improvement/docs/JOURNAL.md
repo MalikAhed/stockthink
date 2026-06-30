@@ -6,6 +6,16 @@ for /work sessions). Past ~300 lines, /reflect compresses the oldest half into
 LESSONS.md. Entries below 2026-06-12p were migrated verbatim from
 self-improvement/improve/TRACKER.md's daily log (2026-06-12) — history is not rewritten.
 
+- **2026-06-30g** · /chess · **Phase 1.1** — enabled `UCI_ShowWDL` and parsed the `wdl` triple
+  onto `EngineLine` (white-POV `{win,draw,loss}` permille; win/loss swapped for black-to-move),
+  graceful when absent. PROBED the §5a unknown first against the real lite WASM: it advertises the
+  option AND emits `wdl W D L` (startpos `wdl 84 911 5`, sums to 1000) — kept as a capability-ratchet
+  test. The option is reporting-only: eval HELD byte-identical at TOTAL 84.6% / PRECISION 77.8%
+  (proof it doesn't perturb search), gate.e2e comments unchanged, full suite 257/258 (+4: 3 parseInfo
+  POV/absence units + 1 real-engine emission), tsc clean. Scope held to `EngineLine` — threading wdl
+  into AnnotateContext/MoveReport is Phase 3.2's job (the consumer), not jumped early. Reverted the
+  no-change METRICS.md/metrics.json tool appends. Next: Phase 1.4 (per-depth trajectory via the
+  existing `onDepth` hook) closes Phase 1, then Phase 2 (ground every spoken fact on the engine PV).
 - **2026-06-30f** · /chess · **Phase 1.2+1.3** — plumbed the two signals `report.ts` dropped at
   the door into `AnnotateContext`: `before.shallowEval` (1.2 — volatility margin for the Phase-3
   silence layer) and the full after-position `replyLines[]` with evals (1.3 — `[0]` is the

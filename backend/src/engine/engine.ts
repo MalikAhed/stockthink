@@ -40,6 +40,13 @@ export interface SearchLimits {
   nodes?: number;
 }
 
+/** Win/draw/loss probabilities in permille (win + draw + loss = 1000). */
+export interface Wdl {
+  win: number;
+  draw: number;
+  loss: number;
+}
+
 export interface EngineLine {
   multipv: number;
   depth: number;
@@ -47,6 +54,13 @@ export interface EngineLine {
   eval: EvalScore;
   /** Principal variation in UCI long algebraic ("e2e4"), from this position. */
   pvUci: string[];
+  /**
+   * Win/draw/loss permille (sums to 1000) from `UCI_ShowWDL`, normalized to
+   * white POV (win = P(white wins)). `undefined` when the engine build omits it
+   * — the shipped lite WASM DOES emit it (probed 2026-06-30); consumers treat
+   * absence as "signal unavailable" so the silence layer degrades gracefully.
+   */
+  wdl?: Wdl;
 }
 
 export interface PositionAnalysis {
@@ -87,6 +101,10 @@ export class Engine {
       'setoption name UCI_AnalyseMode value true',
       `setoption name MultiPV value ${this.multiPv}`,
       `setoption name Hash value ${opts.hashMb ?? 64}`,
+      // Reporting-only: adds a `wdl W D L` field to info lines, never changes
+      // search/score (verified eval-identical 2026-06-30). Unknown options are
+      // ignored per UCI, so this is safe on builds that lack it.
+      'setoption name UCI_ShowWDL value true',
       'setoption name UCI_Chess960 value true',
     ];
   }
@@ -186,6 +204,7 @@ export function parseInfo(raw: string, stm: 'white' | 'black'): EngineLine | nul
   let score: number | undefined;
   let bound = false;
   let pv: string[] = [];
+  let wdl: number[] | undefined;
 
   for (let i = 1; i < parts.length; i++) {
     switch (parts[i]) {
@@ -203,6 +222,10 @@ export function parseInfo(raw: string, stm: 'white' | 'black'): EngineLine | nul
           i++;
         }
         break;
+      case 'wdl':
+        // side-to-move POV: `wdl <win> <draw> <loss>` permille (sums to 1000)
+        wdl = [parseInt(parts[++i]), parseInt(parts[++i]), parseInt(parts[++i])];
+        break;
       case 'pv':
         pv = parts.slice(i + 1);
         i = parts.length;
@@ -215,5 +238,11 @@ export function parseInfo(raw: string, stm: 'white' | 'black'): EngineLine | nul
   if (bound && multipv === 1) return null; // ignore bound-only mainline updates
 
   const povEval: EvalScore = isMate ? { mate: score } : { cp: score };
-  return { multipv, depth, eval: toWhitePov(stm, povEval), pvUci: pv };
+  const line: EngineLine = { multipv, depth, eval: toWhitePov(stm, povEval), pvUci: pv };
+  if (wdl && wdl.every(Number.isFinite)) {
+    const [w, d, l] = wdl;
+    // white POV: swap win/loss when black is to move (draw is side-agnostic)
+    line.wdl = stm === 'white' ? { win: w, draw: d, loss: l } : { win: l, draw: d, loss: w };
+  }
+  return line;
 }

@@ -28,6 +28,16 @@ describe('parseInfo', () => {
     expect(parseInfo('info depth 5 score mate 0 pv e2e4', 'white')).toBeNull();
     expect(parseInfo('info depth 9 multipv 1 score cp 30 lowerbound pv e2e4', 'white')).toBeNull();
   });
+  const wdlRaw = 'info depth 14 multipv 1 score cp 38 wdl 84 911 5 nodes 100 pv e2e4 e7e5';
+  it('parses the wdl triple (white POV) under UCI_ShowWDL', () => {
+    expect(parseInfo(wdlRaw, 'white')!.wdl).toEqual({ win: 84, draw: 911, loss: 5 });
+  });
+  it('swaps win/loss in wdl for black to move (white POV)', () => {
+    expect(parseInfo(wdlRaw, 'black')!.wdl).toEqual({ win: 5, draw: 911, loss: 84 });
+  });
+  it('leaves wdl undefined when the engine omits it (graceful fallback)', () => {
+    expect(parseInfo(raw, 'white')!.wdl).toBeUndefined();
+  });
 });
 
 describe('Engine (real Stockfish 18 WASM)', () => {
@@ -47,6 +57,17 @@ describe('Engine (real Stockfish 18 WASM)', () => {
     expect(a.lines.length).toBe(2);
     expect(a.bestmoveUci).toMatch(/^[a-h][1-8][a-h][1-8]$/);
     expect(Math.abs(a.lines[0].eval.cp ?? 0)).toBeLessThan(120);
+  }, 60_000);
+
+  it('emits a white-POV WDL triple under UCI_ShowWDL (lite WASM capability ratchet)', async () => {
+    const a = await engine.analyze(
+      'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+      { depth: 12 },
+    );
+    const wdl = a.lines[0].wdl;
+    expect(wdl).toBeDefined();
+    expect(wdl!.win + wdl!.draw + wdl!.loss).toBe(1000);
+    expect(wdl!.win).toBeGreaterThanOrEqual(wdl!.loss); // white's slight start edge
   }, 60_000);
 
   it('reports white POV mate for a back-rank mate in 1 (white to move)', async () => {
