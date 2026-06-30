@@ -23,13 +23,15 @@ engine's own PV (a coincidental pin headlines a quiet good move), and abstention
 fires only on fact *absence*, never on irrelevance. Cure A (PV-grounding) + Cure C
 (dual-gate silence/badge layer), both $0/client-side. **This arc subsumes table items
 #1, #2, #6** — they are its facets, not independent work.
-**Phase 0.1 ✅ 2026-06-30:** paired COVERAGE/PRECISION metric in the eval (baseline
-100% / 82.4% — the 82.4% is exactly the 3 fake-reason cases, now measurable).
-**Phase 0.2 ✅ 2026-06-30:** first-class `expectSilence` badge-only outcome on EvalCase;
-the neutral filler no longer scores ECONOMY 2/2 when silence is the honest call
-(`blk-04b-qg5` E2→E1; ECONOMY 100→95.5%, TOTAL 92.1→90.8% on purpose — the aspiration
-gap Phase 3's badge state closes; coverage/precision unchanged). **Next block: Phase 0.3**
-— make GROUNDED a real signal (kill the free 1/2), then 0.4 author fake-reason cases.
+**Phase 0.1 ✅:** paired COVERAGE/PRECISION metric (baseline 100% / 82.4%). **Phase 0.2 ✅:**
+first-class `expectSilence` badge-only outcome; filler no longer scores ECONOMY 2/2 when
+silence is honest (ECONOMY→95.5%). **Phase 0.3 ✅:** GROUNDED requires a right LEAD — a
+wrong-lead comment scores 0, killing the free 1/2 (GROUNDED→82.4%). The three same-day TOTAL
+descents (92.1→90.8→86.8%) are intentional metric-honesty, documented in METRICS.md "How to read".
+**Next block: Phase 0.4** — author 3–4 engine+chessops-verified aspiration cases for the
+fake-reason class, AND revisit `opera-09-b5`'s `leadFactIn`: it now names Nxb5 honestly via
+`invites_capture` but scores G0 / precision-miss against a possibly-stale spec — decide whether
+to bless that lead. (Then Phase 1 plumbs the free engine signals.)
 
 | # | Tag | Item | Sev | Payoff / evidence |
 |---|---|---|---|---|

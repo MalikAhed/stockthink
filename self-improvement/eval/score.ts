@@ -5,7 +5,9 @@
  * gate) over eval/positions.json and scores every comment on three rubric
  * dimensions, 0–2 each:
  *   CAUSAL   — names the concrete consequence, not just a verdict
- *   GROUNDED — the stated reason is the engine's reason, not merely true
+ *   GROUNDED — the stated reason is the engine's reason, not merely true. 0.3:
+ *              requires POSITIVE grounding — a wrong LEAD scores 0 (no free point
+ *              for merely dodging the blocklist)
  *   ECONOMY  — quiet when there is nothing to teach (NB: composeComment never
  *              returns empty text by design (R3); economy = one short line,
  *              zero false teaching — NOT emptiness). 0.2: on an `expectSilence`
@@ -196,7 +198,12 @@ function scoreCase(c: EvalCase, m: MoveReport, comment: Comment): CaseResult {
     if (dim === 'causal')
       scores.causal = mentionsOk && factsOk && leadOk ? 2 : mentionsOk || (factsOk && leadOk) ? 1 : 0;
     if (dim === 'grounded')
-      scores.grounded = forbiddenHits.length > 0 || !classOk ? 0 : factsOk && leadOk ? 2 : 1;
+      // Phase 0.3: GROUNDED requires POSITIVE grounding — the visible LEAD must be the
+      // verified-correct fact. A wrong lead (leadOk false) is ungrounded → 0, killing the
+      // old "free 1/2" a comment got for merely not tripping the blocklist with the right
+      // class. 2 = right lead + expected supporting facts; 1 = right lead, a spec'd fact
+      // missing. (Aligns the dim with the Phase 0.1 `correct` signal, which already needs leadOk.)
+      scores.grounded = forbiddenHits.length > 0 || !classOk || !leadOk ? 0 : factsOk ? 2 : 1;
     if (dim === 'economy') {
       // Phase 0.2: when badge-only silence was the honest call, voicing a concrete
       // cause invents a reason (0) and a neutral filler line over-speaks (1). A real

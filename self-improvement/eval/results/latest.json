@@ -12,9 +12,9 @@
       "pct": "85.0%"
     },
     "grounded": {
-      "pts": 31,
+      "pts": 28,
       "max": 34,
-      "pct": "91.2%"
+      "pct": "82.4%"
     },
     "economy": {
       "pts": 21,
@@ -22,9 +22,9 @@
       "pct": "95.5%"
     },
     "total": {
-      "pts": 69,
+      "pts": 66,
       "max": 76,
-      "pct": "90.8%"
+      "pct": "86.8%"
     }
   },
   "selective": {
@@ -68,7 +68,7 @@
       },
       "scores": {
         "causal": 1,
-        "grounded": 1
+        "grounded": 0
       },
       "selective": {
         "needsExplanation": true,
@@ -248,7 +248,7 @@
       },
       "scores": {
         "causal": 1,
-        "grounded": 1
+        "grounded": 0
       },
       "selective": {
         "needsExplanation": true,
@@ -576,7 +576,7 @@
       },
       "scores": {
         "causal": 1,
-        "grounded": 1
+        "grounded": 0
       },
       "selective": {
         "needsExplanation": true,

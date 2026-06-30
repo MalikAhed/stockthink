@@ -6,6 +6,23 @@ for /work sessions). Past ~300 lines, /reflect compresses the oldest half into
 LESSONS.md. Entries below 2026-06-12p were migrated verbatim from
 self-improvement/improve/TRACKER.md's daily log (2026-06-12) — history is not rewritten.
 
+- **2026-06-30d** · /chess · **Phase 0.3** — made GROUNDED a real signal. A comment that
+  LEADS with the wrong fact now scores GROUNDED 0, not a free 1: added `!leadOk` to the
+  zero-condition (`forbiddenHits || !classOk || !leadOk ? 0 : factsOk ? 2 : 1`), killing the
+  "free 1/2" the rubric handed out for merely dodging the mustNotMention blocklist with the
+  right class. EVIDENCE: perfectly isolated — exactly the 3 wrong-lead cases dropped G1→G0
+  (opera-09-b5 invites_capture/regression, blk-04-nxe5 "gives up the center" platitude,
+  pz-fork-miss-000Pw abandons_square burying the missed Ne2+); every G2 case unchanged.
+  GROUNDED 91.2→82.4%, TOTAL 90.8→86.8% ON PURPOSE; CAUSAL/ECONOMY/COVERAGE/PRECISION
+  byte-identical; full suite 249/250. This ALIGNS the GROUNDED dim with Phase 0.1's `correct`
+  signal (which already required a right lead — hence precision was untouched). The Phase-0
+  metric-honesty descent is now essentially done: 92.1→90.8→86.8% across 0.1→0.3, all three
+  same-day drops documented in METRICS.md so they're never read as regressions. **~86.8% is
+  the honest baseline** — the 92.1% was inflated by free points. Two clear-cut disease leads
+  (blk-04 regression, pz-fork-miss abandons) are obviously G0; opera-09-b5 is borderline (it
+  DOES name Nxb5, but undersells it as a pawn-grab and its spec may be stale) — logged as a
+  Phase 0.4 call: decide whether to bless `invites_capture` in its leadFactIn. Next: Phase 0.4
+  (author fake-reason aspiration cases + the opera-09-b5 spec decision), then Phase 1.
 - **2026-06-30c** · /chess · **Phase 0.2** — first-class badge-only / honest-silence
   outcome in the eval. New `expectSilence` field on EvalCase; ECONOMY now scores a silence
   case by honesty (voiced cause = 0 invented reason · neutral filler = 1 over-speak · real

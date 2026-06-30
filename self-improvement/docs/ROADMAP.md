@@ -64,8 +64,11 @@ subsumes BACKLOG #1/#2/#6 and M3's ratchet intent. **Phase 0.1 ✅ 2026-06-30** 
 paired COVERAGE/PRECISION metric in the eval (baseline 100% / 82.4%; the 82.4% is the
 3 fake-reason cases, now a number). **Phase 0.2 ✅ 2026-06-30** — first-class badge-only
 (`expectSilence`) eval outcome; the neutral filler no longer scores ECONOMY 2/2 when
-silence is honest (ECONOMY 100→95.5% on purpose, the gap Phase 3 closes). **Exit:
-PRECISION ≥ ~0.95 at meaningful coverage, with the badge/silence tier shipped.**
+silence is honest (ECONOMY 100→95.5% on purpose, the gap Phase 3 closes). **Phase 0.3 ✅
+2026-06-30** — GROUNDED requires a verified-correct lead (wrong lead → 0), killing the free
+1/2 (GROUNDED 91.2→82.4%). The Phase-0 metric-honesty descent (TOTAL 92.1→86.8%) is now
+complete bar 0.4's aspiration cases; **~86.8% is the honest baseline** the cures climb from.
+**Exit: PRECISION ≥ ~0.95 at meaningful coverage, with the badge/silence tier shipped.**
 
 ### Beyond (unscheduled)
 Type-1 content arcs continue in parallel via self-improvement/improve/ (book chunks B6–B19,
