@@ -13,8 +13,50 @@
 .ender-sticky { position: sticky; top: 0; height: 100vh; width: 100%; overflow: hidden; }
 /* now a <video> (was a WebGL canvas): cover-fit the viewport, start hidden (revealed under the veil) */
 .ender-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; opacity: 0; object-fit: cover; background: #000; }
-/* 2D HUD layer (captions + rating badges mount here in Phase 3); shares the canvas coord space */
+/* 2D HUD layer (the rating lower-third mounts here); shares the canvas coord space */
 .ender-overlay { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
+
+/* the rating lower-third — the page's move-rating language over the black 3D scene. Opacity is driven
+   per-frame by ender.js from the scene's badgeAt(t) (so it stays in lock-step with the cinematic clock). */
+.ender-cap {
+  position: absolute; left: 50%; bottom: 13%; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 13px;
+  padding: 11px 20px 11px 16px; border-radius: 999px;
+  background: rgba(7, 12, 11, 0.58); -webkit-backdrop-filter: blur(7px); backdrop-filter: blur(7px);
+  border: 1px solid rgba(255, 255, 255, 0.10); box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
+  opacity: 0; pointer-events: none; white-space: nowrap;
+  font: 650 18px/1 system-ui, -apple-system, "Segoe UI", sans-serif; letter-spacing: 0.01em;
+  will-change: opacity;
+}
+.ender-cap-ico { width: 28px; height: 28px; display: block; flex: none; }
+.ender-cap-rating { color: #f5f3ee; }
+.ender-cap-move {
+  font: 600 14px/1 ui-monospace, "SF Mono", Menlo, monospace; color: #f5f3ee;
+  background: rgba(255, 255, 255, 0.10); padding: 6px 10px; border-radius: 7px;
+}
+/* rating-coloured kicker word (matches the page's rating palette) */
+.ender-cap.r-blunder     .ender-cap-rating { color: #ff6b6b; }
+.ender-cap.r-brilliant   .ender-cap-rating { color: #2ad6c4; }
+.ender-cap.r-doublecheck .ender-cap-rating { color: #74c948; }
+.ender-cap.r-mate        .ender-cap-rating { color: #ffd56b; }
+.ender-cap.r-mate { border-color: rgba(255, 213, 107, 0.38); box-shadow: 0 8px 36px rgba(255, 180, 70, 0.14); }
+
+/* live Stockfish eval bar (chess.com style): White fills from the bottom; height = win-fraction from the
+   real SF18 eval. Screen-space (independent of the 3D camera). Opacity + height driven per-frame by ender.js. */
+.ender-eval {
+  position: absolute; left: 4.5%; top: 50%; transform: translateY(-50%);
+  width: 15px; height: 46%; border-radius: 8px; overflow: hidden;
+  background: #14151a; border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45); opacity: 0; pointer-events: none;
+}
+.ev-fill { position: absolute; left: 0; right: 0; bottom: 0; height: 68%; background: linear-gradient(#fbfaf6, #dcd7cb); }
+.ev-num {
+  position: absolute; left: 0; right: 0; bottom: 3px; text-align: center;
+  font: 800 9px/1 ui-monospace, Menlo, monospace; color: #14150f; letter-spacing: -0.02em;
+}
+.ender-eval.ev-mate { border-color: rgba(255, 213, 107, 0.42); box-shadow: 0 6px 30px rgba(255, 180, 70, 0.20); }
+.ender-eval.ev-mate .ev-fill { background: linear-gradient(#fff7e6, #ffd874); }
+.ender-eval.ev-mate .ev-num { color: #3a2c08; }
 
 /* the fade-to-black veil (driven by ender.js): a top-most full-screen black overlay whose opacity is
    scrubbed by scroll — it fades the screen to black as the coach leaves, then lifts to reveal the

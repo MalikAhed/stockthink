@@ -92,9 +92,10 @@ if (QUALITY.gears) {
 if (QUALITY.cinema) {
   heavy3D.push(lazy3D('section.coach', () => import('./coach.js'), 'coach cinematic'));
 }
-// The finale is a pre-rendered video (no WebGL) — load its tiny controller on EVERY device regardless of
-// tier. That's the whole point of the video swap: the cinematic plays smooth even on the weakest GPU.
-import('./ender-video.js').catch((err) => console.warn('[landing] ender video unavailable:', err));
+// AUTHORING the live finale game (pieces rain in → camera dolly → the moves). Loaded unconditionally
+// for now so it renders while we build it, regardless of detected tier; once the cinematic is approved
+// it bakes back to a <video> (ender-video.js) and this returns to a QUALITY.cinema gate.
+import('./ender.js').catch((err) => console.warn('[landing] ender finale unavailable:', err));
 // Idle-preload, fully staggered (await each → parses never overlap), so they're ready before you
 // reach them but never compete with the intro. Start only AFTER the intro has settled (~3s) — an
 // idle callback firing in a gap mid-intro could parse a GLB and drop a frame. Fast scrollers are

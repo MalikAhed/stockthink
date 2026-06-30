@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<!-- DEV-only isolation harness for the FINALE move timeline. Renders ONLY the basement scene
+     (one WebGL context → fast under SwiftShader), loads the piece manifest, and drives the FULL
+     master clock view.frame(t) via ?t=<seconds> so any beat (intro rain, dolly, moves, mate) can
+     be screenshotted in isolation. Also dumps exact squareXYZ world coords to window.__coords. -->
+<html lang="en">
+<head><meta charset="UTF-8"><title>finale stage</title>
+<style>html,body{margin:0;height:100%;background:#000;overflow:hidden}#enderScene{display:block;width:100vw;height:100vh}#st{position:fixed;left:8px;top:8px;color:#7fe0a8;font:12px monospace;z-index:9;white-space:pre}</style>
+</head>
+<body>
+<canvas id="enderScene"></canvas>
+<div id="st">booting…</div>
+<script type="importmap">
+{"imports":{
+  "three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+}}
+</script>
+<script type="module">
+const st = document.getElementById('st');
+try {
+  await import('../../pieces.js');                       // sets window.PIECES / window.BOARD3D
+  const { createEnderScene } = await import('../../ender-scene.js');
+  const view = await createEnderScene(document.getElementById('enderScene'));
+  view.resize();
+  window.__ender = view;
+  // dump exact world coords for the squares the combination touches
+  const sqs = ['d3','d8','e8','e4','f6','d2','g5','c7','d1','c1','h1','f1','g1','e5','c8','b8','a8','h8'];
+  const coords = {};
+  for (const s of sqs) { const v = view.squareXYZ(s); coords[s] = [ +v.x.toFixed(3), +v.y.toFixed(3), +v.z.toFixed(3) ]; }
+  window.__coords = coords;
+  console.log('COORDS ' + JSON.stringify(coords));
+  window.__enderReady = true;
+  st.textContent = 'ready · ' + view.pieces.size + ' pieces';
+  // ?t=<seconds> drives the master clock (intro + dolly + moves). Default 99 → fully assembled/mated still.
+  let T = parseFloat(new URLSearchParams(location.search).get('t') ?? '99');
+  function loop(){ requestAnimationFrame(loop); view.frame(T); view.tick(); view.render(); }   // rAF first → resilient to any throw
+  loop();
+  window.__setT = (t) => { T = t; };                     // probe can re-seek without reload
+} catch (e) { st.textContent = 'ERR ' + (e.message||e); console.error(e); window.__enderErr = String(e.message||e); }
+</script>
+</body>
+</html>

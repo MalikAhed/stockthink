@@ -9,8 +9,8 @@
       "args": ["-y", "@playwright/mcp@latest"]
     },
     "colab": {
-      "command": "/home/malikabuallatta/.local/bin/uvx",
-      "args": ["git+https://github.com/googlecolab/colab-mcp"]
+      "command": "/home/malikabuallatta/.local/bin/colab-mcp",
+      "args": []
     }
   }
 }

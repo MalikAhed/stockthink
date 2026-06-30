@@ -258,17 +258,28 @@ show a screenshot unprompted.
   opening layout). **NEXT: convert to video** (see "Cinematics = pre-rendered video") — clip the 3D, keep
   the captions/typed-code as live editable HTML.
 
-- **Beat 4 — THE FINALE — "the basement endgame" — DONE, now a PRE-RENDERED VIDEO (2026-06-23).**
-  Réti–Tartakower basement set (board on a table under a caged Edison bulb); the camera dollies from a
-  wide establishing shot to a **seated White-POV close-up**. It's a `<video>` now, not live WebGL — see
-  **"Cinematics = pre-rendered video"** above. `ender-video.js` keeps the scroll fade-to-black veil +
-  `body.ending` theme flip and **autoplays the clip on arrival** (zero WebGL, plays on EVERY tier).
-  `index.html`: section `.ender` (220vh) holds `<video id="enderVideo">`; `styles/ender.css` cover-fits it.
-  The live-3D finale (`ender.js`) is retired from the page; `ender-scene.js` (basement set: fog, SpotLight,
-  volumetric beam, Edison pendant, light pools — floor removed) + `ender-board.js` (per-piece FEN builder,
-  real URL GLBs) survive ONLY to re-render. Open FEN `rnb1kb1r/pp3ppp/2p2n2/4q3/4N3/3Q4/PPPB1PPP/2KR1BNR b
-  kq - 0 8`; the queen-sac move-beat sequence (8…Nxe4 🔴 · 9.Qd8+ ✨ · 10.Bg5+ double-check 🟢 · 11.Bd8# 👑)
-  is in git history if move-beats return.
+- **Beat 4 — THE FINALE — "The Queen's Grave" — the live move cinematic is DONE (2026-06-30).**
+  Réti–Tartakower basement set (board on a table under a caged Edison bulb). The full queen sacrifice now
+  PLAYS OUT as a live WebGL cinematic driven by ONE clock `view.frame(t)` (so it scrubs deterministically
+  AND bakes to `<video>` identically). Files: `ender.js` (controller: scroll veil + `body.ending` flip +
+  the real-time clock + the rating lower-third HUD), `ender-scene.js` (THE cinematic — see its top-of-file
+  tunables), `ender-board.js` (per-piece FEN builder, real URL GLBs). The retired `<video>` path
+  (`ender-video.js`) stays intact for after the bake.
+  **The cut (all tunable — `MOVES` table + `CAM_KEYS` in `ender-scene.js`, numbers not structure):**
+  establishing → pieces rain in → dolly to seated White POV → held beat → **8…Nxe4 🔴** (knight hops, grabs
+  the bait, cold-red flash; white Ne4 topples) → **9.Qd8+ ✨** (the queen's long low glide up the WHOLE
+  d-file into the king's lap, gold flare, big push-in) → **9…Kxd8** (forced; queen topples + fades, clearing
+  d8) → **10.Bg5+ 🟢** (clears d2 → unblocks Rd1 = DOUBLE check; the cut's ONE widen+lift+ORBIT so two
+  converging beams — rook d-file cool-teal + bishop diagonal gold — read as a wedge on d8) → **10…Kc7** (the
+  king flees, beams fade) → **11.Bd8# 👑** (the bishop returns to **d8, the queen's grave**, to mate; rook
+  d-file re-lights to show it guards; king resign-topples) → outro recompose. Throughout: the room DRAINS
+  to chiaroscuro (ambient/exposure/fog + a camera-child vignette) while the spotlight HUNTS the king.
+  Open FEN `rnb1kb1r/pp3ppp/2p2n2/4q3/4N3/3Q4/PPPB1PPP/2KR1BNR b kq - 0 8`. Line is engine-verified
+  (chessops + SF18 d24; `Kc7→Bd8#` chosen, `Ke8→Rd8#` is the verified sibling). Dev harness:
+  `editor/probes/finale-stage.html` + `probe-finale.mjs <t…>` (screenshots any beat) + `probe-finale-pos.mjs`
+  (numeric square check) + `badge-preview.html` (the HUD). **OPEN:** it's ~30s AUTOPLAY-on-arrival — long
+  for a scroll page; duration / the 220vh section / autoplay-vs-scroll-scrub are open dials for the user.
+  Re-render to video on approval (studio.js drives `frame(t)`; `FRAMES ≈ DURATION*24`).
 
 After the finale: an optional further cinematic — editable 3D masters now at
 `~/stockthink-3d-source/landing-source-html/` (the basement/board source HTML moved out of the repo).

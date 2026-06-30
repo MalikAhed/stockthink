@@ -84,14 +84,38 @@ export async function buildEnderBoard(fen, tableTopY = -0.80) {
   const finalBox = new THREE.Box3().setFromObject(board); const finalSize = finalBox.getSize(new THREE.Vector3());
   const topY = finalBox.max.y;
   const cx = (finalBox.min.x + finalBox.max.x) / 2, cz = (finalBox.min.z + finalBox.max.z) / 2;
-  const playX = finalSize.x * 0.80, playZ = finalSize.z * 0.80;
-  const stepX = playX / 8, stepZ = playZ / 8;
-  const GRID = { x0: cx - playX / 2 + stepX / 2, z0: cz - playZ / 2 + stepZ / 2, stepX, stepZ, y: topY };
 
-  // square -> world position (centre of the piece base)
+  // ---- fit the 8×8 grid to the ACTUAL playing surface (not a guessed 80% of the bounding box) ----
+  // The board GLB is one AI-generated mesh: a raised rim/frame around a flat top where the squares are
+  // PAINTED. Raycasting straight DOWN onto it recovers the real grid from two facts:
+  //   1) HEIGHT — the rim reads higher than the flat squares, so the piece-seat Y is the surface the ray
+  //      hits. (Seating at the bbox top, topY, put pieces on the rim "lid" → the hover the eye caught.)
+  //   2) EXTENT — scanning across the board, the contiguous span that reads at the flat surface height IS
+  //      the playing area; size the grid to that span and centre it there, instead of guessing 0.80.
+  board.updateMatrixWorld(true);
+  const _ray = new THREE.Raycaster(); const _DOWN = new THREE.Vector3(0, -1, 0); const _surf = new Map();
+  const rayY = (x, z) => { _ray.set(new THREE.Vector3(x, topY + 2, z), _DOWN); const h = _ray.intersectObject(board, true)[0]; return h ? h.point.y : null; };
+  const surfMid = rayY(cx, cz) ?? topY;                          // the squares' surface height (under the centre)
+  const onSurf = (x, z) => { const y = rayY(x, z); return y != null && Math.abs(y - surfMid) < 0.03; };
+  const span = (horiz) => {
+    let lo = null, hi = null;
+    for (let t = -2.6; t <= 2.6; t += 0.02) { if (horiz ? onSurf(cx + t, cz) : onSurf(cx, cz + t)) { if (lo == null) lo = t; hi = t; } }
+    return lo == null ? [-finalSize.x * 0.4, finalSize.x * 0.4] : [lo, hi];
+  };
+  const [xLo, xHi] = span(true), [zLo, zHi] = span(false);
+  const INSET = 0.06;                                            // trim a touch so edge pieces don't ride the label border
+  const playX = (xHi - xLo) - INSET, playZ = (zHi - zLo) - INSET;
+  const fitCx = cx + (xLo + xHi) / 2, fitCz = cz + (zLo + zHi) / 2;
+  const stepX = playX / 8, stepZ = playZ / 8;
+  const surfaceY = (x, z) => { const k = `${x.toFixed(3)},${z.toFixed(3)}`; if (_surf.has(k)) return _surf.get(k); const y = rayY(x, z); const v = y == null ? surfMid : y; _surf.set(k, v); return v; };
+  const GRID = { x0: fitCx - playX / 2 + stepX / 2, z0: fitCz - playZ / 2 + stepZ / 2, stepX, stepZ, y: topY, surfaceY };
+  if (import.meta.env && import.meta.env.DEV) console.log('[ender-board] fit playX=', +playX.toFixed(3), 'playZ=', +playZ.toFixed(3), 'centre=', +fitCx.toFixed(3), +fitCz.toFixed(3), 'surfY=', +surfMid.toFixed(3), 'hoverRemoved=', +(topY - surfMid).toFixed(3));
+
+  // square -> world position (centre of the piece base, seated on the real surface — never the rim)
   const squareXYZ = (sq) => {
     const col = FILES.indexOf(sq[0]); const rank = +sq[1];
-    return new THREE.Vector3(GRID.x0 + col * GRID.stepX, GRID.y - 0.002, GRID.z0 + (rank - 1) * GRID.stepZ);
+    const x = GRID.x0 + col * GRID.stepX, z = GRID.z0 + (rank - 1) * GRID.stepZ;
+    return new THREE.Vector3(x, surfaceY(x, z) - 0.002, z);
   };
 
   // ---- piece geometries (one URL load per type present in the FEN, then clone per instance) ----

@@ -31,8 +31,11 @@ async function boot() {
     view.renderer.setPixelRatio(SS);
     view.resize();
     reportRenderer(view.renderer);   // expose the GL renderer string so the recorder can confirm GPU vs SwiftShader
-    // freeze the subtle time-based rim drift so frames are a pure function of scroll progress p
-    window.RB.frame = (p) => { view.setShot(p); view.render(); };
+    // Drive the WHOLE master clock: p∈[0,1] maps across the full cinematic (intro dolly + rain + the moves +
+    // effects), so the baked clip is the live cut frame-for-frame. tick() (rim drift) is intentionally NOT
+    // called → every frame is a pure function of p (deterministic capture). Clip length = view.duration s.
+    window.RB.duration = view.duration;
+    window.RB.frame = (p) => { view.frame(p * view.duration); view.render(); };
     window.RB.fen = START_FEN;
     window.RB.ready = true;
     return;

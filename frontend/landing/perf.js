@@ -10,40 +10,61 @@
 // an FPS cap.
 
 // ---- device signals ------------------------------------------------------------------------------
-function gpuIsWeakOrMissing() {
+// Two DISTINCT questions, kept separate on purpose (conflating them was the bug that blanked the hero
+// on every GPU-less box — Linux VMs, crostini, CI): (1) is there a WebGL context AT ALL, and (2) is it
+// a *software* renderer. No context → DOM-only fallback. Software context → renders, just slowly, so we
+// still show the 3D and let the FPS watchdog demote live if real frames are janky.
+function hasWebGL() {
   try {
     const c = document.createElement('canvas');
     const gl = c.getContext('webgl') || c.getContext('experimental-webgl');
-    if (!gl) return true;                                   // no WebGL at all → DOM-only
+    if (!gl) return false;
+    const lose = gl.getExtension('WEBGL_lose_context'); if (lose) lose.loseContext();
+    return true;
+  } catch (e) { return false; }
+}
+function isSoftwareGL() {
+  try {
+    const c = document.createElement('canvas');
+    const gl = c.getContext('webgl') || c.getContext('experimental-webgl');
+    if (!gl) return false;
     const ext = gl.getExtension('WEBGL_debug_renderer_info');
     const r = ext ? String(gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) || '') : '';
     const lose = gl.getExtension('WEBGL_lose_context'); if (lose) lose.loseContext();
     return /swiftshader|software|llvmpipe|microsoft basic|mesa offscreen/i.test(r);
-  } catch (e) { return true; }
+  } catch (e) { return false; }
 }
 function detectTier() {
   try {
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) return 'min';
-    if (gpuIsWeakOrMissing()) return 'min';
+    if (!hasWebGL()) return 'min';                 // truly no WebGL → DOM fallback only
+    // Software GL (SwiftShader / llvmpipe) CAN render, just slowly → treat as 'low' (full 3D at dpr 1.0).
+    // The watchdog drops it live only if real frames actually jank. Was 'min' here, which blanked the
+    // hero + coach on every GPU-passthrough-less box even though they render fine on a real GPU.
+    if (isSoftwareGL()) return 'low';
     const n = navigator;
     if (n.connection && n.connection.saveData) return 'low';
     if (n.deviceMemory && n.deviceMemory <= 2) return 'low';
     const cores = n.hardwareConcurrency || 4;
     const mobile = /Android|iPhone|iPad|iPod|Mobile|Tablet|Silk|Kindle/i.test(n.userAgent || '');
     if (mobile) return 'low';
-    if (cores <= 4) return 'low';
+    // A 4-core *desktop* with a real GPU runs the hovering hero fine — core count is a poor proxy for
+    // GPU power, so don't blank the hero on it. (Mobile/saveData/low-RAM already fell through to 'low'.)
     if (cores <= 8) return 'mid';
     return 'high';
-  } catch (e) { return 'low'; }   // anything unexpected → assume weak
+  } catch (e) { return 'low'; }   // anything unexpected → assume weak (but still render)
 }
 
 // ---- quality presets per tier --------------------------------------------------------------------
-// hero   = the hovering hero pieces (heaviest: two full-screen contexts) — dropped FIRST on weak devices.
+// hero   = the hovering hero pieces (heaviest: two full-screen contexts).
 // gears  = the spinning decorative gears — KEPT longest (the user likes them).
 // cinema = the coach + finale story cinematics.
+// Only 'min' (no WebGL / reduced-motion) starts with 3D OFF. Every WebGL-capable tier renders the hero
+// at boot; if real frames jank, the watchdog demotes in the user's priority order (hero dropped FIRST,
+// gears last). So "drop the hero on weak devices" is now a measured, live decision — not a boot guess.
 const PRESETS = {
   min:  { dpr: 1.0,  antialias: false, fpsCap: 30, hero: false, gears: false, cinema: false },
-  low:  { dpr: 1.0,  antialias: false, fpsCap: 30, hero: false, gears: true,  cinema: true  },
+  low:  { dpr: 1.0,  antialias: false, fpsCap: 30, hero: true,  gears: true,  cinema: true  },
   mid:  { dpr: 1.25, antialias: false, fpsCap: 36, hero: true,  gears: true,  cinema: true  },
   high: { dpr: 1.5,  antialias: true,  fpsCap: 45, hero: true,  gears: true,  cinema: true  },
 };

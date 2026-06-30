@@ -376,10 +376,10 @@
      cinematic in its own basement scene; the page flips to black as you enter. Scene: ender.js. -->
 <section class="sec ender">
   <div class="ender-sticky">
-    <!-- The finale is a pre-rendered cinematic (recorded at max quality offline), so the live page runs
-         no WebGL here. Sources are injected by ender-video.js (BASE_URL-aware); muted+playsinline so it
-         can autoplay; preload none so the clip only downloads once the finale nears. -->
-    <video id="enderVideo" class="ender-canvas" muted playsinline preload="none"></video>
+    <!-- AUTHORING the live finale game: a WebGL canvas driven by ender.js — pieces rain into the
+         Réti–Tartakower position, the camera dollies to the seated White POV, then the moves play.
+         Bakes back to a <video> (ender-video.js) once approved; that path is retired-but-intact. -->
+    <canvas id="enderScene" class="ender-canvas"></canvas>
     <div class="ender-overlay" id="enderOverlay"></div>
   </div>
 </section>

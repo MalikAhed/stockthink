@@ -6,6 +6,26 @@ for /work sessions). Past ~300 lines, /reflect compresses the oldest half into
 LESSONS.md. Entries below 2026-06-12p were migrated verbatim from
 self-improvement/improve/TRACKER.md's daily log (2026-06-12) — history is not rewritten.
 
+- **2026-06-30a** · /ui (autonomous; ultracode) · Landing FINALE — the Réti–Tartakower queen sacrifice
+  now PLAYS OUT as a live WebGL move cinematic ("The Queen's Grave"). Built the move-beat timeline in
+  `landing/ender-scene.js` on top of the existing intro (rain + dolly): a keyframed cinematic camera
+  (`CAM_KEYS`/`setCam` — monotonic push, ONE motivated widen+orbit on the double-check, true held-still
+  brackets), per-move eased glides + capture topple-and-fade (`MOVES`/`setMoves`/`toppleCaptured`), two
+  converging double-check attack-line beams (rook d-file cool-teal + bishop diagonal gold via `aimBeam`),
+  a room-DRAIN to chiaroscuro (ambient/exposure/fog + a camera-child vignette) with the spotlight
+  continuously HUNTING the king's live position, the king resign-topple, and a rating lower-third HUD
+  (🔴 Blunder · ✨ Brilliant · 🟢 Double check · 👑 Checkmate) as live HTML (`ender.js` + `styles/ender.css`,
+  icons from publicDir `/badges/`). Everything is a pure function of one clock `frame(t)` → scrubs + bakes.
+  EVIDENCE: line engine-verified (chessops + Stockfish 18 d24 — 8…Nxe4 9.Qd8+ Kxd8 10.Bg5+ Kc7 11.Bd8# is
+  forced mate; Qd8+ the unique #1, mate-in-3); headless GL=sw probes confirm every beat renders and the
+  final mated position is numerically EXACT (knight→e4 · queen→d8 captured/gone · king→c7 · bishop→d8) incl.
+  the reduced-motion still; `frame(99)` throws no page errors; `npm run build` green; gate.e2e 2/2.
+  PROCESS (ultracode): a 4-director judge-panel workflow chose the direction (push-reveal spine, queen's-
+  grave through-line); a 4-dimension adversarial review (17+15 agents) came back CLEAN — chess 0 findings,
+  animation 7-raised/0-confirmed, 1 low perf nit fixed (vignette sized on resize, not per-frame).
+  OPEN for the user: it's a ~30s AUTOPLAY-on-arrival cinematic — long for a scroll page; duration, the
+  220vh section height, and autoplay-vs-scroll-scrub are easy dials (it's all `frame(t)`). Bakes to a
+  `<video>` on approval (studio.js recorder now drives `frame(t)`; render `FRAMES ≈ DURATION*24`).
 - **2026-06-17b** · /ui · Landing "How it works" Beat 1 (data-step 7) — built + approved the
   right-side **"engine in your browser" demo**: scan → board shrinks/fades → **square-node neural net
   "thinking"** (matches `user provides/neural-net`, teal→green, edges draw in 2 ramped stages,
