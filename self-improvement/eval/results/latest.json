@@ -17,14 +17,14 @@
       "pct": "82.4%"
     },
     "economy": {
-      "pts": 21,
+      "pts": 22,
       "max": 24,
-      "pct": "87.5%"
+      "pct": "91.7%"
     },
     "total": {
-      "pts": 66,
+      "pts": 67,
       "max": 78,
-      "pct": "84.6%"
+      "pct": "85.9%"
     }
   },
   "selective": {
@@ -35,8 +35,8 @@
     },
     "precision": {
       "num": 14,
-      "den": 18,
-      "pct": "77.8%"
+      "den": 17,
+      "pct": "82.4%"
     }
   },
   "cases": [
@@ -705,12 +705,12 @@
         "economy"
       ],
       "classification": "best",
-      "leadKind": "second_candidate",
+      "leadKind": null,
       "factKinds": [
         "creates_pin",
         "second_candidate"
       ],
-      "text": "One of the main candidate moves here — only Qxa6 promised a bit more.",
+      "text": "Exactly the right move.",
       "more": null,
       "checks": {
         "mentionsOk": true,
@@ -723,11 +723,11 @@
         "falseAlarm": false
       },
       "scores": {
-        "economy": 0
+        "economy": 1
       },
       "selective": {
         "needsExplanation": false,
-        "emitted": true,
+        "emitted": false,
         "correct": false
       }
     }

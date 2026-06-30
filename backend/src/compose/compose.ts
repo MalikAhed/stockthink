@@ -217,8 +217,14 @@ export function composeComment(m: MoveReport): Comment {
       used.push(qs);
     }
     if (parts.length === 0) {
-      // GM-1: candidate framing beats a generic neutral line
-      const sc = !m.wasBest && facts.find(f => f.kind === 'second_candidate');
+      // GM-1: candidate framing beats a generic neutral line — but a move already
+      // in the engine's TOP tier is not a "second candidate" ("only X promised
+      // more" contradicts a best/great/brilliant verdict), so it falls to the
+      // honest neutral line instead. (Under hash carryover a near-equal best move
+      // can be the engine's line 2 — Phase 2: don't voice a contradiction.)
+      const topTier =
+        m.classification === 'best' || m.classification === 'great' || m.classification === 'brilliant';
+      const sc = !m.wasBest && !topTier && facts.find(f => f.kind === 'second_candidate');
       if (sc) {
         parts.push(sentence(sc)!);
         used.push(sc);

@@ -67,6 +67,7 @@ a moved number below is a feeling, not a fact (Laws of the Loop).
 | Date | Causal | Grounded | Economy | Total | Cases | Tests | Recall avg | src LOC |
 |---|---|---|---|---|---|---|---|---|
 <!-- eval-history -->
+| 2026-07-01 | 85.0% | 82.4% | 91.7% | 85.9% | 19 | 264/265 | 94.8% | 6947 |
 | 2026-06-30 | 85.0% | 82.4% | 87.5% | 84.6% | 19 | 249/250 | 94.8% | 6831 |
 | 2026-06-30 | 85.0% | 82.4% | 95.5% | 86.8% | 18 | 249/250 | 94.8% | 6831 |
 | 2026-06-30 | 85.0% | 91.2% | 95.5% | 90.8% | 18 | 249/250 | 94.8% | 6831 |
@@ -99,6 +100,7 @@ Exact, from `score.ts` (derived from the same per-case checks — no new behavio
 | Date | Coverage | Precision | Cases | Notes |
 |---|---|---|---|---|
 <!-- selective-history -->
+| 2026-07-01 | 100.0% | 82.4% | 19 | precision +4.6 (coinc-pin-be5 → honest silence) |
 | 2026-06-30 | 100.0% | 77.8% | 19 | |
 | 2026-06-30 | 100.0% | 82.4% | 18 | |
 | 2026-06-30 | 100.0% | 82.4% | 18 | |

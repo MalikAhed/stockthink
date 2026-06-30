@@ -324,4 +324,24 @@ describe('composeComment — PV-grounding (Phase 2: demote decorative pins)', ()
     const c = composeComment(goodPin(undefined));
     expect(c.text).toContain('pins the knight on f6');
   });
+
+  it('a best-tier move is never framed as a "second candidate" (contradiction → neutral line)', () => {
+    // hash-carryover artifact: a near-equal best move can be the engine's line 2,
+    // firing second_candidate — but "only Qa6 promised more" contradicts [best]
+    const c = composeComment(
+      move({
+        classification: 'best',
+        wasBest: false,
+        san: 'Be5',
+        uci: 'f4e5',
+        evalBefore: { cp: 140 },
+        evalAfter: { cp: 140 },
+        winDrop: 1,
+        facts: [{ kind: 'second_candidate', best: { san: 'Qa6', uci: 'd3a6' } }],
+        lines: [{ eval: { cp: 140 }, sanPv: [], uciPv: ['f4e5'] }],
+      }),
+    );
+    expect(c.text).not.toMatch(/candidate|promised/i);
+    expect(c.text.length).toBeGreaterThan(0); // an honest neutral line, never empty
+  });
 });

@@ -50,9 +50,15 @@ real pin (dxe5/d6, engine plays exd6) KEPT, decorative coinc-pin-be5 (f6 absent)
 stable across runs. LESSON baked in: ground against `[uci,...replyPv]`, NEVER `lines[0]` (hash carryover
 makes it a different move's line). Eval flat at 84.6% on purpose (fake pin gone = FALSE→true, but the
 case is hash-borderline so a true `second_candidate` fills the gap → economy 0; full silence is Phase 3).
-**Next: Phase 2.3** (gate bad-move causes on the refutation PV) · **2.1** (general positional/fork
-grounding) · **2.4** (magnitude-coherence guard). §5a everywhere; re-run gate.e2e after each. 0.4's 2–3
-fake-reason cases stay open — deferred, not blocked.
+**coinc-pin-be5 SOLVED ✅ (2026-07-01) — FIRST measurable arc win:** a best-tier move (best/great/
+brilliant) is never framed as a `second_candidate` (it contradicts the verdict) → falls to its honest
+neutral line. With the pin cut AND that framing suppressed it reads "Exactly the right move." → E0→E1,
+**ECONOMY 87.5→91.7 · PRECISION 77.8→82.4 · TOTAL 84.6→85.9** (only that case moved; stable across runs;
+[good]/[excellent] second-candidate framing preserved). **Next — honest read:** 2.3/2.1/2.4 all lack a
+clean aspiration case to PROVE a gain (the positional/fork fake-reason cases are 0.4's deferred ones;
+opera-09-b5's wrong lead is a CONTENT gap → BACKLOG #1, name the Nxb5 sac). Highest-leverage now is
+**Phase 3 (silence/confidence layer)** — all four signals are plumbed and it generalizes today's
+hand-built silence into a principled badge state. §5a everywhere; re-run gate.e2e after each.
 
 | # | Tag | Item | Sev | Payoff / evidence |
 |---|---|---|---|---|

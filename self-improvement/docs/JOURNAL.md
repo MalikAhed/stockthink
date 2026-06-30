@@ -6,6 +6,18 @@ for /work sessions). Past ~300 lines, /reflect compresses the oldest half into
 LESSONS.md. Entries below 2026-06-12p were migrated verbatim from
 self-improvement/improve/TRACKER.md's daily log (2026-06-12) — history is not rewritten.
 
+- **2026-07-01b** · /chess · **coinc-pin-be5 → honest silence (FIRST measurable arc WIN)** — completed
+  what 2.2 set up. A best-tier move (best/great/brilliant) is never framed as a `second_candidate` —
+  "only Qa6 promised more" CONTRADICTS a [best] verdict; it now falls to the honest neutral line. This
+  closes the hash-borderline gap 2.2 exposed: with the decorative pin cut AND the contradictory candidate
+  framing suppressed, coinc-pin-be5 reads "Exactly the right move." → leadKind null → E0→E1, STABLE across
+  2 runs. NUMBERS MOVED UP: ECONOMY 87.5→91.7%, PRECISION 77.8→82.4%, TOTAL 84.6→85.9% (every other dim
+  byte-identical; the only case that moved). Safe by scope: a [good]/[excellent] move CAN be a second
+  candidate (gate's "14…Qe6 [good]" framing preserved) — only the top-tier contradiction is cut, and zero
+  eval case ever wanted second_candidate as a lead (grep-verified). suite 264/265. Next: Phase 2.3
+  (refutation-PV grounding) / 2.1 (positional+fork grounding) both lack clean aspiration cases (the
+  positional/fork fake-reason cases are 0.4's deferred ones); opera-09-b5's wrong lead is a CONTENT gap
+  (BACKLOG #1: name the Nxb5 sac), not a grounding one. Phase 3 (silence layer) signals are all plumbed.
 - **2026-07-01a** · /chess · **Phase 2.2 (PV-grounding: demote decorative pins)** — first BEHAVIOUR
   change of the arc. A `creates_pin` may be voiced only if the engine's line FROM THE PLAYED MOVE
   (`[uci, ...replyPv]`) actually acts on the pinned square; an untouched pin is geometry, not cause,
