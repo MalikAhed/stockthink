@@ -16,7 +16,7 @@ import { parseFen } from 'chessops/fen';
 import { makeSan } from 'chessops/san';
 import { parseUci } from 'chessops/util';
 import type { NormalMove } from 'chessops/types';
-import { annotateMove } from '../concepts/annotate';
+import { annotateMove, type AnnotateContext } from '../concepts/annotate';
 import type { Fact } from '../concepts/facts';
 import { classificationScore, classifyMove, type Classification } from './classify';
 import { openingBook } from './openings';
@@ -73,6 +73,27 @@ const cpForAcpl = (ev: EvalScore): number =>
   ev.mate !== undefined ? (ev.mate > 0 ? 1000 : -1000) : Math.max(-1000, Math.min(1000, ev.cp ?? 0));
 
 /**
+ * Assemble the annotator context from the before/after engine analyses.
+ * Carries the free engine signals the grounding/silence layers will read —
+ * the after-position reply lines and the before-position shallow eval — which
+ * `buildMoveReport` otherwise drops at the door (RESEARCH §1.2–1.3). Data only:
+ * no detector consumes the new fields yet, so the facts are unchanged.
+ */
+export function annotateContext(
+  before: PositionAnalysis,
+  after: PositionAnalysis | undefined,
+  derived: Pick<AnnotateContext, 'evalBefore' | 'evalAfter' | 'winDrop' | 'bestUci'>,
+): AnnotateContext {
+  return {
+    ...derived,
+    lines: before.lines.map(l => ({ eval: l.eval, pvUci: l.pvUci })),
+    replyPv: after?.lines[0]?.pvUci,
+    replyLines: after?.lines.map(l => ({ eval: l.eval, pvUci: l.pvUci })),
+    shallowEval: before.shallowEval,
+  };
+}
+
+/**
  * One ply + its before/after engine analyses → a fully classified MoveReport.
  * Shared by the PGN review (buildReport) and the live "try a move" path —
  * one pipeline, one set of rules.
@@ -96,14 +117,7 @@ export function buildMoveReport(
   const played = parseUci(ply.uci) as NormalMove | undefined;
   const facts =
     played && pos.isLegal(played)
-      ? annotateMove(pos, played, {
-          evalBefore,
-          evalAfter,
-          winDrop,
-          bestUci,
-          lines: before.lines.map(l => ({ eval: l.eval, pvUci: l.pvUci })),
-          replyPv: after?.lines[0]?.pvUci,
-        })
+      ? annotateMove(pos, played, annotateContext(before, after, { evalBefore, evalAfter, winDrop, bestUci }))
       : [];
   const m: MoveReport = {
     ...ply,

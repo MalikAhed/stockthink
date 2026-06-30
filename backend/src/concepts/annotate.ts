@@ -62,6 +62,20 @@ export interface AnnotateContext {
   lines: EngineLineInput[];
   /** Best-line UCIs from the position AFTER the move (opponent's refutation). */
   replyPv?: string[];
+  /**
+   * MultiPV lines from the position AFTER the move (opponent's replies),
+   * white-POV. `replyLines[0]` is the refutation `replyPv` heads; `[1..]` are
+   * the alternative replies — used to prove a punishment is unique (Phase 2.3:
+   * a refutation is "only this" only when `replyLines[1]` is materially worse).
+   */
+  replyLines?: EngineLineInput[];
+  /**
+   * White-POV shallow eval of the position BEFORE the move (first completed
+   * mainline iteration). `|shallowEval − evalBefore|` is the before-position
+   * volatility margin (>~60–70cp ⇒ static features about to be overturned,
+   * arXiv:2412.17948) — the silence layer's instability signal (Phase 3).
+   */
+  shallowEval?: EvalScore;
 }
 
 /** winDrop (mover POV, win%) at which "missed X" / refutation facts apply. */

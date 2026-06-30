@@ -32,9 +32,13 @@ win though the engine never exploits it (TOTAL→84.6%, PRECISION→77.8%). A 2n
 broke on hash-carry (full run flipped its borderline class — LESSONS.md) and was dropped.
 DECIDED on `opera-09-b5`: do NOT bless `invites_capture` — "runs into Nxb5" undersells the
 knight SAC as a pawn-grab; the real fix is a fact that names the attack (future U2b / Phase 2),
-not relaxing the spec. **Next: finish 0.4** (2–3 more probe-verified fake-reason cases —
-pins/forks/"develops", each RE-CHECKED in the full `--dry` run) **then Phase 1** (plumb the free
-engine signals: WDL, shallowEval, the dropped after-PVs, per-depth trajectory).
+not relaxing the spec. **Phase 1.2–1.3 ✅ (2026-06-30):** threaded the two signals `report.ts` dropped at the door into
+`AnnotateContext` via a new `annotateContext()` seam — `before.shallowEval` (1.2, the volatility
+margin) + the full after-position `replyLines[]` with evals (1.3, the Phase-2.3 uniqueness input).
+DATA ONLY — no detector reads them yet, so eval HELD at 84.6%/77.8%, suite 253/254, §5a honoured
+(gate stays OUT of the recall-tested predicates). **Next: Phase 1.1** (`UCI_ShowWDL` + runtime-probe
+onto `EngineLine`) **then 1.4** (per-depth trajectory via the existing `onDepth` hook); 0.4's 2–3
+remaining fake-reason cases stay open — deferred, not blocked.
 
 | # | Tag | Item | Sev | Payoff / evidence |
 |---|---|---|---|---|

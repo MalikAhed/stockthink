@@ -6,6 +6,19 @@ for /work sessions). Past ~300 lines, /reflect compresses the oldest half into
 LESSONS.md. Entries below 2026-06-12p were migrated verbatim from
 self-improvement/improve/TRACKER.md's daily log (2026-06-12) — history is not rewritten.
 
+- **2026-06-30f** · /chess · **Phase 1.2+1.3** — plumbed the two signals `report.ts` dropped at
+  the door into `AnnotateContext`: `before.shallowEval` (1.2 — volatility margin for the Phase-3
+  silence layer) and the full after-position `replyLines[]` with evals (1.3 — `[0]` is the
+  refutation `replyPv` heads, `[1..]` the alternatives Phase 2.3 needs to prove a punishment is
+  "only this"). Extracted `annotateContext(before, after, derived)` — the seam that makes the
+  plumbing observable (no `vi.mock`, not idiomatic here) + the home for Phase 2's grounding gate;
+  it reuses buildMoveReport's already-computed eval/winDrop/bestUci (single source, no drift).
+  DATA ONLY: no detector reads the new fields ⇒ facts/classifications/comments byte-identical, eval
+  HELD at TOTAL 84.6% / PRECISION 77.8% (vs 0.4), gate.e2e comments unchanged, full suite 253/254
+  (+4 new `report.test.ts`), tsc clean. Per §5a the gate stays OUT of the detector predicates the
+  recall harness calls ⇒ recall structurally safe. Reverted the no-quality-change tool appends to
+  METRICS.md + metrics.json (BACKLOG #7) — a held number is not a new dated measurement. Next:
+  Phase 1.1 (`UCI_ShowWDL` + runtime-probe) or finish 0.4's 2–3 full-run-verified cases.
 - **2026-06-30e** · /chess · **Phase 0.4 (begun)** — started populating the fake-reason class the
   arc exists to kill. SYSTEM UPGRADE: `eval/probe.ts` runs the real pipeline on candidate FEN+move
   pairs BEFORE positions.json (class, winDrop, facts, lead, comment, PVs) → crafted cases verified,
