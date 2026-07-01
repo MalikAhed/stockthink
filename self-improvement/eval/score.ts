@@ -10,9 +10,9 @@
  *              for merely dodging the blocklist)
  *   ECONOMY  — quiet when there is nothing to teach (NB: composeComment never
  *              returns empty text by design (R3); economy = one short line,
- *              zero false teaching — NOT emptiness). 0.2: on an `expectSilence`
- *              case the honest output is the badge alone, so a neutral filler
- *              caps at 1 and a voiced cause scores 0 until the badge state ships.
+ *              zero false teaching — NOT emptiness). On an `expectSilence` case the
+ *              honest output is the badge: since Phase 3.3 a first-class badge state
+ *              (`Comment.badge`) earns 2, a neutral filler caps at 1, a voiced cause 0.
  *
  * PLUS one set-level paired metric — the honesty axis the per-case dims are
  * structurally blind to (see docs/RESEARCH-explaining-the-why.md, Phase 0.1):
@@ -205,11 +205,11 @@ function scoreCase(c: EvalCase, m: MoveReport, comment: Comment): CaseResult {
       // missing. (Aligns the dim with the Phase 0.1 `correct` signal, which already needs leadOk.)
       scores.grounded = forbiddenHits.length > 0 || !classOk || !leadOk ? 0 : factsOk ? 2 : 1;
     if (dim === 'economy') {
-      // Phase 0.2: when badge-only silence was the honest call, voicing a concrete
-      // cause invents a reason (0) and a neutral filler line over-speaks (1). A real
-      // badge-only output would earn 2, but that is impossible until compose gains a
-      // badge state (Phase 3) — so an expectSilence case caps at 1 today (aspiration).
-      if (c.expectSilence) scores.economy = emitted ? 0 : 1;
+      // Phase 0.2 / 3.3: on an expectSilence move the honest output is the badge.
+      // The first-class silence state (Comment.badge, Phase 3.3) now earns 2; a
+      // neutral filler line over-speaks (1); voicing a concrete cause invents a
+      // reason (0). This is the aspiration ceiling the rubric was holding open.
+      if (c.expectSilence) scores.economy = comment.badge ? 2 : emitted ? 0 : 1;
       else scores.economy = falseAlarm ? 0 : sentences <= maxSentences ? 2 : sentences <= maxSentences + 1 ? 1 : 0;
     }
   }

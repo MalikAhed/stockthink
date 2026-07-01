@@ -63,15 +63,19 @@ hand-built silence into a principled badge state. §5a everywhere; re-run gate.e
 now carries { volatilityCp = |shallow−deep|, lateFlip = trajectory advantage-flip 2nd-half, depth,
 topSpreadCp = |PV1−PV2| ("no dominant idea"), drawPermille = WDL draw share ("equal") } — all DATA
 ONLY, R1-safe, nothing consumes yet (eval held 85.9%, suite 271/272, 7 unit tests).
+**Phase 3.3 ✅ (2026-07-01) — badge state shipped, economy WIN:** `Comment.badge` = true when a good
+move has no groundable concrete cause (falls to a bare classification line); `score.ts` credits
+`expectSilence` + badge → economy 2 (was capped at 1). coinc-pin-be5 + blk-04b → E1→E2, **ECONOMY
+91.7→100.0 · TOTAL 85.9→88.5** (text UNCHANGED — badge is a flag; gate landmarks intact, suite 274/275).
+The earlier "no eval evidence" worry was wrong — the rubric held the ceiling open for exactly this.
 **◄ RESUME HERE (next /chess session):** pick ONE —
-  **(a) Phase 3.3/3.4** — consume `confidence`: add a first-class badge-only `Comment` and route
-  Gate-2 failures (high volatilityCp / lateFlip / small topSpreadCp / high drawPermille + no grounded
-  cause) to it, replacing the position-blind NEUTRAL pool. RISKY behaviour change with NO current eval
-  case to prove a gain (coinc-pin-be5 already solved, blk-04b already silent) → use conservative
-  thresholds and re-read EVERY gate.e2e comment (must not mute delivers_mate / Qb8+ sac).
-  **(b) BACKLOG #2 fork-priority** — but pz-fork-miss-000Pw is hash-borderline (clean isolated, C1/G0 in
-  the full run); needs a non-borderline crafted case first (LESSONS: crafted FENs burn).
-  **(c) BACKLOG #1 content** — name the Nxb5 sac (opera-09-b5) — this is [T1], runs via the improve workshop.
+  **(a) Phase 3.4** — replace the position-blind NEUTRAL ply-parity rotation with the two honest §6
+  outputs, USING `confidence` (high volatilityCp / lateFlip / small topSpreadCp / high drawPermille →
+  a "too deep / equal" marker), and close the great/brilliant empty-text path. Refines badge TEXT; no new
+  eval case, so keep gate.e2e byte-identical-or-better + suite green (watch delivers_mate / Qb8+ sac).
+  **(b) BACKLOG #2 fork-priority** — pz-fork-miss-000Pw is hash-borderline (clean isolated, C1/G0 full run);
+  craft a non-borderline case first (LESSONS: crafted FENs burn).
+  **(c) BACKLOG #1 content** — name the Nxb5 sac (opera-09-b5) — [T1], via the improve workshop.
 §5a everywhere; re-run gate.e2e after every block. 0.4's 2–3 fake-reason cases stay open — deferred.
 
 | # | Tag | Item | Sev | Payoff / evidence |

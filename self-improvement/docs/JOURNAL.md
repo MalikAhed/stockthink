@@ -6,6 +6,18 @@ for /work sessions). Past ~300 lines, /reflect compresses the oldest half into
 LESSONS.md. Entries below 2026-06-12p were migrated verbatim from
 self-improvement/improve/TRACKER.md's daily log (2026-06-12) — history is not rewritten.
 
+- **2026-07-01e** · /chess · **Phase 3.3 (first-class badge state — economy WIN)** — shipped the badge
+  the rubric had been holding open. `Comment.badge` is set when a good move produces no groundable
+  concrete cause and falls to a bare classification line (honest silence, not an invented reason);
+  `score.ts` now credits `expectSilence` + badge → economy 2 (was capped at 1: "impossible until compose
+  gains a badge state"). Both silence cases earn it: coinc-pin-be5 + blk-04b-qg5 → E1→E2. **ECONOMY
+  91.7→100.0%, TOTAL 85.9→88.5%** (CAUSAL/GROUNDED/COVERAGE/PRECISION byte-identical — cleanly isolated
+  to economy). ZERO prose churn: badge is a FLAG, text unchanged → gate.e2e landmarks all intact (Rxd7
+  sac, Qb8+ sac, Rd8#/Nf3# mates read true), suite 274/275. Not gaming the metric — the badge is a real
+  signal ("no concrete cause to voice"), and crediting honest silence 2 is exactly the ceiling Phase 0.2
+  designed. Next: **Phase 3.4** — replace the position-blind NEUTRAL ply-parity rotation + close the
+  great/brilliant empty-text path with the two honest §6 outputs (refines badge TEXT; no new eval case,
+  keep gate.e2e byte-identical or better).
 - **2026-07-01d** · /chess · **Phase 3.2 (silence signals: "no dominant idea" + "equal")** — extended
   `MoveReport.confidence` with `topSpreadCp` (|PV1−PV2| eval gap — small ⇒ many equal moves, no dominant
   idea) and `drawPermille` (best-line WDL draw share — high + cp≈0 ⇒ genuinely equal). DATA ONLY, eval

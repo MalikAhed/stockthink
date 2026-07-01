@@ -345,3 +345,37 @@ describe('composeComment — PV-grounding (Phase 2: demote decorative pins)', ()
     expect(c.text.length).toBeGreaterThan(0); // an honest neutral line, never empty
   });
 });
+
+describe('composeComment — badge state (Phase 3.3: honest silence)', () => {
+  it('sets badge on a good move with no groundable concrete cause (falls to neutral)', () => {
+    const c = composeComment(move({ classification: 'best', wasBest: true, winDrop: 0, facts: [] }));
+    expect(c.badge).toBe(true);
+    expect(c.text.length).toBeGreaterThan(0); // R3: badge text is never empty
+  });
+
+  it('does not set badge when a concrete purpose fact leads', () => {
+    const c = composeComment(
+      move({
+        classification: 'great',
+        wasBest: true,
+        winDrop: 0,
+        facts: [
+          {
+            kind: 'creates_fork',
+            forker: { role: 'knight', square: 'e2' },
+            targets: [
+              { role: 'king', square: 'g1' },
+              { role: 'queen', square: 'c3' },
+            ],
+          },
+        ],
+      }),
+    );
+    expect(c.badge).toBeFalsy();
+    expect(c.text).toContain('fork');
+  });
+
+  it('does not set badge on a bad move (it names the better move, not silence)', () => {
+    expect(composeComment(move({ classification: 'blunder', facts: [] })).badge).toBeFalsy();
+  });
+});

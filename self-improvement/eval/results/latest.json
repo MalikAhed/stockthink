@@ -1,5 +1,5 @@
 {
-  "date": "2026-06-30",
+  "date": "2026-07-01",
   "defaults": {
     "nodes": 60000,
     "multiPv": 3,
@@ -17,14 +17,14 @@
       "pct": "82.4%"
     },
     "economy": {
-      "pts": 22,
+      "pts": 24,
       "max": 24,
-      "pct": "91.7%"
+      "pct": "100.0%"
     },
     "total": {
-      "pts": 67,
+      "pts": 69,
       "max": 78,
-      "pct": "85.9%"
+      "pct": "88.5%"
     }
   },
   "selective": {
@@ -281,7 +281,7 @@
         "falseAlarm": false
       },
       "scores": {
-        "economy": 1
+        "economy": 2
       },
       "selective": {
         "needsExplanation": false,
@@ -723,7 +723,7 @@
         "falseAlarm": false
       },
       "scores": {
-        "economy": 1
+        "economy": 2
       },
       "selective": {
         "needsExplanation": false,

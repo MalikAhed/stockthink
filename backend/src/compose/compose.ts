@@ -33,6 +33,14 @@ export interface Comment {
    */
   more: string | null;
   chips: VariationChip[];
+  /**
+   * Phase 3 — first-class honest-silence output: the composer found no groundable
+   * concrete cause to voice, so `text` is the classification badge line, NOT an
+   * invented reason. Lets the eval (and UI) tell true silence apart from a voiced
+   * cause — on an `expectSilence` move a badge is the honest call, a filler
+   * over-speaks. (R3 still holds: `text` is never empty.)
+   */
+  badge?: boolean;
 }
 
 // exported for self-improvement/eval/score.ts — the truth harness must judge with the same
@@ -155,6 +163,9 @@ export function composeComment(m: MoveReport): Comment {
 
   const used: Fact[] = [];
   const parts: string[] = [];
+  // Phase 3 — set when the move produces no groundable concrete cause and falls
+  // to a bare classification line: honest silence, not an invented reason.
+  let badge = false;
 
   const isBadMove =
     m.classification === 'inaccuracy' ||
@@ -231,6 +242,7 @@ export function composeComment(m: MoveReport): Comment {
       } else {
         const pool = NEUTRAL[m.classification];
         if (pool) parts.push(pool[Math.floor(m.ply / 2) % pool.length]);
+        badge = true; // honest silence — no groundable concrete cause to voice
       }
     }
   }
@@ -275,6 +287,7 @@ export function composeComment(m: MoveReport): Comment {
     text: parts.join(' '),
     more: rest.length ? rest.join(' ') : null,
     chips,
+    badge,
   };
 }
 
