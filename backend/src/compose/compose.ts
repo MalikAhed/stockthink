@@ -178,21 +178,30 @@ export function composeComment(m: MoveReport): Comment {
   } else if (isBadMove) {
     // R5: cause → consequence first
     const cause = badFacts.find(f => f.kind !== 'regression') ?? badFacts[0];
-    // BACKLOG #2: a move that missed a concrete winning tactic (a fork, a free
-    // piece, a forced mate) must LEAD with what was on the table. When the only
-    // named fault is a soft `abandons_square` walk-away, that incidental square is
-    // a footnote to the missed win, not the headline — so the missed tactic leads
-    // and the walk-away follows. Scoped to abandons_square on purpose: a hangs_piece
-    // / ignores_threat / allows_mate fault IS the concrete story and still leads.
-    const bigMiss = missedFacts.find(
-      f => f.kind === 'missed_fork' || f.kind === 'missed_free_piece' || f.kind === 'missed_mate',
-    );
-    const leadMiss = cause?.kind === 'abandons_square' ? bigMiss : undefined;
+    // BACKLOG #1/#2: a named concrete winner must LEAD over a SOFT fault — an
+    // incidental `abandons_square` walk-away, or a bare `regression` platitude with
+    // no concrete bad fact behind it (the V1 disease: "gives up the center" burying
+    // "Nxd4 wins a knight"). Promote the missed tactic, or the capture the engine
+    // itself preferred; a hangs_piece / ignores_threat / allows_mate fault IS the
+    // concrete story and still leads (R5). NB the promoted miss must be concrete —
+    // never a positional/quiet `missed_idea` (that's just a second platitude).
+    const bigMiss =
+      missedFacts.find(
+        f => f.kind === 'missed_fork' || f.kind === 'missed_free_piece' || f.kind === 'missed_mate',
+      ) ??
+      missedFacts.find(
+        f => f.kind === 'missed_idea' && f.ideas.some(i => i.what === 'captures' || i.what === 'wins_material'),
+      );
+    const softLead = cause?.kind === 'abandons_square' || cause?.kind === 'regression';
+    const leadMiss = softLead ? bigMiss : undefined;
     if (leadMiss) {
       parts.push(sentence(leadMiss)!);
       used.push(leadMiss);
     }
-    if (cause && !used.includes(cause)) {
+    // keep an `abandons_square` as the follow-up consequence, but a bare
+    // `regression` reads as an ambiguous "It …" after a different-move lead — let
+    // it fall to "explain more" instead of muddying the headline.
+    if (cause && !used.includes(cause) && !(leadMiss && cause.kind === 'regression')) {
       parts.push(sentence(cause)!);
       used.push(cause);
     }

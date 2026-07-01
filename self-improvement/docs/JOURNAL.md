@@ -6,6 +6,24 @@ for /work sessions). Past ~300 lines, /reflect compresses the oldest half into
 LESSONS.md. Entries below 2026-06-12p were migrated verbatim from
 self-improvement/improve/TRACKER.md's daily log (2026-06-12) — history is not rewritten.
 
+- **2026-07-01h** · /chess · **BACKLOG #1 (blk-04) — a lone `regression` platitude yields the lead to
+  the capture the engine preferred (arc win #3)** — extended the 07-01g demotion: when a bad move's only
+  fault is a bare `cedes_center`-style `regression` (no concrete bad fact behind it) AND it missed a
+  CONCRETE winner (a fork/free-piece/mate, or a `missed_idea` whose idea is captures/wins_material), the
+  concrete miss LEADS and the platitude drops to "explain more" (it reads as an ambiguous "It …" after a
+  different-move lead). §5a — compose lead-selection only. KEY FINDING (probe, then FULL-run verified):
+  the improve-TODO's U2b plan — voice "4…Qg5 forks g2 + the e5 knight" — is a FAKE reason here; the
+  engine's own line `Qg5 5.Bxf7+ Kd8 6.Ng4` SAVES both (knight escapes to g4, g2 untaken), winDrop only
+  6.4 → nothing wins by force. The honest grounded lead is the capture the engine chose, 4.Nxd4
+  (missed_idea) — which the case realCause already blessed; added missed_idea to blk-04's leadFactIn
+  (spec ← its own realCause). blk-04 C1/G0→C2/G2. **CAUSAL 90.0→95.0 · GROUNDED 88.2→94.1 · PRECISION
+  88.2→94.1 · TOTAL 92.3→96.2** (ECONOMY/COVERAGE held; only blk-04 moved). gate.e2e 2/2 — READ every
+  comment: 4.Nxe5 now leads Nxd4 (regression → "more"); opera 10…cxb5's missed_idea is a `prepares`-pin
+  (excluded by the captures/wins_material filter) → untouched; sacs/mates structurally safe (good-move
+  branch). suite 279/280 (+2 compose units: the fire + a positional-idea no-fire guard), tsc clean.
+  Recorded the U2b finding in improve/TODO.md so no future session rebuilds the ungrounded detector.
+  SOLE remaining wrong-lead: opera-09-b5 (name the Nxb5! sac — invites_capture undersells a knight sac;
+  genuine [T1] content, needs the give-and-regain detector). Session arc: TOTAL 84.6→96.2 (two blocks).
 - **2026-07-01g** · /chess · **BACKLOG #2 fork-priority — a missed HUGE tactic now LEADS over a soft
   `abandons_square` (arc win #2)** — in compose's bad-move branch, when the only named fault is an
   `abandons_square` walk-away AND the move missed a concrete winner (missed_fork / missed_free_piece /

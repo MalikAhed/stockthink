@@ -83,9 +83,9 @@
       "dims": ["causal", "grounded"],
       "expectClass": ["inaccuracy", "mistake"],
       "expectFacts": [["refutation", "allows_fork", "missed_free_piece", "missed_idea", "hangs_piece", "ignores_threat"]],
-      "leadFactIn": ["refutation", "allows_fork", "hangs_piece", "ignores_threat", "missed_free_piece"],
+      "leadFactIn": ["refutation", "allows_fork", "hangs_piece", "ignores_threat", "missed_free_piece", "missed_idea"],
       "mustMention": [["Qg5", "Nxd4"]],
-      "realCause": "PARTIAL-CREDIT CASE: taking e5 walks into the gambit's point 4...Qg5! double-attacking g2 and the knight. Engine prefers 4.Nxd4. A center-regression lead is true but weak; the concrete answer (Qg5 or the safe Nxd4 capture) should carry the comment."
+      "realCause": "PARTIAL-CREDIT CASE: taking e5 walks into 4...Qg5, but the engine line (Qg5 5.Bxf7+ Kd8 6.Ng4) SAVES both g2 and the e5 knight — the double attack does NOT win by force (2026-07-01g probe), so voicing 'Qg5 forks g2+knight' would be a fake reason (R5). The honest, grounded lead is the capture the engine actually preferred: 4.Nxd4 (missed_idea). A center-regression lead is the weak platitude to demote."
     },
     {
       "id": "blk-04b-qg5",

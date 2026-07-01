@@ -78,22 +78,29 @@ eval held 88.5%, suite 275/276. **Silence layer done:** signals (3.1–3.2) · b
 allows_mate fault still leads — R5). pz-fork-miss-000Pw C1/G0→C2/G2 — the hash-borderline case, reproduced
 AND fixed in the FULL run (not `--explain`). **CAUSAL 85.0→90.0 · GROUNDED 82.4→88.2 · PRECISION 82.4→88.2
 · TOTAL 88.5→92.3** (one case moved, rest byte-identical; gate landmarks intact; suite 277/278).
-**◄ RESUME HERE (next /chess session):** the clean high-leverage silence + lead-priority wins are captured;
-what's left:
+**BACKLOG #1 (blk-04) ✅ (2026-07-01h) — arc win #3:** extended the demotion — a bare `regression`
+platitude (`cedes_center`, no concrete bad fact behind it) yields the lead to the CONCRETE winner the
+engine preferred (a fork/free-piece/mate, or a captures/wins_material `missed_idea`); the platitude drops
+to "explain more". FINDING (probe + full run): U2b's "name the 4…Qg5 double-attack" would be a FAKE reason
+— the engine line `Qg5 5.Bxf7+ Kd8 6.Ng4` SAVES g2 AND the knight (winDrop only 6.4), so nothing wins by
+force; the honest lead is the capture the engine chose, 4.Nxd4 (missed_idea, realCause-blessed). blk-04
+C1/G0→C2/G2. **CAUSAL 90.0→95.0 · GROUNDED 88.2→94.1 · PRECISION 88.2→94.1 · TOTAL 92.3→96.2** (only blk-04
+moved; suite 279/280). **Arc scoreboard this session: TOTAL 84.6→96.2, ECONOMY→100%, GROUNDED 82.4→94.1.**
+**◄ RESUME HERE (next /chess session):** the silence + lead-priority wins are captured; what's left:
   **(a) Phase 3.4 polish (deferred)** — confidence-informed "too deep / equal" §6 badge TEXT (uses
   volatilityCp/lateFlip/topSpreadCp/drawPermille). Changes badge wording → gate-regression risk, NO eval
   movement → do it WITH the user (calibrate + re-read every gate comment).
-  **(b) BACKLOG #1 content** — name the Nxb5 sac (opera-09-b5, still C1/G0) — [T1], via the improve workshop.
-  Sibling residual: blk-04-nxe5 leads with a `cedes_center` regression burying `missed_idea` (Nxd4); its
-  leadFactIn omits missed_idea, so it's a truth-set/spec call (bless missed_idea? or new content), NOT the
-  same abandons_square reorder — decide before touching it.
+  **(b) BACKLOG #1 — the SOLE remaining wrong-lead: opera-09-b5** (C1/G0) — name the Nxb5! sac: the reply
+  10.Nxb5! cxb5 11.Bxb5+ is a knight SACRIFICE (regained via the bishop check + attack), but `invites_capture`
+  voices it as a pawn-grab ("runs into Nxb5, taking the pawn on b5"). Genuine [T1] content — needs the
+  refutation/sac detector to see the give-and-regain; via the improve workshop.
   **(c) Phase 4** (ablation, true causal proof) — determinism-risky (hash carryover), scalpel-only; **Phase
   5** (WebLLM) — deferred/optional, never load-bearing.
 §5a everywhere; re-run gate.e2e after every block. 0.4's 2–3 fake-reason cases stay open — deferred.
 
 | # | Tag | Item | Sev | Payoff / evidence |
 |---|---|---|---|---|
-| 1 | [T1] | **U2 deeper why-bad explanations** (self-improvement/improve/TODO.md TONIGHT block) — PV-based punishment narration for the residual wrong-lead cases: `opera-09-b5` (C1/G0 — leads `invites_capture` "runs into Nxb5", underselling the Nxb5! SAC as a pawn-grab; name the sac) and `blk-04-nxe5` (C1/G0 — a `cedes_center` regression buries the missed Nxd4) | S1 | GROUNDED 88.2% / PRECISION 88.2% — the last two wrong-lead cases in the set (2026-07-01g) |
+| 1 | [T1] | **U2 name the Nxb5! sac** (self-improvement/improve/TODO.md TONIGHT block) — the SOLE remaining wrong-lead: `opera-09-b5` (C1/G0) leads `invites_capture` "runs into Nxb5, taking the pawn on b5", but 10.Nxb5! cxb5 11.Bxb5+ is a knight SACRIFICE regained with interest. Needs the refutation/sac detector to see the give-and-regain from the reply PV | S1 | GROUNDED 94.1% / PRECISION 94.1% — the LAST wrong-lead case in the set (2026-07-01h) |
 | 2 | [T2] | Eval M3: floor ratchet as a vitest suite + expand to 25+ cases (STS positional traps, DS2) — promoted: M2 exit met at 90.8%, lock the gains before further churn | S2 | Red eval blocks commits like a red gate |
 | 3 | [T1] | D4 skewer wiring — `isSkewer` primitive already proves 100% line-recall (TODO R19); needs fact kind + template + annotate hookup | S2 | Cheap coverage win, recall table completeness |
 | 4 | [T1] | Next SOURCES patterns: GM-11 guarded-target/deflection (ties R17/R18/DS1) · GM-13 calibrated eval-vocabulary audit (SOURCES.md, backlog 2/6; GM-10 proven 2026-06-12q) | S2 | Two mined book patterns to proven |

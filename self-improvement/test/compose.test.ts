@@ -95,6 +95,34 @@ describe('composeComment — bad moves (cause → consequence → better)', () =
     expect(c.text.indexOf('hanging')).toBeLessThan(c.text.indexOf('Nd4'));
   });
 
+  // BACKLOG #1: a bare `regression` platitude must yield the lead to a concrete
+  // capture the engine preferred (blk-04: "Nxd4 wins a knight" over "cedes center").
+  const cedesCenter: Fact = { kind: 'regression', fact: { kind: 'cedes_center' } };
+  const missedCapture: Fact = {
+    kind: 'missed_idea',
+    move: { san: 'Nxd4', uci: 'f3d4' },
+    ideas: [{ what: 'captures', victim: { role: 'knight', square: 'd4' } }],
+  };
+
+  it('a lone regression platitude yields the lead to a concrete missed capture (BACKLOG #1)', () => {
+    const c = composeComment(move({ classification: 'inaccuracy', facts: [missedCapture, cedesCenter] }));
+    expect(c.text).toContain('Nxd4 was the better way');
+    // the platitude is demoted out of the headline, into "explain more"
+    expect(c.text).not.toContain('gives up control of the center');
+    expect(c.more).toContain('gives up control of the center');
+    assertNoEvalSpeak(c.text);
+  });
+
+  it('a lone regression still leads when the missed idea is only positional (no concrete winner)', () => {
+    const positionalIdea: Fact = {
+      kind: 'missed_idea',
+      move: { san: 'Nf3', uci: 'g1f3' },
+      ideas: [{ what: 'positional', fact: { kind: 'develops', role: 'knight', square: 'f3' } }],
+    };
+    const c = composeComment(move({ classification: 'inaccuracy', facts: [positionalIdea, cedesCenter] }));
+    expect(c.text).toContain('gives up control of the center');
+  });
+
   it('a blunder with no concrete fact names the better move and stops (R3)', () => {
     const c = composeComment(move({ facts: [] }));
     expect(c.text).toBe('Qe3 was the better way.');

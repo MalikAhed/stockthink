@@ -38,12 +38,15 @@ Take items top-down. Move finished items to Done (bottom) with date + commit.
   empty square the engine reply takes right there, e.g. 9...b5? 10.Nxb5!; closed
   opera-09-b5 C0→C1, eval TOTAL 90.8→92.1.)_ Remaining: "weakens the king after …"
   PV narration; broader symmetric depth with the good-move side.
-- [ ] **U2b · Double-attack reply narration** — blk-04-nxe5 (PARTIAL): the
-  refuting reply is a non-capture double attack (...Qg5! hits g2 + the e5 knight),
-  not a capture of the moved piece, so `invites_capture` can't fire and the lead
-  falls back to a center-regression platitude. Needs a fact for "the reply forks/
-  double-attacks" from the engine reply PV (cousin of `allows_fork`, but the
-  targets are pre-existing pieces, no material won by force).
+- [x] **U2b · Double-attack reply narration** — RESOLVED 2026-07-01h, but NOT as
+  spec'd. The premise was WRONG: at eval depth `4...Qg5` does NOT win by force — the
+  engine line `Qg5 5.Bxf7+ Kd8 6.Ng4` SAVES both g2 and the e5 knight (winDrop only
+  6.4), so voicing "Qg5 forks g2 + the knight" would be a FAKE reason (R5, probe-proven).
+  blk-04 was fixed at COMPOSE instead: a bare `regression` platitude yields the lead to
+  the capture the engine actually preferred — 4.Nxd4 (missed_idea, realCause-blessed) →
+  blk-04 C1/G0→C2/G2, eval TOTAL 92.3→96.2. A grounded "the reply double-attacks" fact
+  would need a case where the double attack genuinely wins material — none in the set
+  today; revisit only if such a case appears (don't build the ungrounded version).
 - [ ] **U7 · "The problem is …" framing on BEST moves** — gate read-through
   2026-06-12: Opera 15.Bxd7+ is [best] yet its explain-more says "The problem
   is Nxd7 (and after Qb7) — the bishop is lost by force" — refutation-walk

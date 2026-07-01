@@ -7,14 +7,14 @@
   },
   "totals": {
     "causal": {
-      "pts": 18,
+      "pts": 19,
       "max": 20,
-      "pct": "90.0%"
+      "pct": "95.0%"
     },
     "grounded": {
-      "pts": 30,
+      "pts": 32,
       "max": 34,
-      "pct": "88.2%"
+      "pct": "94.1%"
     },
     "economy": {
       "pts": 24,
@@ -22,9 +22,9 @@
       "pct": "100.0%"
     },
     "total": {
-      "pts": 72,
+      "pts": 75,
       "max": 78,
-      "pct": "92.3%"
+      "pct": "96.2%"
     }
   },
   "selective": {
@@ -34,9 +34,9 @@
       "pct": "100.0%"
     },
     "precision": {
-      "num": 15,
+      "num": 16,
       "den": 17,
-      "pct": "88.2%"
+      "pct": "94.1%"
     }
   },
   "cases": [
@@ -228,32 +228,32 @@
         "grounded"
       ],
       "classification": "inaccuracy",
-      "leadKind": "regression",
+      "leadKind": "missed_idea",
       "factKinds": [
         "missed_idea",
         "wins_free_piece",
         "regression"
       ],
-      "text": "It gives up control of the center. Nxd4 was the better way — it would have taken the knight on d4.",
-      "more": "The idea — this wins the pawn on e5 for nothing, no recapture works — doesn't make up for what this concedes.",
+      "text": "Nxd4 was the better way — it would have taken the knight on d4.",
+      "more": "It gives up control of the center. The idea — this wins the pawn on e5 for nothing, no recapture works — doesn't make up for what this concedes.",
       "checks": {
         "mentionsOk": true,
         "factsOk": true,
-        "leadOk": false,
+        "leadOk": true,
         "forbiddenHits": [],
         "classOk": true,
-        "sentences": 2,
+        "sentences": 1,
         "maxSentences": 3,
         "falseAlarm": false
       },
       "scores": {
-        "causal": 1,
-        "grounded": 0
+        "causal": 2,
+        "grounded": 2
       },
       "selective": {
         "needsExplanation": true,
         "emitted": true,
-        "correct": false
+        "correct": true
       }
     },
     {
