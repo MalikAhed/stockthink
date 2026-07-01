@@ -178,7 +178,21 @@ export function composeComment(m: MoveReport): Comment {
   } else if (isBadMove) {
     // R5: cause → consequence first
     const cause = badFacts.find(f => f.kind !== 'regression') ?? badFacts[0];
-    if (cause) {
+    // BACKLOG #2: a move that missed a concrete winning tactic (a fork, a free
+    // piece, a forced mate) must LEAD with what was on the table. When the only
+    // named fault is a soft `abandons_square` walk-away, that incidental square is
+    // a footnote to the missed win, not the headline — so the missed tactic leads
+    // and the walk-away follows. Scoped to abandons_square on purpose: a hangs_piece
+    // / ignores_threat / allows_mate fault IS the concrete story and still leads.
+    const bigMiss = missedFacts.find(
+      f => f.kind === 'missed_fork' || f.kind === 'missed_free_piece' || f.kind === 'missed_mate',
+    );
+    const leadMiss = cause?.kind === 'abandons_square' ? bigMiss : undefined;
+    if (leadMiss) {
+      parts.push(sentence(leadMiss)!);
+      used.push(leadMiss);
+    }
+    if (cause && !used.includes(cause)) {
       parts.push(sentence(cause)!);
       used.push(cause);
     }
@@ -186,12 +200,13 @@ export function composeComment(m: MoveReport): Comment {
     // one go. Frame it that way before naming what was on the table.
     if (m.classification === 'miss' && !cause)
       parts.push('A decent move on its own — but the position offered more.');
-    // then what was better, and WHY (the best move's own facts)
-    const better = missedFacts[0];
+    // then what was better, and WHY (the best move's own facts) — skipping the
+    // missed fact already promoted to the lead above
+    const better = missedFacts.find(f => !used.includes(f));
     if (better) {
       parts.push(sentence(better)!);
       used.push(better);
-    } else if (m.bestSan && !m.wasBest) {
+    } else if (!leadMiss && m.bestSan && !m.wasBest) {
       parts.push(`${m.bestSan} was the better way.`);
     }
     // a bad move with no concrete facts at all: name the better move, say no more (R3)

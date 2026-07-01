@@ -48,6 +48,10 @@ a moved number below is a feeling, not a fact (Laws of the Loop).
   ("losing everything behind it") though the engine never exploits it. It's an `expectSilence`
   aspiration (ECONOMY 0 / precision-miss today), dropping TOTAL 86.8→84.6% and PRECISION
   82.4→77.8% on purpose. (More such cases are a follow-up — vet each one per the probe note below.)
+- The **climb back up** is real grounding, not restored free points: Phases 1–3 shipped PV-grounding +
+  the badge tier (84.6→88.5, ECONOMY→100%), and the **fork-priority lead fix** (2026-07-01g) made a bad
+  move that missed a concrete winner LEAD with the missed tactic instead of a soft `abandons_square`
+  walk-away — pz-fork-miss C1/G0→C2/G2, **TOTAL 88.5→92.3, GROUNDED/PRECISION →88.2** (one case moved).
 - Determinism: pool size 1, fixed nodes, sequential cases → identical
   `latest.json` on every run. Changing the CASE LIST can shift borderline
   classifications of OTHER cases (engine hash carries across positions within
@@ -67,6 +71,7 @@ a moved number below is a feeling, not a fact (Laws of the Loop).
 | Date | Causal | Grounded | Economy | Total | Cases | Tests | Recall avg | src LOC |
 |---|---|---|---|---|---|---|---|---|
 <!-- eval-history -->
+| 2026-07-01 | 90.0% | 88.2% | 100.0% | 92.3% | 19 | 277/278 | 94.8% | 7032 |
 | 2026-07-01 | 85.0% | 82.4% | 100.0% | 88.5% | 19 | 274/275 | 94.8% | 7014 |
 | 2026-06-30 | 85.0% | 82.4% | 91.7% | 85.9% | 19 | — | 94.8% | 6979 |
 | 2026-07-01 | 85.0% | 82.4% | 91.7% | 85.9% | 19 | 264/265 | 94.8% | 6947 |
@@ -102,6 +107,7 @@ Exact, from `score.ts` (derived from the same per-case checks — no new behavio
 | Date | Coverage | Precision | Cases | Notes |
 |---|---|---|---|---|
 <!-- selective-history -->
+| 2026-07-01 | 100.0% | 88.2% | 19 | |
 | 2026-06-30 | 100.0% | 82.4% | 19 | |
 | 2026-07-01 | 100.0% | 82.4% | 19 | precision +4.6 (coinc-pin-be5 → honest silence) |
 | 2026-06-30 | 100.0% | 77.8% | 19 | |

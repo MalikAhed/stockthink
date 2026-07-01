@@ -7,14 +7,14 @@
   },
   "totals": {
     "causal": {
-      "pts": 17,
+      "pts": 18,
       "max": 20,
-      "pct": "85.0%"
+      "pct": "90.0%"
     },
     "grounded": {
-      "pts": 28,
+      "pts": 30,
       "max": 34,
-      "pct": "82.4%"
+      "pct": "88.2%"
     },
     "economy": {
       "pts": 24,
@@ -22,9 +22,9 @@
       "pct": "100.0%"
     },
     "total": {
-      "pts": 69,
+      "pts": 72,
       "max": 78,
-      "pct": "88.5%"
+      "pct": "92.3%"
     }
   },
   "selective": {
@@ -34,9 +34,9 @@
       "pct": "100.0%"
     },
     "precision": {
-      "num": 14,
+      "num": 15,
       "den": 17,
-      "pct": "82.4%"
+      "pct": "88.2%"
     }
   },
   "cases": [
@@ -557,17 +557,17 @@
         "grounded"
       ],
       "classification": "blunder",
-      "leadKind": "abandons_square",
+      "leadKind": "missed_fork",
       "factKinds": [
         "abandons_square",
         "missed_fork"
       ],
-      "text": "The queen had a job on e5 — covering e3 — and this move walks away from it; Qe3 steps straight into the gap. Ne2+ would have forked the king and the queen on c3.",
+      "text": "Ne2+ would have forked the king and the queen on c3. The queen had a job on e5 — covering e3 — and this move walks away from it; Qe3 steps straight into the gap.",
       "more": null,
       "checks": {
         "mentionsOk": true,
         "factsOk": true,
-        "leadOk": false,
+        "leadOk": true,
         "forbiddenHits": [],
         "classOk": true,
         "sentences": 2,
@@ -575,13 +575,13 @@
         "falseAlarm": false
       },
       "scores": {
-        "causal": 1,
-        "grounded": 0
+        "causal": 2,
+        "grounded": 2
       },
       "selective": {
         "needsExplanation": true,
         "emitted": true,
-        "correct": false
+        "correct": true
       }
     },
     {

@@ -6,6 +6,23 @@ for /work sessions). Past ~300 lines, /reflect compresses the oldest half into
 LESSONS.md. Entries below 2026-06-12p were migrated verbatim from
 self-improvement/improve/TRACKER.md's daily log (2026-06-12) — history is not rewritten.
 
+- **2026-07-01g** · /chess · **BACKLOG #2 fork-priority — a missed HUGE tactic now LEADS over a soft
+  `abandons_square` (arc win #2)** — in compose's bad-move branch, when the only named fault is an
+  `abandons_square` walk-away AND the move missed a concrete winner (missed_fork / missed_free_piece /
+  missed_mate), the missed tactic is promoted to the lead and the walk-away follows. Scoped to
+  abandons_square ON PURPOSE — a hangs_piece / ignores_threat / allows_mate fault is the concrete story
+  and still leads (R5); §5a honoured (compose lead-selection, never the recall-tested detectors).
+  EVIDENCE — **the hash-borderline landmine cleared**: reproduced C1/G0 AND confirmed the fix in the
+  FULL `npm run eval` (not `--explain`). pz-fork-miss-000Pw C1/G0→**C2/G2**, now leads "Ne2+ would have
+  forked the king and the queen on c3." **CAUSAL 85.0→90.0 · GROUNDED 82.4→88.2 · TOTAL 88.5→92.3 ·
+  PRECISION 82.4→88.2** (ECONOMY/COVERAGE held); exactly ONE case moved, every other byte-identical.
+  gate.e2e 2/2 — READ every comment: NO Opera/Blackburne move leads with abandons_square, so all
+  landmarks (Rxd7/Qb8+ sacs, Rd8#/Nf3# mates, blk-05 Qxg2, blk-07 Nf3#) byte-identical. suite 277/278
+  (+2 compose units: fork-leads-over-walkaway + the hangs_piece-still-leads guard), tsc clean. SURPRISE:
+  none — the isolated-vs-full gap WAS exactly abandons_square burying the fork only under hash carryover,
+  so the compose reorder makes the full run match the honest isolated read with no crafted case needed.
+  Two of the Phase-0.3 wrong-lead trio remain: opera-09-b5 (BACKLOG #1 [T1] name-the-sac) + blk-04-nxe5
+  (regression lead; its `missed_idea` isn't in that case's leadFactIn — a truth-set call, not this fix).
 - **2026-07-01f** · /chess · **Phase 3.4 partial (close the empty-text R3 path) → Phase 3 core COMPLETE**
   — the good-move badge fallback could emit EMPTY text for a fact-less great/brilliant move (`NEUTRAL` has
   only best/excellent/good); now falls back to the excellent-tier line (`?? NEUTRAL.excellent`). Defensive

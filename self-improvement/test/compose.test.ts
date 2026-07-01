@@ -69,6 +69,32 @@ describe('composeComment — bad moves (cause → consequence → better)', () =
     assertNoPvDump(c.text);
   });
 
+  // BACKLOG #2: a missed concrete tactic outranks a soft abandons_square walk-away.
+  const abandonsFact: Fact = {
+    kind: 'abandons_square',
+    role: 'queen',
+    from: 'e5',
+    square: 'e3',
+    reply: { san: 'Qe3', uci: 'c3e3' },
+  };
+
+  it('a missed winning tactic leads over a lone abandons_square walk-away (BACKLOG #2)', () => {
+    const c = composeComment(move({ facts: [abandonsFact, missedFact] }));
+    // the fork is the headline; the incidental walk-away follows
+    expect(c.text).toContain('Nd4 would have forked');
+    expect(c.text.indexOf('Nd4')).toBeLessThan(c.text.indexOf('walks away'));
+    // and no redundant "Qe3 was the better way" tail once the tactic is named
+    expect(c.text).not.toContain('was the better way');
+    assertNoEvalSpeak(c.text);
+    assertNoPvDump(c.text);
+  });
+
+  it('a hard fault still leads over the missed tactic — the reorder is abandons_square-only', () => {
+    // facts arrive priority-sorted from the annotator: hangs_piece (3) < abandons_square (3.5)
+    const c = composeComment(move({ facts: [hangFact, abandonsFact, missedFact] }));
+    expect(c.text.indexOf('hanging')).toBeLessThan(c.text.indexOf('Nd4'));
+  });
+
   it('a blunder with no concrete fact names the better move and stops (R3)', () => {
     const c = composeComment(move({ facts: [] }));
     expect(c.text).toBe('Qe3 was the better way.');
