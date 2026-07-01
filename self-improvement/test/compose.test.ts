@@ -378,4 +378,12 @@ describe('composeComment — badge state (Phase 3.3: honest silence)', () => {
   it('does not set badge on a bad move (it names the better move, not silence)', () => {
     expect(composeComment(move({ classification: 'blunder', facts: [] })).badge).toBeFalsy();
   });
+
+  it('a fact-less great/brilliant move badges with real text, never empty (R3, Phase 3.4)', () => {
+    for (const classification of ['great', 'brilliant'] as const) {
+      const c = composeComment(move({ classification, wasBest: true, winDrop: 0, facts: [] }));
+      expect(c.badge).toBe(true);
+      expect(c.text.trim().length).toBeGreaterThan(0); // no empty-string path
+    }
+  });
 });

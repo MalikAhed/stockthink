@@ -68,14 +68,21 @@ move has no groundable concrete cause (falls to a bare classification line); `sc
 `expectSilence` + badge → economy 2 (was capped at 1). coinc-pin-be5 + blk-04b → E1→E2, **ECONOMY
 91.7→100.0 · TOTAL 85.9→88.5** (text UNCHANGED — badge is a flag; gate landmarks intact, suite 274/275).
 The earlier "no eval evidence" worry was wrong — the rubric held the ceiling open for exactly this.
-**◄ RESUME HERE (next /chess session):** pick ONE —
-  **(a) Phase 3.4** — replace the position-blind NEUTRAL ply-parity rotation with the two honest §6
-  outputs, USING `confidence` (high volatilityCp / lateFlip / small topSpreadCp / high drawPermille →
-  a "too deep / equal" marker), and close the great/brilliant empty-text path. Refines badge TEXT; no new
-  eval case, so keep gate.e2e byte-identical-or-better + suite green (watch delivers_mate / Qb8+ sac).
-  **(b) BACKLOG #2 fork-priority** — pz-fork-miss-000Pw is hash-borderline (clean isolated, C1/G0 full run);
-  craft a non-borderline case first (LESSONS: crafted FENs burn).
+**Phase 3.4 (empty-text path) ✅ + Phase 3 CORE COMPLETE (2026-07-01):** the good-move badge fallback
+now always carries text (`?? NEUTRAL.excellent`, closing the fact-less great/brilliant empty-string hole);
+eval held 88.5%, suite 275/276. **Silence layer done:** signals (3.1–3.2) · badge state (3.3, ECONOMY→100%)
+· empty-path (3.4). **Arc scoreboard this session: TOTAL 84.6→88.5, ECONOMY→100%, PRECISION 77.8→82.4.**
+**◄ RESUME HERE (next /chess session):** the clean high-leverage silence wins are captured; what's left:
+  **(a) Phase 3.4 polish (deferred)** — confidence-informed "too deep / equal" §6 badge TEXT (uses
+  volatilityCp/lateFlip/topSpreadCp/drawPermille). Changes badge wording → gate-regression risk, NO eval
+  movement → do it WITH the user (calibrate + re-read every gate comment).
+  **(b) BACKLOG #2 fork-priority** (moves GROUNDED/PRECISION) — pz-fork-miss-000Pw is hash-borderline
+  (clean isolated, C1/G0 full run: a hash-dependent abandons_square buries the missed fork); craft a
+  NON-borderline case first (LESSONS: crafted FENs burn), or fix compose to lead a blunder with its huge
+  missed tactic over a minor abandons_square.
   **(c) BACKLOG #1 content** — name the Nxb5 sac (opera-09-b5) — [T1], via the improve workshop.
+  **(d) Phase 4** (ablation, true causal proof) — determinism-risky (hash carryover), scalpel-only; **Phase
+  5** (WebLLM) — deferred/optional, never load-bearing.
 §5a everywhere; re-run gate.e2e after every block. 0.4's 2–3 fake-reason cases stay open — deferred.
 
 | # | Tag | Item | Sev | Payoff / evidence |

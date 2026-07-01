@@ -6,6 +6,16 @@ for /work sessions). Past ~300 lines, /reflect compresses the oldest half into
 LESSONS.md. Entries below 2026-06-12p were migrated verbatim from
 self-improvement/improve/TRACKER.md's daily log (2026-06-12) — history is not rewritten.
 
+- **2026-07-01f** · /chess · **Phase 3.4 partial (close the empty-text R3 path) → Phase 3 core COMPLETE**
+  — the good-move badge fallback could emit EMPTY text for a fact-less great/brilliant move (`NEUTRAL` has
+  only best/excellent/good); now falls back to the excellent-tier line (`?? NEUTRAL.excellent`). Defensive
+  R3 correctness — the path is unreached by the eval/gate (eval HELD 88.5%, suite 275/276, +1 unit test),
+  so no visible change, just a closed latent hole. DEFERRED (needs review): the fuller 3.4 — replace the
+  position-blind ply-parity rotation with confidence-informed "too deep / equal" §6 markers — changes
+  badge TEXT and carries gate-regression risk, best with the user watching. **Phase 3 core (silence layer)
+  DONE:** 3.1–3.2 signals · 3.3 badge state (ECONOMY→100%) · 3.4 empty-path closed. Arc TOTAL 84.6→88.5
+  this session. Remaining arc = Phase 4 (ablation — determinism-risky, scalpel-only) + Phase 5 (WebLLM —
+  deferred/optional); eval-MOVING gains now need CONTENT (BACKLOG #1 [T1] name-the-sac / #2 hash-borderline).
 - **2026-07-01e** · /chess · **Phase 3.3 (first-class badge state — economy WIN)** — shipped the badge
   the rubric had been holding open. `Comment.badge` is set when a good move produces no groundable
   concrete cause and falls to a bare classification line (honest silence, not an invented reason);

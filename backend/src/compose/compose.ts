@@ -240,8 +240,11 @@ export function composeComment(m: MoveReport): Comment {
         parts.push(sentence(sc)!);
         used.push(sc);
       } else {
-        const pool = NEUTRAL[m.classification];
-        if (pool) parts.push(pool[Math.floor(m.ply / 2) % pool.length]);
+        // R3: every good-move badge carries text — great/brilliant have no pool
+        // of their own, so fall back to the excellent-tier lines rather than the
+        // empty string this path used to emit (Phase 3.4: close the empty-text path).
+        const pool = NEUTRAL[m.classification] ?? NEUTRAL.excellent!;
+        parts.push(pool[Math.floor(m.ply / 2) % pool.length]);
         badge = true; // honest silence — no groundable concrete cause to voice
       }
     }
