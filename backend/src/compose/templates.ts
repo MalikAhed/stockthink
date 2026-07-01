@@ -215,7 +215,11 @@ export function renderFact(f: Fact): string | null {
     case 'ignores_threat':
       return `The ${pieceAt(f.piece)} was already under attack, and this move does nothing about it — ${f.capture.san} now wins it.`;
     case 'invites_capture':
-      return `This runs into ${f.reply.san}, taking the ${pieceAt(f.piece)}.`;
+      // invites_capture := the move walked a pawn/piece onto a square the engine's
+      // reply captures right there — an overreach by construction. Name the error
+      // type (over-extension), not just the mechanic; no material claim (R4 — the
+      // cost may be positional, e.g. a declined sac), so "takes", never "wins".
+      return `This overreaches — ${f.reply.san} takes the ${pieceAt(f.piece)}.`;
     case 'allows_mate':
       return f.firstMove
         ? `This allows a forced mate: after ${f.firstMove.san} there is no defense (mate in ${inWords(f.mateIn)}).`

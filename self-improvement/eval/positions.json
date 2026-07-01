@@ -11,10 +11,10 @@
       "category": "bad-causal",
       "dims": ["causal", "grounded"],
       "expectClass": ["inaccuracy", "mistake", "blunder"],
-      "expectFacts": [["hangs_piece", "refutation", "allows_mate", "ignores_threat", "allows_fork", "abandons_square"]],
-      "leadFactIn": ["hangs_piece", "refutation", "allows_mate", "ignores_threat", "allows_fork", "abandons_square"],
+      "expectFacts": [["hangs_piece", "refutation", "allows_mate", "ignores_threat", "allows_fork", "abandons_square", "invites_capture"]],
+      "leadFactIn": ["hangs_piece", "refutation", "allows_mate", "ignores_threat", "allows_fork", "abandons_square", "invites_capture"],
       "mustMention": [["Nxb5"]],
-      "realCause": "ASPIRATION CASE (expected to fail at baseline — feeds U2): the concrete cost of 9...b5 is 10.Nxb5! cxb5 11.Bxb5+ winning the attack and the pawn back with interest. Current comment leads with a development regression — true but not the reason."
+      "realCause": "9...b5 overreaches: 10.Nxb5 just WINS the b5 pawn. The engine PV is 10.Nxb5 Qb4+ 11.Nc3 Qxb3 12.axb3 — Black declines 10...cxb5 because 11.Bxb5+ is a strong DECLINED positional sac (knight for two pawns + attack), so Black concedes the pawn and White stays up. So the grounded lead is invites_capture 'runs into Nxb5, winning the pawn' — NOT a material 'sac' (voicing cxb5 Bxb5+ as winning material would be false, R5). (2026-07-01i probe: reverses the stale 2026-06-30 'do not bless invites_capture' call, which assumed a sac the engine doesn't play at depth.)"
     },
     {
       "id": "opera-07b-qe7",

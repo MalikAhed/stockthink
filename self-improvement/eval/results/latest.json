@@ -7,14 +7,14 @@
   },
   "totals": {
     "causal": {
-      "pts": 19,
+      "pts": 20,
       "max": 20,
-      "pct": "95.0%"
+      "pct": "100.0%"
     },
     "grounded": {
-      "pts": 32,
+      "pts": 34,
       "max": 34,
-      "pct": "94.1%"
+      "pct": "100.0%"
     },
     "economy": {
       "pts": 24,
@@ -22,9 +22,9 @@
       "pct": "100.0%"
     },
     "total": {
-      "pts": 75,
+      "pts": 78,
       "max": 78,
-      "pct": "96.2%"
+      "pct": "100.0%"
     }
   },
   "selective": {
@@ -34,9 +34,9 @@
       "pct": "100.0%"
     },
     "precision": {
-      "num": 16,
+      "num": 17,
       "den": 17,
-      "pct": "94.1%"
+      "pct": "100.0%"
     }
   },
   "cases": [
@@ -54,12 +54,12 @@
         "wins_tempo",
         "regression"
       ],
-      "text": "This runs into Nxb5, taking the pawn on b5. Qc7 was the better way.",
+      "text": "This overreaches — Nxb5 takes the pawn on b5. Qc7 was the better way.",
       "more": "It falls further behind in development while the opponent brings pieces out. The idea — this gains time by attacking the bishop on c4, forcing an immediate answer — doesn't make up for what this concedes.",
       "checks": {
         "mentionsOk": true,
-        "factsOk": false,
-        "leadOk": false,
+        "factsOk": true,
+        "leadOk": true,
         "forbiddenHits": [],
         "classOk": true,
         "sentences": 2,
@@ -67,13 +67,13 @@
         "falseAlarm": false
       },
       "scores": {
-        "causal": 1,
-        "grounded": 0
+        "causal": 2,
+        "grounded": 2
       },
       "selective": {
         "needsExplanation": true,
         "emitted": true,
-        "correct": false
+        "correct": true
       }
     },
     {

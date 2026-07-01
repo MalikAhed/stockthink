@@ -86,28 +86,32 @@ to "explain more". FINDING (probe + full run): U2b's "name the 4…Qg5 double-at
 force; the honest lead is the capture the engine chose, 4.Nxd4 (missed_idea, realCause-blessed). blk-04
 C1/G0→C2/G2. **CAUSAL 90.0→95.0 · GROUNDED 88.2→94.1 · PRECISION 88.2→94.1 · TOTAL 92.3→96.2** (only blk-04
 moved; suite 279/280). **Arc scoreboard this session: TOTAL 84.6→96.2, ECONOMY→100%, GROUNDED 82.4→94.1.**
-**◄ RESUME HERE (next /chess session):** the silence + lead-priority wins are captured; what's left:
-  **(a) Phase 3.4 polish (deferred)** — confidence-informed "too deep / equal" §6 badge TEXT (uses
-  volatilityCp/lateFlip/topSpreadCp/drawPermille). Changes badge wording → gate-regression risk, NO eval
-  movement → do it WITH the user (calibrate + re-read every gate comment).
-  **(b) BACKLOG #1 — the SOLE remaining wrong-lead: opera-09-b5** (C1/G0) — name the Nxb5! sac: the reply
-  10.Nxb5! cxb5 11.Bxb5+ is a knight SACRIFICE (regained via the bishop check + attack), but `invites_capture`
-  voices it as a pawn-grab ("runs into Nxb5, taking the pawn on b5"). Genuine [T1] content — needs the
-  refutation/sac detector to see the give-and-regain; via the improve workshop.
-  **(c) Phase 4** (ablation, true causal proof) — determinism-risky (hash carryover), scalpel-only; **Phase
-  5** (WebLLM) — deferred/optional, never load-bearing.
+**opera-09 ✅ (2026-07-01i) — arc win #4, WRONG-LEAD CLUSTER CLOSED, eval 100%:** the last wrong-lead. PROBE:
+10.Nxb5 just WINS the pawn (PV `Nxb5 Qb4+ Nc3 Qxb3 axb3`); Black DECLINES 10...cxb5 (11.Bxb5+ is a
+material-LOSING positional sac), so the "name the sac" aspiration was itself a FAKE reason. Blessed the
+grounded `invites_capture` lead (reversing the stale 2026-06-30 "do not bless" call, WITH probe evidence)
+AND rewrote its template to name the over-extension: "This overreaches — Nxb5 takes the pawn on b5". opera-09
+C1/G0→C2/G2. **CAUSAL/GROUNDED/ECONOMY/COVERAGE/PRECISION/TOTAL all 100.0%.** All 3 wrong-lead cases shared
+one root: the specs aspired to deeper tactics 60k-node SF doesn't play — grounding on the engine's ACTUAL
+line is the honest fix (R5), never fabrication. **Session arc: TOTAL 84.6→100.0.**
+**◄ RESUME HERE (next /chess session):** the explain-the-why arc's core is DELIVERED (grounding + silence +
+lead-priority; every wrong-lead case closed honestly). ⚠ **The eval is now SATURATED (100%) — it can't see
+the next flaw**, so the top priority is #1 below: EXPAND the truth set (harder cases) before more tuning.
+Other open threads: (a) Phase 3.4 badge-TEXT polish (gate-risk, no eval movement — do WITH the user); (b)
+Phase 4 ablation (determinism-risky, scalpel) / Phase 5 WebLLM (deferred/optional); (c) the "really smart,
+not hardcoded" direction — natural-language flair is Mode B's job (optional LLM, R4-verified) or a careful
+guarded-target arc, NOT fabricated cleverness in the grounded Mode A.
 §5a everywhere; re-run gate.e2e after every block. 0.4's 2–3 fake-reason cases stay open — deferred.
 
 | # | Tag | Item | Sev | Payoff / evidence |
 |---|---|---|---|---|
-| 1 | [T1] | **U2 name the Nxb5! sac** (self-improvement/improve/TODO.md TONIGHT block) — the SOLE remaining wrong-lead: `opera-09-b5` (C1/G0) leads `invites_capture` "runs into Nxb5, taking the pawn on b5", but 10.Nxb5! cxb5 11.Bxb5+ is a knight SACRIFICE regained with interest. Needs the refutation/sac detector to see the give-and-regain from the reply PV | S1 | GROUNDED 94.1% / PRECISION 94.1% — the LAST wrong-lead case in the set (2026-07-01h) |
-| 2 | [T2] | Eval M3: floor ratchet as a vitest suite + expand to 25+ cases (STS positional traps, DS2) — promoted: M2 exit met at 90.8%, lock the gains before further churn | S2 | Red eval blocks commits like a red gate |
-| 3 | [T1] | D4 skewer wiring — `isSkewer` primitive already proves 100% line-recall (TODO R19); needs fact kind + template + annotate hookup | S2 | Cheap coverage win, recall table completeness |
-| 4 | [T1] | Next SOURCES patterns: GM-11 guarded-target/deflection (ties R17/R18/DS1) · GM-13 calibrated eval-vocabulary audit (SOURCES.md, backlog 2/6; GM-10 proven 2026-06-12q) | S2 | Two mined book patterns to proven |
-| 5 | [T1] | U5 geometry & wrong-trigger audit — facts firing on coincidental (non-causal) cases (e.g. pz-fork-miss's `abandons_square` whose Qe3 wins nothing — now demoted from the lead, but should it fire at all?) | S2 | Feeds GROUNDED; precision fixtures per fix |
-| 6 | [SYS] | recall.test.ts metrics dedupe — appends a near-identical snapshot to self-improvement/improve/metrics.json on EVERY `vitest run` (bit again 2026-06-12r: reverted by hand during PROVE) — skip write when identical to last | S3 | Stops state-file bloat |
-| 7 | [T2] | Explorer book-depth: verify lichess masters endpoint in a real browser (sandbox proxy blocked it, 2026-06-12i; re-confirmed 2026-06-12s — headless-chromium smoke saw explorer.lichess.ovh 401 while api.chess.com worked fine, so the proxy blocks lichess.ovh specifically; needs a check on a real user machine) | S3 | One manual check; book accuracy vs chess.com |
-| 8 | [T1] | C5 residual + C-phrasing items (self-improvement/improve/TODO.md) | S3 | Phrasing variety |
+| 1 | [T2] | **Expand the eval truth set — it is SATURATED (100%, 2026-07-01i)** — with 0 failing cases the eval can no longer SEE the next flaw. Add harder cases (STS positional traps / DS2, fresh fake-reason & silence classes, deeper tactical misses) + promote the recall floor ratchet to a vitest suite (M3). Vet every crafted case in the FULL `--dry` run — hash-borderline classes burn (LESSONS) | S1 | The measuring instrument is out of resolution — the loop is blind until this lands |
+| 2 | [T1] | D4 skewer wiring — `isSkewer` primitive already proves 100% line-recall (TODO R19); needs fact kind + template + annotate hookup | S2 | Cheap coverage win, recall table completeness |
+| 3 | [T1] | Next SOURCES patterns: GM-11 guarded-target/deflection (ties R17/R18/DS1 — the honest "can't recapture" motif; NB opera-09 showed a naive static version misfires on DECLINED positional sacs, so ground it hard) · GM-13 calibrated eval-vocabulary audit (SOURCES.md, backlog 2/6; GM-10 proven 2026-06-12q) | S2 | Two mined book patterns to proven |
+| 4 | [T1] | U5 geometry & wrong-trigger audit — facts firing on coincidental (non-causal) cases (e.g. pz-fork-miss's `abandons_square` whose Qe3 wins nothing — now demoted from the lead, but should it fire at all?) | S2 | Feeds GROUNDED; precision fixtures per fix |
+| 5 | [SYS] | recall.test.ts metrics dedupe — appends a near-identical snapshot to self-improvement/improve/metrics.json on EVERY `vitest run` (bit again 2026-06-12r: reverted by hand during PROVE) — skip write when identical to last | S3 | Stops state-file bloat |
+| 6 | [T2] | Explorer book-depth: verify lichess masters endpoint in a real browser (sandbox proxy blocked it, 2026-06-12i; re-confirmed 2026-06-12s — headless-chromium smoke saw explorer.lichess.ovh 401 while api.chess.com worked fine, so the proxy blocks lichess.ovh specifically; needs a check on a real user machine) | S3 | One manual check; book accuracy vs chess.com |
+| 7 | [T1] | C5 residual + C-phrasing items (self-improvement/improve/TODO.md) | S3 | Phrasing variety |
 
 ## Blocked / questions for the user
 _(none — items land here with the open question attached)_

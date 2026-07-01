@@ -6,6 +6,26 @@ for /work sessions). Past ~300 lines, /reflect compresses the oldest half into
 LESSONS.md. Entries below 2026-06-12p were migrated verbatim from
 self-improvement/improve/TRACKER.md's daily log (2026-06-12) — history is not rewritten.
 
+- **2026-07-01i** · /chess · **opera-09 grounded → wrong-lead cluster CLOSED, eval hits 100% (arc win #4)**
+  — the SOLE remaining wrong-lead. PROBE (verified full run): 10.Nxb5 just WINS the b5 pawn — the engine PV
+  is `Nxb5 Qb4+ Nc3 Qxb3 axb3` (the knight retreats and keeps the pawn); Black DECLINES 10...cxb5 because
+  11.Bxb5+ is a strong but material-LOSING positional sac (knight for two pawns + attack). So `invites_capture`
+  "runs into Nxb5" IS the R5-grounded lead — the "name the Nxb5 SAC" aspiration was itself a FAKE reason
+  (voicing cxb5 Bxb5+ as winning material is false). REVERSED the stale 2026-06-30 "do NOT bless
+  invites_capture" call (it assumed a sac the engine doesn't play at 60k nodes; flagged even then as "spec
+  may be stale") — blessed invites_capture in opera-09's expectFacts + leadFactIn, rewrote realCause with the
+  probe evidence. SMARTNESS (user directive — "really smart, not hardcoded"): rewrote the invites_capture
+  template from the flat "runs into X, taking Y" to name the ERROR TYPE — "This overreaches — Nxb5 takes the
+  pawn on b5" (grounded: invites_capture := a piece walked into a capture = over-extension; kept "takes" not
+  "wins" — R4, no material claim). opera-09 C1/G0→C2/G2. **CAUSAL 95→100 · GROUNDED 94.1→100 · PRECISION
+  94.1→100 · TOTAL 96.2→100.0** — all five dims perfect. gate.e2e 2/2 (READ all — opera 9…b5 "overreaches"
+  reads true; every eval comment grounded), suite 279/280, tsc clean. ⚠ FINDING: the truth set is now
+  SATURATED (0 failing cases) — the eval is OUT OF RESOLUTION; next priority is EXPANDING it (harder cases)
+  or a green eval only proves "no regression". DEEP INSIGHT: all three wrong-lead "aspiration" cases shared
+  ONE root — the specs aspired to human/deeper tactics that 60k-node Stockfish doesn't play; grounding each
+  on the engine's ACTUAL line (never fabricated cleverness) is the honest fix AND preserves R4/R5. On the
+  user's "not hardcoded" ask: Mode A must stay grounded (fabricating the cxb5-Bxb5+ story would be a lie);
+  natural-language smartness is Mode B's job (the optional LLM, already R4-verified) or a future careful arc.
 - **2026-07-01h** · /chess · **BACKLOG #1 (blk-04) — a lone `regression` platitude yields the lead to
   the capture the engine preferred (arc win #3)** — extended the 07-01g demotion: when a bad move's only
   fault is a bare `cedes_center`-style `regression` (no concrete bad fact behind it) AND it missed a

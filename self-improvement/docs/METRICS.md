@@ -25,10 +25,11 @@ a moved number below is a feeling, not a fact (Laws of the Loop).
 - **Silence is a feature, emptiness is not**: `composeComment` never returns
   empty text by design (R3). ECONOMY scores one-short-line behavior. Never
   "improve" ECONOMY by emitting empty comments — that violates R3 and the gate.
-- Aspiration cases (e.g. `opera-09-b5`, and `blk-04b-qg5` since Phase 0.2) are
-  EXPECTED to fail at baseline — they encode where we want to go (see each case's
-  `realCause`). A falling score caused by a CODE change is a regression; treat it
-  like a red gate. A falling score caused by a DELIBERATE rubric-tightening — the
+- Aspiration cases encode where we want to go (see each case's `realCause`). The wrong-lead trio
+  (`opera-09-b5` / `blk-04-nxe5` / `pz-fork-miss`) that failed since Phase 0.3 was RESOLVED 2026-07-01g–i,
+  and `blk-04b-qg5` earns its badge since Phase 3.3 — so the set now scores 100% (see the saturation ⚠
+  below: the eval needs NEW aspiration cases to keep measuring). A falling score caused by a CODE change
+  is a regression; treat it like a red gate. A falling score caused by a DELIBERATE rubric-tightening — the
   metric learning to see a flaw it was blind to — is the opposite, and must be
   recorded in the JOURNAL for that session so the two are never confused.
 - `expectSilence` cases are the badge-only tier (§6 of the research doc): the honest
@@ -49,11 +50,19 @@ a moved number below is a feeling, not a fact (Laws of the Loop).
   aspiration (ECONOMY 0 / precision-miss today), dropping TOTAL 86.8→84.6% and PRECISION
   82.4→77.8% on purpose. (More such cases are a follow-up — vet each one per the probe note below.)
 - The **climb back up** is real grounding, not restored free points: Phases 1–3 shipped PV-grounding +
-  the badge tier (84.6→88.5, ECONOMY→100%), then the **lead-priority fixes** made a soft platitude yield
-  to the concrete cause: (g) a missed tactic over an incidental `abandons_square` (pz-fork-miss C1/G0→C2/G2,
-  →92.3); (h) a bare `regression` over the capture the engine preferred (blk-04 C1/G0→C2/G2, →96.2 —
-  the probe first proved the "Qg5 double-attack" was a FAKE reason, the engine line saves both targets).
-  **TOTAL 88.5→96.2, GROUNDED 82.4→94.1, PRECISION 82.4→94.1** across the two blocks (one case each).
+  the badge tier (84.6→88.5, ECONOMY→100%), then the **lead-priority + grounding fixes** made a soft
+  platitude yield to the concrete cause: (g) a missed tactic over an incidental `abandons_square`
+  (pz-fork-miss, →92.3); (h) a bare `regression` over the capture the engine preferred (blk-04, →96.2 —
+  probe first proved the "Qg5 double-attack" was a FAKE reason, the engine line saves both targets);
+  (i) opera-09 — probe proved 10.Nxb5 just WINS the pawn (the `cxb5 Bxb5+` "sac" is DECLINED), so blessed
+  the grounded `invites_capture` lead + made its template name the over-extension → **TOTAL →100.0%**.
+  All three "aspiration" wrong-lead cases shared one root: the spec aspired to deeper tactics that 60k-node
+  Stockfish doesn't play; the honest fix grounds each on the engine's ACTUAL line (R5), never a fabrication.
+- **⚠ The truth set is now SATURATED — 100% on all five dims (2026-07-01i).** That is a milestone AND a
+  measurement gap: with zero failing/aspiration cases the eval can no longer SEE the next flaw. Top priority
+  is now EXPANDING it (harder cases: STS positional traps, DS2, fresh fake-reason / silence classes) — until
+  then a green eval means "no regression on solved cases", NOT "nothing left to improve". Do not read 100%
+  as "done"; read it as "this instrument has run out of resolution."
 - Determinism: pool size 1, fixed nodes, sequential cases → identical
   `latest.json` on every run. Changing the CASE LIST can shift borderline
   classifications of OTHER cases (engine hash carries across positions within
@@ -73,6 +82,7 @@ a moved number below is a feeling, not a fact (Laws of the Loop).
 | Date | Causal | Grounded | Economy | Total | Cases | Tests | Recall avg | src LOC |
 |---|---|---|---|---|---|---|---|---|
 <!-- eval-history -->
+| 2026-07-01 | 100.0% | 100.0% | 100.0% | 100.0% | 19 | 279/280 | 94.8% | 7045 |
 | 2026-07-01 | 95.0% | 94.1% | 100.0% | 96.2% | 19 | 279/280 | 94.8% | 7041 |
 | 2026-07-01 | 90.0% | 88.2% | 100.0% | 92.3% | 19 | 277/278 | 94.8% | 7032 |
 | 2026-07-01 | 85.0% | 82.4% | 100.0% | 88.5% | 19 | 274/275 | 94.8% | 7014 |
@@ -110,6 +120,7 @@ Exact, from `score.ts` (derived from the same per-case checks — no new behavio
 | Date | Coverage | Precision | Cases | Notes |
 |---|---|---|---|---|
 <!-- selective-history -->
+| 2026-07-01 | 100.0% | 100.0% | 19 | |
 | 2026-07-01 | 100.0% | 94.1% | 19 | |
 | 2026-07-01 | 100.0% | 88.2% | 19 | |
 | 2026-06-30 | 100.0% | 82.4% | 19 | |
