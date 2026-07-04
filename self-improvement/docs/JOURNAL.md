@@ -6,6 +6,16 @@ for /work sessions). Past ~300 lines, /reflect compresses the oldest half into
 LESSONS.md. Entries below 2026-06-12p were migrated verbatim from
 self-improvement/improve/TRACKER.md's daily log (2026-06-12) — history is not rewritten.
 
+- **2026-07-04b** · /ui · Landing smoothness pass — 6 fixes, one commit each (rollback-friendly):
+  perf watchdog made TWO-WAY (one-way demotion was silently killing hero/coach/gears until refresh —
+  the root of 3 reported "3D vanishes" bugs); ghost hero rook fixed (generation tokens on the async
+  piece builds — ui.js's saved-theme re-apply raced the initial build); all video-like demos now LOOP
+  with an end-hold (also fixed Reel's never-exercised loop path which died after one pass); coach board
+  GLBs preload ~1.5 screens early + powerPreference on every renderer; finale CTA/cut-veil fade driven
+  from the scroll handler (was rAF-loop-only → froze/popped on fast scroll-up); coach→finale transition
+  rebuilt as a LIGHT-UP entry (bulb sputters alight, pool grows table→board→viewport; page-coloured
+  in-section hole overlay, two clocks, bakes untouched). Evidence: probe-lightup staged frames read
+  correctly, probe-sweep clean, build + 249 vitest green. Surprise: Reel loop:true had NEVER worked.
 - **2026-06-30a** · /ui (autonomous; ultracode) · Landing FINALE — the Réti–Tartakower queen sacrifice
   now PLAYS OUT as a live WebGL move cinematic ("The Queen's Grave"). Built the move-beat timeline in
   `landing/ender-scene.js` on top of the existing intro (rain + dolly): a keyframed cinematic camera

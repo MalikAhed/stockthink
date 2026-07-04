@@ -64,6 +64,7 @@ with `probes/` (e.g. `node editor/probes/probe.mjs`). The render pipeline (`reco
 | `node editor/probe-wd.mjs <ms…> [light]` | **multi-phase** Beat-2 shots in ONE Chrome session → `/tmp/st-wd-<ms>.png` each. Pass every act offset at once (≈600 desktop · ≈4400 terminal · ≈9000 reformat · ≈13000 heat table · ≈18400 explanation). `light` = light theme. |
 | `node editor/devtest.mjs` | drives the Edit Interface headlessly (real Pick hover+click, dumps the tree) → `/tmp/st-editor-shot.png`. Run before editing `editor.js`. |
 | `[GL=sw] PORT=5173 STEP=N node editor/probe-scrub.mjs <fracs…>` | drive an animation's **scrubber** to fractions → `/tmp/st-scrub-N-NN.png` each (prints `time [label]`). STEP = section `data-step` (1,2,3,7,8,10). `GL=sw` to see the 3D coach (step 10), slowly. |
+| `GL=sw PORT=… node editor/probes/probe-lightup.mjs <m…>` | screenshot the finale **light-up entry** at master-clock times m (drives finale-stage `__setM`) → `/tmp/st-lightup-m*.png`. (`probe-dim.mjs` is OBSOLETE — it tested the removed `.ender-fade` veil.) |
 | `PORT=5173 node editor/probe-sweep.mjs <steps…>` | full-page consistency sweep: screenshot each `data-step` settled → `/tmp/st-sweep-<step>.png`. |
 
 **Dev scrubber** (`scrub.js`, DEV-only UI, tree-shaken from prod) — ONE universal frame-seekable bar on
@@ -103,6 +104,9 @@ name MultiPV value 3` / `position fen … / go depth 22`). Forced wins show ~dep
   classes, then acts. Same pattern in steps 1, 2, 4.
 
 ## Animation patterns (reuse these)
+- **Video-like demos LOOP while on screen** (2026-07-04): the step reels (1/2/3/engine) + Beat 2 are
+  `loop:true` with an `endHold` (hold the final frame ~2.2–3s, then replay); Beat 2 pauses off-screen and
+  resumes on return; the coach loops via its GSAP `onComplete`; the finale intentionally RESTS on its CTA.
 - **Autoplay video-style, NOT scroll-scrubbed.** Demos play on a timer when the section enters view.
   Only the hero outro + the "talks."→"talks?" hook morph are scroll-linked (in `scroll-engine.js`).
   Exception: the Beat-1 gears ARE scroll-coupled (he asked for it).
@@ -172,9 +176,12 @@ WebGL / software GPU → `min`; saveData / deviceMemory≤2 / mobile / cores≤4
   `QUALITY.gears`, coach/ender behind `QUALITY.cinema`. Per the user's priority: the **hovering hero is
   dropped first** on weak devices, the **spinning gears are kept longest**, the **cinemas** in between.
   Each render loop also early-returns on its flag so the watchdog can disable it live.
-- **Adaptive FPS watchdog** (`startWatchdog`): counts dropped frames (>33ms) per ~1s window; two bad
-  windows → one graduated demotion (lower DPR → drop hero → lower DPR → drop cinema → lower DPR → drop
-  gears), with a cooldown. One-way; self-corrects to smooth on any device.
+- **Adaptive FPS watchdog** (`startWatchdog`) — **TWO-WAY since 2026-07-04**: 3 bad ~1s windows (>30%
+  frames dropped) → one graduated demotion down the ladder (lower DPR → drop hero → lower DPR → drop
+  cinema → lower DPR → drop gears); sustained clean windows → promotion back up toward the boot tier
+  (flapping doubles the required clean streak). Flick-scroll windows need a 2× worse ratio to count and
+  hidden-tab windows are discarded. The OLD one-way version permanently killed the hero/coach/gears on
+  any 2s jank until refresh — never regress to one-way.
 - **Lite CSS** (`styles/ender.css`): `body.lite-cinema` hides the coach canvas + collapses the 350vh
   `.ender` (and `ender.js` zeroes its veil when `!QUALITY.cinema`); `body.lite-gears` hides gear canvases;
   `no-hero` is the existing wordmark fallback. Debug/test any device with **`?perf=min|low|mid|high`**
@@ -229,6 +236,14 @@ add red accent lines or any flourish he didn't ask for · over-plan a fix I can 
 show a screenshot unprompted.
 
 ## Mistakes to avoid (real bugs, kept for immunity)
+- **Overlapping ASYNC scene builds orphan objects** — ui.js re-applies a saved theme at boot, so
+  setHeroTheme's buildBackPieces raced the initial one; the loser added a SECOND rook nothing ever
+  animated/removed (the "ghost rook until refresh"). Any async build that adds to a scene needs a
+  generation token (only the latest call mutates) + must remove what's already there itself.
+- **Fixed overlays driven only from a gated rAF loop POP on fast scroll** — the finale CTA opacity was
+  written only inside the fps-capped loop (which also stops when `active` flips), so scrolling up fast
+  froze "Your games hide moments…" on screen, then it snapped off. Drive overlay fades from the scroll
+  handler too, and give them a short CSS opacity transition.
 - **`position:fixed` overlays appended to `<body>` do NOT scroll away with their section** — the finale's
   CTA/flash/front-piece lingered over the next section after the cinematic ended (they're driven only by the
   clock, force-hidden only at `ratio≤0.01`). Fix: an `exitFade` computed in `onScroll` from the section rect
@@ -310,6 +325,15 @@ show a screenshot unprompted.
   is `front:true` → renders on `.ender-front` ABOVE the copy (`ender.js` lifts it at `t>duration-6.0`, under
   the white). **The `mushroom-explosion.html` finale STUDIO was removed** (done with it) — tune `ender-scene.js`
   directly now. Not a Vite entry (inputs: `index.html` + `landing/index.html`), so the build is unaffected.
+  **ENTRY = the LIGHT-UP (2026-07-04, replaces the black-fade veil).** The section scrolls in wearing the
+  page's own background (`.ender-hole`, an in-section var(--bg) overlay — theme-aware, scrolls off
+  naturally); a warm pool blooms at the bulb while it SPUTTERS alight (deterministic flicker), grows over
+  the table → board, and swallows the viewport ("the site goes dark") just before the first king fade.
+  TWO clocks in ender.js: master `m` drives `view.setLightup(m)` + the hole (`lightupHole`/`bulbScreen`);
+  game `t = m − LIGHTUP.lead` (3.4s) drives `frame(t)` — all approved beat timings untouched, and the
+  offline render path never calls setLightup so bakes stay pixel-identical. Tunables: `LIGHTUP` block in
+  `ender-scene.js`. Verify: `probe-lightup.mjs`. Director/keyboard-nav/RM bypass the light-up (lights full,
+  hole hidden).
 
 After the finale: an optional further cinematic — editable 3D masters now at
 `~/stockthink-3d-source/landing-source-html/` (the basement/board source HTML moved out of the repo).
