@@ -60,7 +60,7 @@ import { Reel, Scrubber } from './scrub.js';
 
   // The cinematic runs on a Reel — a seekable virtual clock — so the dev Scrubber can pause/seek
   // every frame. at(ms,fn) schedules on it exactly like setTimeout did (fires at now+ms, chains too).
-  const reel = new Reel({ name: 'number → reason', loop: false });
+  const reel = new Reel({ name: 'number → reason', loop: true, endHold: 3000 });
   const at = (ms, fn) => reel.at(ms, fn);
   const mk = (tag, cls, html) => { const n = document.createElement(tag); if (cls) n.className = cls; if (html != null) n.innerHTML = html; return n; };
 
@@ -317,15 +317,18 @@ import { Reel, Scrubber } from './scrub.js';
 
   // The Reel drives the cinematic: runTimeline = the timeline body, resetAll = its clean state.
   reel.load(runTimeline, resetAll);
-  if (import.meta.env.DEV) { new Scrubber(reel, hostStep || stage.closest('section') || stage, { loop: false }); reel.attachCss(stage); }
+  if (import.meta.env.DEV) { new Scrubber(reel, hostStep || stage.closest('section') || stage); reel.attachCss(stage); }
 
+  // Video-like playback: plays (and keeps replaying, with an end-hold) while the stage is on
+  // screen; PAUSES when it scrolls away and resumes where it left off when it comes back.
+  // The dev scrubber's claim wins — once the user grabs the transport, the observer stays out.
   let played = false;
   new IntersectionObserver((entries) => {
     entries.forEach((e) => {
-      if (e.isIntersecting && e.intersectionRatio >= 0.6 && !played) {
-        played = true;
-        if (RMQ.matches) finalFrame(); else reel.play();
-      }
+      if (RMQ.matches) { if (e.isIntersecting && e.intersectionRatio >= 0.6 && !played) { played = true; finalFrame(); } return; }
+      if (reel.claimed) return;
+      if (e.isIntersecting && e.intersectionRatio >= 0.6) { if (reel.paused()) reel.play(); }
+      else if (!e.isIntersecting) reel.pause();
     });
   }, { threshold: [0, 0.6, 1] }).observe(stage);
 })();

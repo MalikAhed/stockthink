@@ -33,6 +33,8 @@ export class Reel {
   constructor(opts = {}) {
     this.name = opts.name || 'animation';
     this.loop = opts.loop !== false;       // most demos loop; pass {loop:false} to stop at the end
+    this.endHold = opts.endHold == null ? 0 : opts.endHold;   // ms to HOLD the final frame before a loop replays (video-like, not a snap)
+    this._holdStart = null;                // wall-clock when the end-hold began
     this._cap = opts.measureCap || 90000;  // safety ceiling for duration measuring (ms)
     this._onClaim = opts.onClaim || null;  // called once when the user first grabs control
     this.speed = 1;
@@ -109,7 +111,7 @@ export class Reel {
 
   rewind() {
     this._playing = false; if (this._raf) cancelAnimationFrame(this._raf); this._raf = null;
-    this.vt = 0; this._lastFiredT = 0;
+    this.vt = 0; this._lastFiredT = 0; this._holdStart = null;
     this._queue = []; this._intervals = []; this._labels = []; this._anims.clear();
     if (this._resetFn) this._resetFn();
     if (this._buildFn) this._buildFn(this);   // re-seed the top-level keyframes at vt=0
@@ -181,7 +183,16 @@ export class Reel {
       let nt = this.vt + dt;
       if (nt >= dur) {
         this._step(dur);
-        if (this.loop) { this.rewind(); this._last = now; }
+        if (this.loop) {
+          // hold the final frame for endHold ms, then replay from the top.
+          // rewind() clears _playing (it doubles as "stop"), so re-arm it — without
+          // that the loop used to die after a single pass.
+          if (this._holdStart == null) this._holdStart = now;
+          if (now - this._holdStart >= this.endHold) {
+            this._holdStart = null;
+            this.rewind(); this._playing = true; this._last = now;
+          }
+        }
         else { this._playing = false; this._emit(); return; }
       } else {
         this._step(nt);

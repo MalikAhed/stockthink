@@ -52,7 +52,7 @@ import { Reel, Scrubber } from './scrub.js';
      paste a PGN -> the disabled Analyse button lights up -> cursor clicks ->
      progress bar + live quips -> "Game analysed". */
   // Step-1 "get your game ready" demo runs on a Reel for frame-seeking.
-  const reel1 = new Reel({ name: 'step 1 · get ready', loop: false });
+  const reel1 = new Reel({ name: 'step 1 · get ready', loop: true, endHold: 2200 });
   const at1 = (ms, fn, label) => reel1.at(ms, fn, label);
   const ev1 = (ms, fn) => reel1.every(ms, fn);
   function resetGetReady(){
@@ -138,7 +138,7 @@ import { Reel, Scrubber } from './scrub.js';
      type a username -> Find games -> player card -> game history -> pick a game. */
   const CC_USER='MalikAhed';
   // Step-2 "connect chess.com" demo runs on a Reel for frame-seeking.
-  const reel2 = new Reel({ name: 'step 2 · chess.com', loop: false });
+  const reel2 = new Reel({ name: 'step 2 · chess.com', loop: true, endHold: 2200 });
   const at2 = (ms, fn, label) => reel2.at(ms, fn, label);
   const ev2 = (ms, fn) => reel2.every(ms, fn);
   function resetChesscom(){
@@ -479,7 +479,7 @@ import { Reel, Scrubber } from './scrub.js';
     cur.style.top=(r.top-a.top+r.height*fy)+'px';
   }
   // Step-3 review runs on a Reel so the scrubber can seek every frame.
-  const revReel = new Reel({ name: 'review · blunder → best', loop: false });
+  const revReel = new Reel({ name: 'review · blunder → best', loop: true, endHold: 2600 });
   const at4 = (ms, fn, label) => revReel.at(ms, fn, label);
   function resetBest(){
     clear4();
@@ -604,7 +604,7 @@ import { Reel, Scrubber } from './scrub.js';
     a2:'wp',b2:'wp',c2:'wp',d2:'wp',f2:'wp',g2:'wp',h2:'wp',
     a1:'wr',b1:'wn',c1:'wb',d1:'wq',e1:'wk',h1:'wr' };
   // Beat-1 engine demo runs on a Reel so the dev scrubber can seek every frame (CSS net-draw included).
-  const engReel = new Reel({ name: 'engine · your browser', loop: false });
+  const engReel = new Reel({ name: 'engine · your browser', loop: true, endHold: 2600 });
   const at7 = (ms, fn, label) => engReel.at(ms, fn, label);
   const ev7 = (ms, fn) => engReel.every(ms, fn);
   function buildEngBoard(){ buildAbsBoard('engBoard',POS_ENG,{}); }
