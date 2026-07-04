@@ -84,10 +84,17 @@ async function ensureGeo(type){
   return geoCache[type];
 }
 
+// Generation tokens: overlapping async builds (a theme toggle firing while the initial GLB load is
+// still in flight — ui.js applies a saved theme at boot) used to EACH add their own piece group. The
+// superseded one kept a frozen, never-animated copy in the scene until refresh (the "ghost rook").
+// Only the latest call may mutate the scene; it also removes whatever is already there first.
+let pieceGen=0, backGen=0;
 async function setPiece(type){
   currentType=type;
+  const gen=++pieceGen;
   const P=window.PIECES[type];
   const g=await ensureGeo(type);
+  if(gen!==pieceGen) return;   // a newer setPiece superseded this one mid-load
   // remove old
   if(pieceGroup){ scene.remove(pieceGroup); pieceGroup=null; }
   const inst=g.obj.clone(true);
@@ -175,22 +182,27 @@ const TB={ posX:-5.55, posY:2.35, posZ:-1, scale:0.68, rotX:0.62, rotY:-1.3, rot
 const TR={ posX: 6.15, posY:-0.35, posZ:-2.4, scale:0.62, rotX:0.4, rotY:0.32, rotZ:0 };  // rook
 let bishopG=null, rookG=null;
 async function buildBackPieces(){
-  // bishop
+  const gen=++backGen;
   const gb=await ensureGeo('bishop');
+  const gr=await ensureGeo('rook');
+  if(gen!==backGen) return;    // superseded mid-load (theme toggled) — the newer call owns the scene
+  if(bishopG){ sceneB.remove(bishopG); bishopG=null; }
+  if(rookG){ scene.remove(rookG); rookG=null; }
+  // bishop
   const bi=gb.obj.clone(true);
   const matB = isLight ? blackMat(window.PIECES.bishop) : whiteMat(window.PIECES.bishop);
   matB.transparent=true;
   const sB=4.0/gb.height; bi.scale.setScalar(sB); bi.position.y=-2.0;
   bi.traverse(o=>{ if(o.isMesh) o.material=matB; });
-  bishopG=new THREE.Group(); bishopG.add(bi); bishopG.userData.mat=matB; sceneB.add(bishopG); applyBack();
+  bishopG=new THREE.Group(); bishopG.add(bi); bishopG.userData.mat=matB; sceneB.add(bishopG);
   // rook -> FRONT scene (positive z, over the text)
-  const gr=await ensureGeo('rook');
   const ri=gr.obj.clone(true);
   const matR = isLight ? blackMat(window.PIECES.rook) : whiteMat(window.PIECES.rook);
   matR.transparent=true;
   const sR=4.0/gr.height; ri.scale.setScalar(sR); ri.position.y=-2.0;
   ri.traverse(o=>{ if(o.isMesh) o.material=matR; });
-  rookG=new THREE.Group(); rookG.add(ri); rookG.userData.mat=matR; scene.add(rookG); applyBack();
+  rookG=new THREE.Group(); rookG.add(ri); rookG.userData.mat=matR; scene.add(rookG);
+  applyBack();
 }
 function applyBack(){
   if(bishopG){ bishopG.position.set(TB.posX,TB.posY,TB.posZ); bishopG.rotation.set(TB.rotX,TB.rotY,TB.rotZ); bishopG.scale.setScalar(TB.scale*Math.max(introScale,0.001)); }
@@ -267,8 +279,8 @@ MeshoptDecoder.ready.then(async()=>{
 // expose controls
 window.setHeroPiece=(type)=>{ setPiece(type); };
 window.setHeroTheme=(light)=>{ isLight=light; loadRenderPreset(light?"light":"dark"); if(pieceGroup) setPiece(currentType);
-  // rebuild bishop+rook so their color follows the theme (white on dark, black on light)
-  if(bishopG){ sceneB.remove(bishopG); bishopG=null; } if(rookG){ scene.remove(rookG); rookG=null; }
+  // rebuild bishop+rook so their color follows the theme (white on dark, black on light);
+  // buildBackPieces removes the existing groups itself and is generation-guarded against overlap
   buildBackPieces();
 };
 
