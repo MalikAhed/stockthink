@@ -238,10 +238,10 @@
     letter-spacing:-.01em;color:#474747}
   .er-in img{width:32px;height:32px}
   /* the StockThink app sidebar */
-  .engside{flex:1;display:flex;flex-direction:column;gap:10px;min-width:0}
+  .engside{flex:1;display:flex;flex-direction:column;gap:10px;min-width:0;height:288px}   /* LOCK to the board height so the window never resizes */
   .engcard{background:#232220;border:1px solid var(--line);border-radius:8px;padding:9px 11px}
   .engcard-h{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
-  .engexp{flex:1}
+  .engexp{flex:1 1 0;min-height:0;overflow:hidden}
   .engexp .rev-card-title{color:#81b64c}   /* best-move green (engine result), not blunder-red */
   .engexp .rev-card-head{margin-bottom:7px}
   .engexp-text{display:none;font-size:12.5px;line-height:1.5;color:var(--ink)}
@@ -256,7 +256,8 @@
   .engskel i:nth-child(3){width:78%} .engskel i:nth-child(4){width:64%}
   @keyframes engShimmer{ from{background-position:200% 0} to{background-position:-200% 0} }
   /* move log — reuses step-3 .ml-* classes; .cur = most-recent move (light grey) */
-  .engml .ml-list{display:flex;flex-direction:column;gap:1px}
+  .engml,.enggraph{flex:0 0 auto}
+  .engml .ml-list{display:flex;flex-direction:column;gap:1px;max-height:41px;overflow:hidden}   /* ~2 rows — keeps the explanation card roomy, window never resizes */
   .engml .ml-row{display:grid;grid-template-columns:20px 1fr 1fr;gap:0 4px;align-items:center;font-size:12px;color:var(--ink);padding:1px 0}
   .engml .ml-num{color:var(--muted);font-size:10.5px;user-select:none}
   .engml .ml-w,.engml .ml-b{display:inline-flex;align-items:center;gap:2px;padding:1px 5px;border-radius:4px}

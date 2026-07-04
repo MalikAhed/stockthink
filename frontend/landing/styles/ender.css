@@ -37,6 +37,7 @@
 /* rating-coloured kicker word (matches the page's rating palette) */
 .ender-cap.r-blunder     .ender-cap-rating { color: #ff6b6b; }
 .ender-cap.r-brilliant   .ender-cap-rating { color: #2ad6c4; }
+.ender-cap.r-forced      .ender-cap-rating { color: #aeb9c4; }
 .ender-cap.r-doublecheck .ender-cap-rating { color: #74c948; }
 .ender-cap.r-mate        .ender-cap-rating { color: #ffd56b; }
 .ender-cap.r-mate { border-color: rgba(255, 213, 107, 0.38); box-shadow: 0 8px 36px rgba(255, 180, 70, 0.14); }
@@ -45,23 +46,77 @@
    real SF18 eval. Screen-space (independent of the 3D camera). Opacity + height driven per-frame by ender.js. */
 .ender-eval {
   position: absolute; left: 4.5%; top: 50%; transform: translateY(-50%);
-  width: 15px; height: 46%; border-radius: 8px; overflow: hidden;
-  background: #14151a; border: 1px solid rgba(255, 255, 255, 0.14);
+  width: 26px; height: 46%; border-radius: 4px; overflow: hidden;
+  background: #403d39; border: 1px solid rgba(255, 255, 255, 0.14);
   box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45); opacity: 0; pointer-events: none;
 }
-.ev-fill { position: absolute; left: 0; right: 0; bottom: 0; height: 68%; background: linear-gradient(#fbfaf6, #dcd7cb); }
+.ev-fill { position: absolute; left: 0; right: 0; bottom: 0; height: 68%; background: #f0f0f0; }
 .ev-num {
   position: absolute; left: 0; right: 0; bottom: 3px; text-align: center;
   font: 800 9px/1 ui-monospace, Menlo, monospace; color: #14150f; letter-spacing: -0.02em;
 }
-.ender-eval.ev-mate { border-color: rgba(255, 213, 107, 0.42); box-shadow: 0 6px 30px rgba(255, 180, 70, 0.20); }
-.ender-eval.ev-mate .ev-fill { background: linear-gradient(#fff7e6, #ffd874); }
-.ender-eval.ev-mate .ev-num { color: #3a2c08; }
+.ender-eval.ev-mate { border-color: rgba(255, 255, 255, 0.42); box-shadow: 0 6px 30px rgba(0, 0, 0, 0.35); }
+.ender-eval.ev-mate .ev-fill { background: #ffffff; }
+.ender-eval.ev-mate .ev-num { color: #14150f; }
 
 /* the fade-to-black veil (driven by ender.js): a top-most full-screen black overlay whose opacity is
    scrubbed by scroll — it fades the screen to black as the coach leaves, then lifts to reveal the
    basement scene. Above all chrome; inert when clear. */
 .ender-fade { position: fixed; inset: 0; background: #000; opacity: 0; pointer-events: none; z-index: 60; }
+
+/* the king-entrance fade veil (driven by ender.js cutFadeAt): fades the screen out/in around each king's
+   drop. Sits above the canvas + HUD but below the scroll reveal veil (60) so the reveal still wins. */
+.ender-cut { position: fixed; inset: 0; background: #000; opacity: 0; pointer-events: none; z-index: 58; }
+
+/* the scene-nav tag: appears while stepping the finale beat-by-beat with the arrow keys ("3 / 10 · …"). */
+.ender-navtag {
+  position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%); z-index: 62;
+  padding: 8px 17px; border-radius: 999px; white-space: nowrap;
+  font: 600 12px/1 'Inter', system-ui, sans-serif; letter-spacing: 0.04em; color: #f5f3ee;
+  background: rgba(10, 12, 14, 0.66); border: 1px solid rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  opacity: 0; transition: opacity 0.35s ease; pointer-events: none;
+}
+.ender-navtag.show { opacity: 1; }
+
+/* the explosion flash — a white bloom that whites out the screen at the detonation, then falls away */
+.ender-flash { position: fixed; inset: 0; background: #fff; opacity: 0; pointer-events: none; z-index: 61; }
+
+/* the final call-to-action — a clean black-on-WHITE screen that fades up out of the whiteout. Matches the
+   site's black/white type; black pill button. */
+.ender-cta {
+  position: fixed; inset: 0; z-index: 63; display: flex; align-items: flex-end; justify-content: center;
+  opacity: 0; pointer-events: none;
+  /* transparent up top so the floating pieces show; a light scrim (matches the hero backdrop #eceae4) grounds the text */
+  background: linear-gradient(to top, rgba(236,234,228,0.97) 0%, rgba(236,234,228,0.86) 20%, rgba(236,234,228,0.18) 44%, rgba(236,234,228,0) 62%);
+}
+.ender-cta-in { max-width: 720px; padding: 0 30px 7vh; text-align: center; }
+.ender-cta-kick { margin-bottom: 24px; font: 500 12px/1 ui-monospace, "SF Mono", Menlo, monospace; letter-spacing: 0.3em; text-transform: uppercase; color: #a0a6ae; }
+.ender-cta-h { margin: 0 0 24px; font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-weight: 800; font-size: clamp(40px, 7.6vw, 90px); letter-spacing: -0.045em; line-height: 0.95; color: #0b0c0e; }
+.ender-cta-h .am { color: #ff9e2c; }   /* the site's amber accent — a spark of life */
+.ender-cta-p { margin: 0 auto 38px; max-width: 490px; font: 400 clamp(15px, 2.1vw, 18px)/1.55 'Inter', system-ui, sans-serif; color: #565b63; }
+.ender-cta-btn {
+  display: inline-block; text-decoration: none; font: 700 15px/1 'Inter', system-ui, sans-serif; letter-spacing: 0.005em;
+  color: #ffffff; background: #0b0c0e; padding: 17px 34px; border-radius: 999px;
+  box-shadow: 0 12px 34px rgba(10, 10, 10, 0.18); transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+}
+.ender-cta-btn:hover { transform: translateY(-2px); background: #000; box-shadow: 0 16px 44px rgba(10, 10, 10, 0.28); }
+
+/* dev-only CAMERA DIRECTOR panel (tree-shaken from prod) */
+.ender-dir { position: fixed; top: 12px; left: 12px; z-index: 90; font: 500 12px/1.4 'Inter', system-ui, sans-serif; color: #eee; }
+.ender-dir-tog { font: 600 12px/1 inherit; color: #111; background: #f5c451; border: 0; border-radius: 8px; padding: 8px 12px; cursor: pointer; }
+.ender-dir-body { margin-top: 8px; width: 340px; padding: 12px; background: rgba(14, 16, 18, 0.94); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 10px; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+.ender-dir-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+.ender-dir-t { flex: 1; }
+.ender-dir-tv { min-width: 54px; text-align: right; color: #f5c451; }
+.ender-dir-pose { font: 500 11px/1.4 ui-monospace, monospace; color: #9fe0c8; margin-bottom: 8px; word-break: break-all; }
+.ender-dir-body button { font: 600 12px/1 'Inter', system-ui, sans-serif; color: #eee; background: #2a2e33; border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 7px; padding: 7px 10px; cursor: pointer; }
+.ender-dir-body button:hover { background: #363b41; }
+.ender-dir-list { margin-top: 8px; max-height: 260px; overflow-y: auto; }
+.ender-dir-k { display: flex; gap: 6px; align-items: center; padding: 4px 0; border-top: 1px solid rgba(255, 255, 255, 0.07); font-size: 11px; }
+.ender-dir-k b { color: #f5c451; min-width: 44px; }
+.ender-dir-k span { flex: 1; color: #88aa99; font-family: ui-monospace, monospace; font-size: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ender-dir-k button { padding: 3px 7px; }
 
 /* ---- the theme flip: chrome recedes while the finale is on screen ----
    The page-background darkening is scroll-driven in ender.js (light theme only, reversible), so it is

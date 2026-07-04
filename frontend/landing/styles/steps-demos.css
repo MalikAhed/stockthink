@@ -134,7 +134,7 @@
   .rev-boardwrap{display:flex;gap:14px;width:100%;align-items:stretch;
     background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:14px;
     box-shadow:0 30px 70px rgba(0,0,0,0.22)}
-  .rev-evalbar{width:12px;border-radius:6px;background:#26241f;overflow:hidden;position:relative;flex:0 0 auto}
+  .rev-evalbar{width:22px;border-radius:2px;background:#26241f;overflow:hidden;position:relative;flex:0 0 auto}
   .rev-evalfill{position:absolute;left:0;right:0;bottom:0;height:50%;background:#f3f1ea;
     transition:height 1s cubic-bezier(.4,0,.2,1)}
   .revboard{width:min(38vh,300px);max-width:46vw;aspect-ratio:1;border-radius:8px;overflow:hidden;
@@ -279,7 +279,7 @@
   .rev-card-move .rev-mv-ico{width:19px;height:19px}
   .rev-hi.rev-guard{background:rgba(224,114,106,0.5)}
   .rev-evalcol{display:flex;flex-direction:column;align-items:center;gap:7px;flex:0 0 auto}
-  .rev-evalcol .rev-evalbar{flex:1;width:14px}
+  .rev-evalcol .rev-evalbar{flex:1;width:22px}
   .rev-evalnum{font-family:ui-monospace,monospace;font-size:12px;font-weight:700;color:var(--muted);
     font-variant-numeric:tabular-nums;transition:color .4s ease}
   .rev-evalnum.lead{color:var(--ink)}

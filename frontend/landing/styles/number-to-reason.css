@@ -29,12 +29,10 @@
     font:800 11px/1 ui-monospace,monospace;letter-spacing:.34em;text-transform:uppercase;color:#7fe0a8;
     text-shadow:0 1px 9px rgba(0,0,0,.55);opacity:0;transition:opacity .4s var(--eo)}
   .n2r-step.in{opacity:1}.n2r-step b{color:#fff;font-weight:800}
-  .n2r-cap{position:absolute;left:50%;bottom:34px;transform:translateX(-50%) translateY(7px);max-width:760px;z-index:9;
+  .n2r-cap{position:absolute;left:50%;bottom:58px;transform:translateX(-50%) translateY(7px);max-width:760px;z-index:9;
     text-align:center;pointer-events:none;font:600 17px/1.42 var(--sans);color:#fff;letter-spacing:.004em;
     text-shadow:0 1px 11px rgba(0,0,0,.6);opacity:0;transition:opacity .42s var(--eo),transform .42s var(--eo)}
   .n2r-cap.in{opacity:1;transform:translateX(-50%) translateY(0)}
-  .n2r-cap::before{content:'';position:absolute;left:50%;bottom:-42px;transform:translateX(-50%);width:980px;height:160px;
-    z-index:-1;background:radial-gradient(58% 100% at 50% 100%,rgba(5,8,7,.72) 0%,rgba(5,8,7,.4) 46%,transparent 76%)}
   /* Captions stay WHITE (like the title card) in BOTH themes, over the same soft DARK scrim — so the
      light theme no longer flips them dark or shows a bright white glow at the bottom of the stage. */
 

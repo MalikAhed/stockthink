@@ -180,7 +180,7 @@
   .boardcard{display:flex;gap:14px;align-items:stretch;width:100%;
     background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:14px;
     box-shadow:0 30px 70px rgba(0,0,0,0.22)}
-  .evalbar{width:14px;border-radius:7px;overflow:hidden;background:#403d39;position:relative;flex:0 0 auto}
+  .evalbar{width:22px;border-radius:2px;overflow:hidden;background:#403d39;position:relative;flex:0 0 auto}
   .evalbar .wfill{position:absolute;left:0;right:0;bottom:0;background:#f3f1ea;transition:height .8s cubic-bezier(.4,0,.2,1)}
   .cgboard{width:min(30vw,264px);aspect-ratio:1;border-radius:6px;overflow:hidden;position:relative;flex:0 0 auto;
     box-shadow:0 8px 24px rgba(0,0,0,0.2)}

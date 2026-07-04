@@ -244,7 +244,8 @@ export async function createEnderScene(canvas) {
     // deterministic per-square hashes → varied but reproducible entry (no Math.random, so the render matches)
     const hsh = (s, salt) => { const x = Math.sin(s.charCodeAt(0) * 12.9898 + s.charCodeAt(1) * 78.233 + salt) * 43758.5453; return x - Math.floor(x); };
     const mix = (a, b, k) => a + (b - a) * k;
-    const order = [...boardData.pieces.values()].map((wrap) => ({ wrap, h: hsh(wrap.userData.square, 0) })).sort((a, b) => a.h - b.h);
+    // the two kings don't rain in with everyone else — they get their own straight-down entrance below
+    const order = [...boardData.pieces.values()].filter((wrap) => wrap.userData.type !== 'king').map((wrap) => ({ wrap, h: hsh(wrap.userData.square, 0) })).sort((a, b) => a.h - b.h);
     order.forEach(({ wrap }, i) => {
       const s = wrap.userData.square;
       const mat = wrap.userData.material;
@@ -278,6 +279,92 @@ export async function createEnderScene(canvas) {
       if (f.mat) f.mat.opacity = lt < INTRO.fadeFrac ? lt / INTRO.fadeFrac : 1;
     }
   }
+
+  // ---- the two kings: they DON'T rain in with everyone else. Once the other 26 pieces are down, each
+  // king enters via a FADE — the screen fades to black, the (dead-still) camera CUTS to a close shot of the
+  // king's square while hidden, then fades back in as the king DROPS straight down and lands. The camera
+  // NEVER travels: it just holds and the look-target tracks the fall. Black king, then White, then a fade
+  // back to the board read for the blunder. Tunables below — change numbers, not structure. ----
+  const KING = { pause: 0.15, fade: 0.22, black: 0.05, fly: 0.6, hold: 0.9, up: 3.0 };
+  const FO_A_S = _introEnd + KING.pause;               // fade A → the black king: start fading out once the field has landed
+  const FO_A_E = FO_A_S + KING.fade;                   // full black — the still camera CUTS to the black-king shot here
+  const BLACK_KING_AT = FO_A_E + KING.black;           // king begins its drop; the screen fades back in ON it
+  const FI_A_E = BLACK_KING_AT + KING.fade;
+  const BLACK_KING_LANDS = BLACK_KING_AT + KING.fly;
+  const FO_B_S = BLACK_KING_LANDS + KING.hold;         // fade B → the white king: hold on the landed black king, then fade out
+  const FO_B_E = FO_B_S + KING.fade;                   // full black — CUT to the white-king shot
+  const WHITE_KING_AT = FO_B_E + KING.black;
+  const FI_B_E = WHITE_KING_AT + KING.fade;
+  const WHITE_KING_LANDS = WHITE_KING_AT + KING.fly;
+  const FO_C_S = WHITE_KING_LANDS + KING.hold;         // fade C → back to the board read for the blunder
+  const FO_C_E = FO_C_S + KING.fade;                   // full black — CUT back to the read pose
+  const FI_C_S = FO_C_E + KING.black;
+  const KING_CAM_END = FI_C_S + KING.fade;             // fully revealed on the read → hand the camera back to the keyframed path
+  const KING_SQ = { black: 'e8', white: 'c1' };
+  const _kingRig = ['black', 'white'].map((army) => {
+    const sq = KING_SQ[army];
+    const wrap = boardData.pieces.get(sq);
+    const mat = wrap.userData.material;
+    const restPos = wrap.position.clone();
+    const restQuat = wrap.quaternion.clone();
+    const startPos = restPos.clone().add(new THREE.Vector3(0, KING.up, 0));   // straight overhead — no lean, no drift
+    wrap.visible = false; if (mat) { mat.transparent = true; mat.opacity = 0; }
+    return { wrap, mat, restPos, restQuat, startPos, at: army === 'black' ? BLACK_KING_AT : WHITE_KING_AT };
+  });
+  function setKing(t) {
+    for (const k of _kingRig) {
+      const lt = (t - k.at) / KING.fly;
+      if (lt <= 0) { k.wrap.visible = false; continue; }
+      k.wrap.visible = true;
+      const vP = _smoother(Math.min(lt, 1));
+      k.wrap.position.lerpVectors(k.startPos, k.restPos, vP);   // straight down onto the centre of its square
+      k.wrap.quaternion.copy(k.restQuat);
+      if (k.mat) k.mat.opacity = Math.min(1, lt / 0.3);
+    }
+  }
+  // ---- the king-entrance camera: DEAD STILL for the whole beat. It never travels to a king — the fade
+  // hides an instant CUT to a close, slightly-raised shot of the king's square, and the camera simply holds
+  // there while the look-target tracks the king down. Poses are explicit eye+target WORLD points (not the
+  // board orbit) so "close to THIS king" is literal. The read endpoints match CAM_KEYS → seamless hand-off. ----
+  const READ_POSE = { radius: 5.20, height: 3.55, az: 0.00, tgt: [0, -0.88, 0.42] };   // "read the whole board" pose (shared with CAM_KEYS)
+  const _readEye = [Math.sin(READ_POSE.az) * READ_POSE.radius, READ_POSE.height, CAM.zCenter - Math.cos(READ_POSE.az) * READ_POSE.radius];
+  const KCAM = { back: 2.6, eyeY: 0.3, look: 0.25 };   // distance behind the king (farther ⇒ king framed fully) · camera height (low, lifted slightly) · look-at height on the king
+  const _bR = _kingRig[0].restPos, _wR = _kingRig[1].restPos;
+  const _blackEye = [_bR.x, KCAM.eyeY, _bR.z + KCAM.back];        // close, low, behind e8 (far side)
+  const _whiteEye = [_wR.x, KCAM.eyeY, _wR.z - KCAM.back];        // close, low, behind c1 (near side)
+  const _blackRestTgt = [_bR.x, _bR.y + KCAM.look, _bR.z];        // look at the king's body (holds here once landed)
+  const _whiteRestTgt = [_wR.x, _wR.y + KCAM.look, _wR.z];
+  // owns the camera across the king beat; the fade veil (cutFadeAt) hides the cuts between these static holds
+  function setKingCam(t) {
+    if (t < _introEnd || t > KING_CAM_END) return false;
+    let eye, tgt;
+    if (t < FO_A_E)      { eye = _readEye;  tgt = READ_POSE.tgt; }   // still on the read (fading out)
+    else if (t < FO_B_E) { eye = _blackEye; tgt = _blackRestTgt; }   // the black-king shot
+    else if (t < FO_C_E) { eye = _whiteEye; tgt = _whiteRestTgt; }   // the white-king shot
+    else                 { eye = _readEye;  tgt = READ_POSE.tgt; }   // back on the read (fading in for the blunder)
+    camera.position.set(eye[0], eye[1], eye[2]);
+    // the camera stays put; only the look-target follows the falling king down
+    if (t >= BLACK_KING_AT && t <= BLACK_KING_LANDS + 0.1) { const k = _kingRig[0].wrap.position; lookTarget.set(k.x, k.y + KCAM.look, k.z); }
+    else if (t >= WHITE_KING_AT && t <= WHITE_KING_LANDS + 0.1) { const k = _kingRig[1].wrap.position; lookTarget.set(k.x, k.y + KCAM.look, k.z); }
+    else lookTarget.set(tgt[0], tgt[1], tgt[2]);
+    return true;
+  }
+  // the fade-to-black veil the DOM layer reads (pure function of t): fade out → hold black (the cut) → fade in
+  function _fadePulse(t, foS, foE, fiS, fiE) {
+    if (t < foS || t > fiE) return 0;
+    if (t < foE) return _q5(_clamp((t - foS) / (foE - foS)));    // fade to black
+    if (t < fiS) return 1;                                       // full black — the camera cuts here
+    return 1 - _q5(_clamp((t - fiS) / (fiE - fiS)));             // fade back in
+  }
+  function cutFadeAt(t) {
+    return Math.max(
+      _fadePulse(t, FO_A_S, FO_A_E, BLACK_KING_AT, FI_A_E),
+      _fadePulse(t, FO_B_S, FO_B_E, WHITE_KING_AT, FI_B_E),
+      _fadePulse(t, FO_C_S, FO_C_E, FI_C_S,        KING_CAM_END),
+      _fadePulse(t, FADE_OUT, FADE_BLACK, FADE_IN, FADE_DONE),   // the death ending: fade to black over the fallen king, reveal the top-down
+      _fadePulse(t, F2_OUT, F2_BLACK, F2_IN, F2_DONE),           // the detonation: fade black over the shaking king, CUT to the piece-level POV
+    );
+  }
   // ============================================================================================
   // THE MOVE CINEMATIC — the Réti–Tartakower queen sacrifice plays out (engine-verified line).
   //   8…Nxe4 🔴 · 9.Qd8+ ✨ · 9…Kxd8 · 10.Bg5+ 🟢 (double check) · 10…Kc7 · 11.Bd8# 👑
@@ -290,15 +377,32 @@ export async function createEnderScene(canvas) {
   const MOVES = [
     { at: 8.20,  dur: 1.20, from: 'f6', to: 'e4', cap: true,  arc: 0.55, rating: 'blunder'     }, // 8…Nxe4 — the knight hops highest, grabs the bait
     { at: 11.20, dur: 2.00, from: 'd3', to: 'd8', cap: false, arc: 0.07, rating: 'brilliant'   }, // 9.Qd8+!! — the long, low glide up the whole d-file into the king's lap
-    { at: 15.20, dur: 1.20, from: 'e8', to: 'd8', cap: true,  arc: 0.05, rating: null          }, // 9…Kxd8 — forced, played quietly; the queen dies on d8
+    { at: 15.20, dur: 1.20, from: 'e8', to: 'd8', cap: true,  arc: 0.05, rating: 'forced'       }, // 9…Kxd8 — the king is FORCED to take the queen out of check; she dies on d8
     { at: 17.60, dur: 1.40, from: 'd2', to: 'g5', cap: false, arc: 0.07, rating: 'doublecheck' }, // 10.Bg5+ — clears d2, unblocks Rd1: DOUBLE check
-    { at: 21.20, dur: 1.00, from: 'd8', to: 'c7', cap: false, arc: 0.06, rating: null          }, // 10…Kc7 — the king flees, but the net holds
+    { at: 21.20, dur: 1.00, from: 'd8', to: 'c7', cap: false, arc: 0.06, rating: 'forced'       }, // 10…Kc7 — also FORCED: the king flees the double check (badge only, no glow)
     { at: 23.20, dur: 1.60, from: 'g5', to: 'd8', cap: false, arc: 0.07, rating: 'mate'        }, // 11.Bd8# — the bishop returns to the queen's grave to mate
   ];
   const MATE_AT = MOVES[5].at + MOVES[5].dur;     // ≈24.8 — the mate lands
-  const MATE_HOLD = 2.4;
-  const MOVES_END = MATE_AT + MATE_HOLD;          // ≈27.2
-  const DURATION = MOVES_END + 3.0;               // + the outro recompose → ≈30.2s total
+  // ---- THE DRAMATIC DEATH SEQUENCE (all absolute; the ending camera, the topple + the kill-beam key off these) ----
+  const BUILD_AT  = MATE_AT + 0.35;   // ≈25.15 — the tense close ORBIT around the king + bishop begins (brief beat on the mate first)
+  const SHOOT_AT  = MATE_AT + 3.2;    // ≈28.0 — the bishop SHOOTS a beam from the top of its head at the king
+  const HIT_AT    = MATE_AT + 3.6;    // ≈28.4 — the beam reaches the king
+  const WOBBLE_AT = HIT_AT;           // struck, the king WOBBLES (teeters on its base)
+  const FALL_AT   = MATE_AT + 3.9;    // ≈28.7 — then it TOPPLES, head-first, into the open
+  const FALL_END  = MATE_AT + 5.4;    // ≈30.2 — settled, lying dead on the board
+  const FADE_OUT  = MATE_AT + 5.6;    // ≈30.4 — fade to black over the fallen king
+  const FADE_BLACK= MATE_AT + 6.0;    // ≈30.8 — full black (the camera cuts to the top-down)
+  const FADE_IN   = MATE_AT + 6.3;    // ≈31.1 — start revealing the top-down view
+  const FADE_DONE = MATE_AT + 6.9;    // ≈31.7 — the top-down of the defeated king is revealed
+  const RISE_AT   = MATE_AT + 7.8;    // ≈32.6 — the king begins DISSOLVING + SHAKING with rage (top-down HELD, camera still)
+  const F2_OUT    = MATE_AT + 8.8;    // fade to black over the shaking king
+  const F2_BLACK  = MATE_AT + 9.2;    // full black — CUT (no camera move) to the piece-level POV
+  const F2_IN     = MATE_AT + 9.5;    // reveal the piece-level POV
+  const F2_DONE   = MATE_AT + 10.0;   // piece-level revealed (king still shaking on the board)
+  const EXPLODE_AT= MATE_AT + 10.6;   // ≈35.4 — it DETONATES: a SLOW-MO mushroom + a neat outward piece scatter → whiteout
+  const MATE_HOLD = 18.6;             // + the slow-mo blast → whiteout → the floating tableau + invitation
+  const MOVES_END = MATE_AT + MATE_HOLD;
+  const DURATION = MOVES_END;                     // the finale runs ≈42s (the message lingers after)
   const DRAIN_FROM = 13.2;                        // the room starts draining to black from the sacrifice's landing
 
   // The full camera path — "The Queen's Grave" cut. The establishing key + the intro-dolly settle reproduce
@@ -307,10 +411,11 @@ export async function createEnderScene(canvas) {
   // rook's d1→d8 beam is seen obliquely instead of end-on. HOLD beats are duplicated bracketing keyframes
   // (identical pose over a window → the lerp is a no-op → genuinely dead-still). Only 'smooth'/'smoother'
   // eases (zero-velocity joins) — never the single-sided in/out (they break C1 continuity at the joins).
+  // READ_POSE is defined up in the king-entrance block (shared, so the camera hand-off is seamless).
   CAM_KEYS = [
     { t: INTRO.camStart, radius: CAM.far.radius, height: CAM.far.height, az: CAM.far.az, tgt: CAM.far.tgt.slice(), ease: 'smoother' }, // establishing (wide, lamp in frame)
-    { t: INTRO.camEnd, radius: 5.20, height: 3.55, az: 0.00, tgt: [0, -0.88, 0.42], ease: 'smoother' },    // settle HIGH + looking down — read the whole board position (the user wants a higher opening)
-    { t: 8.20,  radius: 5.20, height: 3.55, az: 0.00,  tgt: [0.00, -0.88, 0.42], ease: 'smooth' },         // HOLD the board read (beat before the blunder)
+    { t: _introEnd - 0.1, ...READ_POSE, ease: 'smoother' },    // settle to the board read as the field lands — then setKingCam OWNS the camera through both king drops
+    { t: 8.20,  ...READ_POSE, ease: 'smoother' },              // read pose restored for the blunder (setKingCam hands back here)
     { t: 9.40,  radius: 4.05, height: 2.45, az: 0.13,  tgt: [0.14, -0.74, 0.46], ease: 'smoother' },       // 🔴 blunder: the camera DROPS and pushes in toward the centre as the knight grabs the bait
     { t: 10.80, radius: 4.05, height: 2.45, az: 0.13,  tgt: [0.14, -0.74, 0.46], ease: 'smooth' },         // HOLD low on the blunder
     { t: 13.20, radius: 3.30, height: 1.95, az: -0.20, tgt: [-0.16, -0.55, 1.28], ease: 'smoother' },      // ✨ SACRIFICE: a big dramatic LOW push that rides the queen up the whole d-file + orbits behind her
@@ -318,10 +423,8 @@ export async function createEnderScene(canvas) {
     { t: 17.40, radius: 3.45, height: 2.05, az: -0.12, tgt: [-0.20, -0.55, 1.24], ease: 'smooth' },        // accept: stay low + tight on d8 as the king takes; a small reframe
     { t: 19.00, radius: 4.95, height: 3.15, az: 0.36,  tgt: [0.04, -0.50, 0.74], ease: 'smoother' },       // 🟢 DOUBLE-CHECK: the BIG move — a sweeping orbit (az −0.12→+0.36) that lifts up + around so both attack lines bloom
     { t: 21.00, radius: 4.95, height: 3.15, az: 0.36,  tgt: [0.04, -0.50, 0.74], ease: 'smooth' },         // HOLD the wedge of the double check
-    { t: 22.20, radius: 3.75, height: 2.30, az: 0.00,  tgt: [-0.34, -0.60, 1.06], ease: 'smooth' },        // flight: swing back through centre + tighten, chasing the fleeing king
-    { t: 24.80, radius: 3.10, height: 1.75, az: -0.15, tgt: [-0.30, -0.52, 1.16], ease: 'smoother' },      // 👑 MATE: a dramatic LOW, CLOSE push onto the kill (king c7 · bishop on the queen's grave d8)
-    { t: MOVES_END, radius: 3.10, height: 1.75, az: -0.15, tgt: [-0.30, -0.52, 1.16], ease: 'smooth' },    // HOLD the kill as the king topples + the room drains
-    { t: DURATION, radius: 6.40, height: 3.60, az: -0.30, tgt: [-0.05, -0.30, 0.60], ease: 'smoother' },   // outro: a slow crane up + orbit out under the bulb
+    { t: 22.70, radius: 3.95, height: 2.55, az: 0.12,  tgt: [-0.12, -0.52, 0.96], ease: 'smoother' },      // ease IN toward the mate zone (follow the bishop to d8) — one continuous arc, no chase-the-king detour
+    { t: 24.80, radius: 3.10, height: 1.75, az: -0.15, tgt: [-0.30, -0.52, 1.16], ease: 'smoother' },      // 👑 MATE: a smooth LOW settle onto the kill — then setEndCam OWNS the camera for the death sequence
   ];
 
   // resolve each move to concrete piece Groups + world endpoints by simulating the (fixed) sequence
@@ -341,9 +444,20 @@ export async function createEnderScene(canvas) {
     _bySq.delete(m.from); _bySq.set(m.to, m.mover);
   }
   const _theKing = MOVES[2].mover;   // black king (mover of Kxd8) — used by the resign-topple + the spotlight hunt
+  // resign topple: the king falls AWAY from the mating bishop (d8), into the open b6/a5 space (no piece to
+  // overlap), pivoting head-first. Direction + pivot axis precomputed once.
+  const _resignDir = boardData.squareXYZ('c7').clone().sub(boardData.squareXYZ('d8')); _resignDir.y = 0; _resignDir.normalize();
+  const _resignAxis = new THREE.Vector3().crossVectors(_UP, _resignDir).normalize();
+  const _resignQ = new THREE.Quaternion();
+  // the king's collision radius — half its footprint. When it lies on its side its central axis sits THIS far
+  // above the board, so lifting by (radius · sin angle) keeps the piece resting ON the surface, never inside it.
+  const _kingBox = new THREE.Box3().setFromObject(_theKing), _kingSz = new THREE.Vector3(); _kingBox.getSize(_kingSz);
+  const _kr = Math.max(_kingSz.x, _kingSz.z) * 0.5;
+  const _kingLift = (_kr > 0.01 && _kr < 0.5) ? _kr : 0.09;   // fall back if the bbox came back degenerate
 
   const _clamp = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
   const _q5 = (k) => (k <= 0 ? 0 : k >= 1 ? 1 : k * k * k * (k * (k * 6 - 15) + 10));   // quintic ease-in-out
+  const _easeOutBack = (x) => { const c1 = 1.70158, c3 = c1 + 1, p = x - 1; return 1 + c3 * p * p * p + c1 * p * p; };   // gentle overshoot then settle
   const _toppleQ = new THREE.Quaternion();
   const _toppleDir = new THREE.Vector3();
   function toppleCaptured(m, k) {
@@ -364,6 +478,79 @@ export async function createEnderScene(canvas) {
     if (m.capMat) { m.capMat.transparent = true; m.capMat.opacity = 1 - _clamp((k - 0.12) / 0.55); }
     pulse(g, 0xffffff, Math.exp(-Math.pow(k / 0.11, 2)) * 0.9);
   }
+  // ============================================================================================
+  // FX — the master toggle. Flip ANY flag to false to remove that effect completely (as if never added).
+  // Everything below is gated on these, so nothing is ever "stuck". (#7 DOF lands in its own careful pass.)
+  // ============================================================================================
+  const FX = {
+    dissolveKing:    true,   // the defeated KING dissolves away (noise + glowing edge) as the camera pulls back
+    dissolveQueen:   true,   // the QUEEN dissolves (noise + glow) when the king takes her (Kxd8)
+    ashCapture:      true,   // OTHER captures (the pawn on Nxe4) crumble to a DARK ASH puff instead (a different look)
+    chargeGlow:      true,   // #8 — the queen's glow BUILDS as she nears d8 for the sacrifice
+    ignite:          true,   // #3 — the d-file squares light up one-by-one beneath the gliding queen
+    goldBurst:       true,   // #6 — the shockwave ring spreads across the WHOLE board + pieces tremble in order as it reaches them
+    cometTrail:      false,  // #2 — the gold light-trail (OFF — removed)
+    foreshadow:      true,   // #9 — the mating line flashes for a beat after she lands
+    fireShader:      true,   // the detonation's fireball is a REAL procedural fire billboard (ported shader) — set false to fall back to particles only
+  };
+  // ---- DISSOLVE: erode a piece via 3D noise with a glowing burning edge (driven by progress 0→1). Piece
+  // materials are unique, so we inject straight into each one — no cloning. A matching CUSTOM DEPTH material
+  // makes the SHADOW dissolve in lock-step (no lingering shadow). Pure function of t → bakes. ----
+  const DISS = { noiseScale: 11.0, edgeGlow: 2.4 };
+  const _DISS_NOISE = `
+    float dHash(vec3 p){ p=fract(p*0.3183099+0.1); p*=17.0; return fract(p.x*p.y*p.z*(p.x+p.y+p.z)); }
+    float dNoise(vec3 x){ vec3 i=floor(x),f=fract(x); f=f*f*(3.0-2.0*f);
+      return mix(mix(mix(dHash(i+vec3(0,0,0)),dHash(i+vec3(1,0,0)),f.x),mix(dHash(i+vec3(0,1,0)),dHash(i+vec3(1,1,0)),f.x),f.y),
+                 mix(mix(dHash(i+vec3(0,0,1)),dHash(i+vec3(1,0,1)),f.x),mix(dHash(i+vec3(0,1,1)),dHash(i+vec3(1,1,1)),f.x),f.y),f.z); }`;
+  function makeDissolvable(wrap, edgeColor) {
+    const mat = wrap && wrap.userData && wrap.userData.material; if (!mat || mat.userData._dis) return;
+    const uDis = { value: 0 }, uNS = { value: DISS.noiseScale };   // SHARED across the colour + depth shaders
+    mat.userData._dis = { uDis };
+    mat.onBeforeCompile = (sh) => {
+      sh.uniforms.uDis = uDis; sh.uniforms.uNS = uNS; sh.uniforms.uEdge = { value: 0.09 };
+      sh.uniforms.uEcol = { value: new THREE.Color(edgeColor) }; sh.uniforms.uEglow = { value: DISS.edgeGlow };
+      sh.vertexShader = sh.vertexShader
+        .replace('#include <common>', '#include <common>\nvarying vec3 vDpos;')
+        .replace('#include <begin_vertex>', '#include <begin_vertex>\nvDpos = position;');
+      sh.fragmentShader = sh.fragmentShader
+        .replace('#include <common>', '#include <common>\nvarying vec3 vDpos;\nuniform float uDis;uniform float uEdge;uniform float uNS;uniform vec3 uEcol;uniform float uEglow;\n' + _DISS_NOISE)
+        .replace('#include <dithering_fragment>',
+          'float dn = dNoise(vDpos * uNS);\n if (uDis > 0.0001 && dn < uDis) discard;\n float de = 1.0 - smoothstep(uDis, uDis + uEdge, dn);\n gl_FragColor.rgb += uEcol * de * uEglow * step(0.0001, uDis);\n#include <dithering_fragment>');
+    };
+    mat.needsUpdate = true;
+    // custom depth material: the SHADOW erodes with the same noise, so it fades in sync (fixes the lingering shadow)
+    const dm = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking });
+    dm.onBeforeCompile = (sh) => {
+      sh.uniforms.uDis = uDis; sh.uniforms.uNS = uNS;
+      sh.vertexShader = sh.vertexShader
+        .replace('#include <common>', '#include <common>\nvarying vec3 vDpos;')
+        .replace('#include <begin_vertex>', '#include <begin_vertex>\nvDpos = position;');
+      sh.fragmentShader = sh.fragmentShader
+        .replace('#include <common>', '#include <common>\nvarying vec3 vDpos;\nuniform float uDis;uniform float uNS;\n' + _DISS_NOISE)
+        .replace('#include <clipping_planes_fragment>', '#include <clipping_planes_fragment>\n if (uDis > 0.0001 && dNoise(vDpos * uNS) < uDis) discard;');
+    };
+    wrap.traverse((o) => { if (o.isMesh) o.customDepthMaterial = dm; });
+  }
+  function setDissolve(wrap, p) {
+    const d = wrap && wrap.userData && wrap.userData.material && wrap.userData.material.userData._dis;
+    if (d) d.uDis.value = p;
+    wrap.visible = p < 0.999;
+  }
+  if (FX.dissolveQueen) makeDissolvable(MOVES[2].cap_g, 0xffcaa0);   // ONLY the queen (when captured) + the king dissolve
+  if (FX.dissolveKing) makeDissolvable(_theKing, 0xffe6b0);          // king → a regal gold dissolve
+  const KING_DISS_FROM = RISE_AT, KING_DISS_TO = EXPLODE_AT + 0.4;   // the king dissolves — mostly gone by the moment it EXPLODES
+  // a captured piece either DISSOLVES to ash (FX.dissolveCapture) or does the classic knock-topple
+  function setCapture(m, t) {
+    if (!m.cap_g) return;
+    const dis = m.cap_g.userData.material && m.cap_g.userData.material.userData._dis;
+    if (dis) setDissolve(m.cap_g, _q5(_clamp((t - (m.at + m.dur * 0.4)) / (m.dur * 0.6 + 0.4))));   // king/queen → noise dissolve
+    else if (FX.ashCapture) setAshCapture(m, t);                                                    // other pieces → a dark ash puff
+    else { const p = t <= m.at + m.dur ? _q5(_clamp((t - m.at) / m.dur)) : 1; toppleCaptured(m, _clamp((p - 0.5) / 0.5)); }
+  }
+
+  // inertia-lean scratch + magnitude (a moving piece tips back under acceleration, forward as it slows)
+  const _leanDir = new THREE.Vector3(), _leanAxis = new THREE.Vector3(), _leanQ = new THREE.Quaternion();
+  const LEAN_MAX = 0.2;   // peak tilt in radians (~11°); scale per move via m.lean
   function setMoves(t) {
     for (const m of MOVES) {
       if (!m.mover) continue;
@@ -377,25 +564,57 @@ export async function createEnderScene(canvas) {
         // the instant this move captures it. Strict one-move-at-a-time: a move only acts within its window.
         continue;
       } else if (t <= m.at + m.dur) {
-        const p = _q5((t - m.at) / m.dur);
+        const u = (t - m.at) / m.dur;
+        const p = _q5(u);
         m.mover.position.lerpVectors(m.fromXYZ, m.toXYZ, p);
         m.mover.position.y += m.arc * Math.sin(Math.PI * p);   // a gentle lift-and-set (knights hop highest)
-        m.mover.quaternion.copy(m.restQuat);
-        if (m.cap_g) toppleCaptured(m, _clamp((p - 0.5) / 0.5));   // captured topples over the second half
+        // inertia lean: the base leads, the head tips BACK as it accelerates then forward as it settles — like a
+        // standing rider when a car surges then brakes. Zero at both ends (upright at rest), so it never snaps.
+        _leanDir.subVectors(m.toXYZ, m.fromXYZ); _leanDir.y = 0;
+        if (_leanDir.lengthSq() > 1e-6) {
+          _leanDir.normalize(); _leanAxis.crossVectors(_leanDir, _UP);        // world axis ⟂ travel → tips fore/aft
+          const lean = LEAN_MAX * (m.lean != null ? m.lean : 1) * Math.sin(2 * Math.PI * u);
+          _leanQ.setFromAxisAngle(_leanAxis, lean);
+          m.mover.quaternion.multiplyQuaternions(_leanQ, m.restQuat);         // world tilt ∘ the piece's own facing
+        } else m.mover.quaternion.copy(m.restQuat);
+        if (m.cap_g) setCapture(m, t);   // captured piece dissolves to ash (or topples, per FX)
       } else {
         m.mover.position.copy(m.toXYZ); m.mover.quaternion.copy(m.restQuat);
-        if (m.cap_g) toppleCaptured(m, 1);
+        if (m.cap_g) setCapture(m, t);
       }
     }
-    // the resign: after the mate holds, the black king slowly bows over (knocked-king finish)
+    // the king's DEATH: struck by the beam it WOBBLES (teeters), then TOPPLES head-first into the open, its
+    // head BOUNCING off the board before it lies still. Lifted by its collision radius so it rests ON the
+    // board — never sunk inside it. (real knocked-king physics: teeter → accelerate → impact → damped bounce.)
     if (_theKing) {
-      const rs = _clamp((t - (MATE_AT + 0.7)) / 1.6);
-      if (rs > 0) {
-        _toppleQ.setFromAxisAngle(_UP.clone().cross(new THREE.Vector3(0, 0, -1)).normalize(), _q5(rs) * 1.4);
-        const c7 = boardData.squareXYZ('c7');
-        _theKing.quaternion.multiplyQuaternions(_toppleQ, MOVES[2].restQuat);
-        _theKing.position.copy(c7); _theKing.position.y = c7.y - 0.01 * _q5(rs);
+      const c7 = boardData.squareXYZ('c7');
+      if (t >= WOBBLE_AT && t < FALL_AT) {
+        // teeter: a growing, damped oscillation about the fall axis — the beam's shove building to the topple
+        const tw = t - WOBBLE_AT, grow = _q5(_clamp(tw / (FALL_AT - WOBBLE_AT)));
+        const ang = Math.sin(tw * 15) * 0.1 * grow;
+        _resignQ.setFromAxisAngle(_resignAxis, ang);
+        _theKing.quaternion.multiplyQuaternions(_resignQ, MOVES[2].restQuat);
+        _theKing.position.copy(c7); _theKing.position.y = c7.y + _kingLift * Math.abs(Math.sin(ang));
+      } else if (t >= FALL_AT) {
+        const te = t - FALL_AT, FALL = 0.65, FLAT = 1.52;          // time to head-impact · angle lying on its head (~87°)
+        let ang, hop = 0;
+        if (te < FALL) ang = FLAT * Math.pow(_clamp(te / FALL), 1.7);   // gravity ease-in: accelerates into the impact
+        else {
+          const tb = te - FALL, damp = Math.exp(-tb * 4.2), osc = Math.abs(Math.sin(tb * 12));
+          ang = FLAT - osc * 0.16 * damp;                          // the head BOUNCES up off the board, damping to rest
+          hop = osc * 0.045 * damp;                                // the whole piece lifts a touch on each bounce
+        }
+        _resignQ.setFromAxisAngle(_resignAxis, ang);
+        _theKing.quaternion.multiplyQuaternions(_resignQ, MOVES[2].restQuat);
+        _theKing.position.copy(c7);
+        _theKing.position.addScaledVector(_resignDir, 0.14 * _clamp(ang / FLAT));    // roll off the base edge as it tips
+        _theKing.position.y = c7.y + hop + _kingLift * Math.sin(ang);                // rest ON the board (lift by the radius)
       }
+      // the defeated king DISSOLVES away (noise + glowing edge) as the finale draws in
+      if (FX.dissolveKing) setDissolve(_theKing, _q5(_clamp((t - KING_DISS_FROM) / (KING_DISS_TO - KING_DISS_FROM))));
+      // …and it SHAKES with rage, harder and harder, until it detonates
+      if (t >= RISE_AT && t < EXPLODE_AT) { const s = 0.004 + 0.024 * _clamp((t - RISE_AT) / (EXPLODE_AT - RISE_AT));
+        _theKing.position.x += s * Math.sin(t * 46); _theKing.position.z += s * Math.sin(t * 53 + 1.2); }
     }
   }
 
@@ -409,6 +628,119 @@ export async function createEnderScene(canvas) {
   const bishopBeam = makeBeam(0xffd56b);  // the bishop's diagonal (warm gold — the hero's line)
   const _bv = new THREE.Vector3();
   const BEAM_Y = 0.10;                     // skim just above the pieces' bases
+
+  // ---- the KILL-BEAM: a separate, thicker bolt the bishop fires from the TOP OF ITS HEAD at the king to end it.
+  // Fires at SHOOT_AT (travels bishop-top → king), FLASHES on impact, then fades as the king falls. ----
+  const killBeam = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.028, 1, 14, 1, true),
+    new THREE.MeshBasicMaterial({ color: 0xff2418, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }));   // a shiny RED death-ray
+  killBeam.geometry.translate(0, 0.5, 0); killBeam.visible = false; killBeam.renderOrder = 7; scene.add(killBeam);
+  const killCore = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.011, 1, 12, 1, true),   // a hot white-red inner core makes it read as shiny/energetic
+    new THREE.MeshBasicMaterial({ color: 0xffd8c0, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }));
+  killCore.geometry.translate(0, 0.5, 0); killCore.visible = false; killCore.renderOrder = 8; scene.add(killCore);
+  const KILL = { bishopTopY: 0.46, kingHitY: 0.22 };   // height of the bishop's head · where on the king it strikes
+  const _kbFrom = new THREE.Vector3(), _kbTo = new THREE.Vector3(), _kbTip = new THREE.Vector3();
+  function setKillBeam(t) {
+    if (t < SHOOT_AT || t > FALL_AT + 0.5) { killBeam.visible = false; killCore.visible = false; return; }
+    _kbFrom.copy(boardData.squareXYZ('d8')); _kbFrom.y += KILL.bishopTopY;         // the top of the bishop's head on d8
+    _kbTo.copy(boardData.squareXYZ('c7')); _kbTo.y += KILL.kingHitY;               // the king's body on c7
+    const grow = _q5(_clamp((t - SHOOT_AT) / (HIT_AT - SHOOT_AT)));                 // the bolt travels down to the king
+    const flash = t >= HIT_AT ? Math.exp(-Math.pow((t - HIT_AT) / 0.16, 2)) : 0;   // a bright flash on impact
+    const fade = 1 - _clamp((t - HIT_AT) / (FALL_AT + 0.5 - HIT_AT));              // then fades out as the king dies
+    const op = (1.15 + 1.9 * flash) * Math.max(t < HIT_AT ? 1 : fade, flash);      // shiny + a hard impact flash
+    _bv.subVectors(_kbTo, _kbFrom); const len = _bv.length();
+    killBeam.position.copy(_kbFrom); killBeam.scale.set(1, len * grow, 1);
+    killBeam.quaternion.setFromUnitVectors(_UP, _bv.normalize());
+    killBeam.material.opacity = op; killBeam.visible = op > 0.01;
+    killCore.position.copy(_kbFrom); killCore.scale.set(1, len * grow, 1);         // the hot inner core rides with it
+    killCore.quaternion.copy(killBeam.quaternion);
+    killCore.material.opacity = op * 0.9; killCore.visible = op > 0.01;
+  }
+
+  // ---- IMPACT DAMAGE: a burst of hot sparks + a flash where the bolt strikes the king. Deterministic (bakes). ----
+  const _hitPos = boardData.squareXYZ('c7').clone(); _hitPos.y += KILL.kingHitY;
+  const SPARK = { n: 34, life: 0.75, speed: 2.9, grav: 4.2, size: 0.055 };
+  const _sparkGeo = new THREE.BufferGeometry();
+  const _sparkPos = new Float32Array(SPARK.n * 3), _sparkA = new Float32Array(SPARK.n), _sparkS = new Float32Array(SPARK.n);
+  _sparkGeo.setAttribute('position', new THREE.BufferAttribute(_sparkPos, 3));
+  _sparkGeo.setAttribute('aAlpha', new THREE.BufferAttribute(_sparkA, 1));
+  _sparkGeo.setAttribute('aSize', new THREE.BufferAttribute(_sparkS, 1));
+  const _sparkP = [];   // per-spark direction/speed/size — deterministic hash, no RNG
+  for (let i = 0; i < SPARK.n; i++) {
+    const h = (n) => { const x = Math.sin((i + 1) * 12.9898 + n * 78.233) * 43758.5453; return x - Math.floor(x); };
+    const th = h(1) * Math.PI * 2, ph = 0.12 + h(2) * 1.3;   // fly outward + up from the strike
+    _sparkP.push({ dir: [Math.sin(ph) * Math.cos(th), Math.cos(ph), Math.sin(ph) * Math.sin(th)],
+      sp: SPARK.speed * (0.45 + h(3) * 0.9), sz: SPARK.size * (0.55 + h(4) * 0.9), aS: 0.7 + h(5) * 0.5 });
+  }
+  const _sparkMat = new THREE.ShaderMaterial({
+    uniforms: { uColor: { value: new THREE.Color(0xff4a1e) }, uScale: { value: 300 } },
+    vertexShader: `attribute float aAlpha; attribute float aSize; uniform float uScale; varying float vA;
+      void main(){ vA = aAlpha; vec4 mv = modelViewMatrix * vec4(position, 1.0);
+        gl_PointSize = min(90.0, aSize * uScale / max(0.02, -mv.z)); gl_Position = projectionMatrix * mv; }`,
+    fragmentShader: `uniform vec3 uColor; varying float vA;
+      void main(){ float d = length(gl_PointCoord - 0.5); float a = smoothstep(0.5, 0.0, d) * vA;
+        if (a <= 0.003) discard; gl_FragColor = vec4(mix(uColor, vec3(1.0, 0.9, 0.7), a * 0.7), a); }`,   // hot core → red edges
+    transparent: true, depthWrite: false, depthTest: true, blending: THREE.AdditiveBlending,
+  });
+  const _spark = new THREE.Points(_sparkGeo, _sparkMat); _spark.frustumCulled = false; _spark.renderOrder = 9; _spark.visible = false; scene.add(_spark);
+  const hitFlash = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: radialTex([[0, 'rgba(255,240,220,1)'], [0.22, 'rgba(255,90,40,0.72)'], [0.6, 'rgba(255,40,20,0.2)'], [1, 'rgba(0,0,0,0)']]),
+    transparent: true, opacity: 0, depthTest: false, depthWrite: false, blending: THREE.AdditiveBlending }));
+  hitFlash.position.copy(_hitPos); hitFlash.renderOrder = 9; scene.add(hitFlash);
+  function _sparkScale() { _sparkMat.uniforms.uScale.value = 0.5 * renderer.domElement.height / Math.tan((camera.fov * Math.PI / 180) / 2); }
+  _sparkScale();
+  function setImpact(t) {
+    const age = t - HIT_AT;
+    if (age <= 0 || age >= SPARK.life) { _spark.visible = false; hitFlash.visible = false; return; }
+    const fl = Math.max(0, 1 - age / 0.28); hitFlash.material.opacity = fl * fl * 0.95; hitFlash.visible = fl > 0.02;   // bright pop → quick fade
+    const fsz = 0.55 + 1.2 * _q5(_clamp(age / 0.2)); hitFlash.scale.set(fsz, fsz, 1);
+    const k = age / SPARK.life;
+    for (let i = 0; i < SPARK.n; i++) {
+      const p = _sparkP[i];
+      _sparkPos[i * 3]     = _hitPos.x + p.dir[0] * p.sp * age;
+      _sparkPos[i * 3 + 1] = _hitPos.y + p.dir[1] * p.sp * age - 0.5 * SPARK.grav * age * age;   // ballistic: gravity pulls them down
+      _sparkPos[i * 3 + 2] = _hitPos.z + p.dir[2] * p.sp * age;
+      _sparkS[i] = p.sz; _sparkA[i] = p.aS * (1 - _q5(k));
+    }
+    _spark.visible = true;
+    _sparkGeo.attributes.position.needsUpdate = true; _sparkGeo.attributes.aAlpha.needsUpdate = true; _sparkGeo.attributes.aSize.needsUpdate = true;
+  }
+
+  // ---- DARK ASH: a non-glowing capture (the pawn) CRUMBLES — it fades out while a puff of dark ash rises +
+  // disperses + falls. A different look from the glowing dissolve. Deterministic (bakes). ----
+  const ASH = { n: 26, life: 1.2, up: 0.55, out: 0.65, grav: 0.85, size: 0.075 };
+  const _ashGeo = new THREE.BufferGeometry();
+  const _ashPos = new Float32Array(ASH.n * 3), _ashA = new Float32Array(ASH.n), _ashS = new Float32Array(ASH.n);
+  _ashGeo.setAttribute('position', new THREE.BufferAttribute(_ashPos, 3));
+  _ashGeo.setAttribute('aAlpha', new THREE.BufferAttribute(_ashA, 1));
+  _ashGeo.setAttribute('aSize', new THREE.BufferAttribute(_ashS, 1));
+  const _ashP = [];
+  for (let i = 0; i < ASH.n; i++) { const h = (n) => { const x = Math.sin((i + 2) * 12.9898 + n * 78.233) * 43758.5453; return x - Math.floor(x); };
+    const th = h(1) * 6.283, ph = 0.35 + h(2) * 0.9;
+    _ashP.push({ dir: [Math.sin(ph) * Math.cos(th), Math.cos(ph), Math.sin(ph) * Math.sin(th)], sp: 0.5 + h(3) * 0.9, sz: 0.6 + h(4) * 0.9, aS: 0.6 + h(5) * 0.5 }); }
+  const _ashMat = new THREE.ShaderMaterial({
+    uniforms: { uColor: { value: new THREE.Color(0x5b524a) }, uScale: { value: 300 } },   // warm dark ash (normal blending — it's dark, not light)
+    vertexShader: `attribute float aAlpha; attribute float aSize; uniform float uScale; varying float vA;
+      void main(){ vA = aAlpha; vec4 mv = modelViewMatrix * vec4(position, 1.0); gl_PointSize = min(160.0, aSize * uScale / max(0.02, -mv.z)); gl_Position = projectionMatrix * mv; }`,
+    fragmentShader: `uniform vec3 uColor; varying float vA;
+      void main(){ float d = length(gl_PointCoord - 0.5); float a = smoothstep(0.5, 0.08, d) * vA; if (a <= 0.003) discard; gl_FragColor = vec4(uColor, a); }`,
+    transparent: true, depthWrite: false, depthTest: true, blending: THREE.NormalBlending });
+  const _ash = new THREE.Points(_ashGeo, _ashMat); _ash.frustumCulled = false; _ash.renderOrder = 8; _ash.visible = false; scene.add(_ash);
+  function _ashScale() { _ashMat.uniforms.uScale.value = 0.5 * renderer.domElement.height / Math.tan((camera.fov * Math.PI / 180) / 2); }
+  _ashScale();
+  function setAshCapture(m, t) {
+    const fs = m.at + m.dur * 0.45, age = t - fs;   // crumble begins as the capturer arrives
+    if (m.capMat) { m.capMat.transparent = true; m.capMat.opacity = 1 - _clamp(age / (m.dur * 0.5 + 0.3)); }   // fade the piece away
+    m.cap_g.visible = age < m.dur * 0.5 + 0.3;
+    if (age <= 0 || age >= ASH.life) { _ash.visible = false; return; }
+    const o = m.toXYZ, k = age / ASH.life;
+    for (let i = 0; i < ASH.n; i++) { const p = _ashP[i];
+      _ashPos[i * 3]     = o.x + p.dir[0] * ASH.out * p.sp * age;
+      _ashPos[i * 3 + 1] = o.y + 0.1 + ASH.up * p.dir[1] * age * 2.0 - 0.5 * ASH.grav * age * age;   // puff up, then settle
+      _ashPos[i * 3 + 2] = o.z + p.dir[2] * ASH.out * p.sp * age;
+      _ashS[i] = ASH.size * p.sz * (0.7 + age); _ashA[i] = p.aS * (1 - _q5(k)) * 0.75; }
+    _ash.visible = true;
+    _ashGeo.attributes.position.needsUpdate = true; _ashGeo.attributes.aAlpha.needsUpdate = true; _ashGeo.attributes.aSize.needsUpdate = true;
+  }
 
   // ---- a real (bakeable) vignette: a camera-child plane, radial transparent→black, drawn last ----
   // It darkens the FRAME edges to gather the eye into the still-bright spotlight pool as the room drains.
@@ -440,62 +772,134 @@ export async function createEnderScene(canvas) {
     img.onerror = () => {}; img.src = `${_B}badges/${file}`;
     return tex;
   }
-  function crownTexture() {                    // mate badge (no SVG exists): a gold disc + a dark crown
-    const cv = document.createElement('canvas'); cv.width = cv.height = 128; const x = cv.getContext('2d');
-    x.beginPath(); x.arc(64, 64, 60, 0, Math.PI * 2); x.fillStyle = '#f5c451'; x.fill();
-    x.fillStyle = '#3a2c08'; x.beginPath();
-    x.moveTo(28, 88); x.lineTo(33, 48); x.lineTo(50, 70); x.lineTo(64, 40); x.lineTo(78, 70); x.lineTo(95, 48); x.lineTo(100, 88); x.closePath(); x.fill();
-    x.fillRect(28, 90, 72, 9);
-    const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; return t;
-  }
-  function edgeGlowTex() {                      // transparent centre → white edges (for an additive coloured screen glow)
-    const cv = document.createElement('canvas'); cv.width = cv.height = 256; const x = cv.getContext('2d');
-    const g = x.createRadialGradient(128, 128, 30, 128, 128, 150);
-    g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(0.45, 'rgba(255,255,255,0)'); g.addColorStop(1, 'rgba(255,255,255,1)');
-    x.fillStyle = g; x.fillRect(0, 0, 256, 256); return new THREE.CanvasTexture(cv);
-  }
   // rating → colour · how strong the room-glow is · how strong the piece-pulse is · which badge icon
   const RATING_FX = {
     blunder:     { color: 0xff3b3b, glow: 0.42, pulse: 0.85, tex: () => iconTexture('blunder.svg') },
     brilliant:   { color: 0x2ad6c4, glow: 0.85, pulse: 1.15, tex: () => iconTexture('brilliant.svg') }, // teal ‼ — the page's brilliant colour
+    forced:      { color: 0x9aa7b2, glow: 0,    pulse: 0,    tex: () => iconTexture('forced.svg') },     // forced KING moves: badge only — no glow/highlight on the king
     doublecheck: { color: 0x66d24a, glow: 0.60, pulse: 0.95, tex: () => iconTexture('great.svg') },
-    mate:        { color: 0xffe08a, glow: 0.95, pulse: 1.20, tex: () => crownTexture() },
+    mate:        { color: 0xffe08a, glow: 0.95, pulse: 1.20, tex: () => iconTexture('checkmate.svg') },  // the "#" checkmate badge
   };
-  // the room-glow plane (additive, coloured, camera-child) — same framing as the vignette
-  const ratingGlow = new THREE.Mesh(new THREE.PlaneGeometry(1, 1),
-    new THREE.MeshBasicMaterial({ map: edgeGlowTex(), transparent: true, opacity: 0, depthTest: false, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide }));
-  ratingGlow.position.set(0, 0, -VIGN_DIST * 0.985); ratingGlow.renderOrder = 998; ratingGlow.frustumCulled = false;
-  camera.add(ratingGlow);
+  // the rating glow lives IN THE WORLD, not as a screen overlay: two coloured lights flank the board (low +
+  // to each side) and wash the pieces, table and surrounding fog with the rating colour, while the void air
+  // itself takes a tint of it (fog wash in setEffects). Real 3D light → it has depth + parallax and can never
+  // read as a frame-edge vignette. Intensity is driven per-frame from the rating envelope.
+  const ratingLightA = new THREE.PointLight(0xffffff, 0, 22, 1.0); ratingLightA.position.set(-2.2, 0.5, 1.7); scene.add(ratingLightA);
+  const ratingLightB = new THREE.PointLight(0xffffff, 0, 22, 1.0); ratingLightB.position.set(2.2, 0.35, -1.3); scene.add(ratingLightB);
   // one badge sprite per rated move, parked above its destination square (faces the camera, drawn over pieces)
   const _ratedFx = MOVES.filter((m) => m.rating).map((m) => {
     const mat = new THREE.SpriteMaterial({ map: RATING_FX[m.rating].tex(), transparent: true, opacity: 0, depthTest: false, depthWrite: false });
     const sprite = new THREE.Sprite(mat); sprite.renderOrder = 999; sprite.visible = false;
     const pos = boardData.squareXYZ(m.to).clone(); pos.y += 0.66;     // float above the piece on its square
     sprite.position.copy(pos); scene.add(sprite);
-    return { m, sprite, landT: m.at + m.dur, fx: RATING_FX[m.rating], last: m.rating === 'mate' };
+    return { m, sprite, landT: m.at + m.dur, fx: RATING_FX[m.rating], last: false };   // no lingering badge — every rating fades on the same timing
   });
-  // landing envelope: 0 → quick GLOW-up → a single PULSE bump → fade (the piece "glows and pulses once then fades")
-  function _landEnv(t, landT, span = 1.6) {
+  // ============================================================================================
+  // LANDING SMOKE — a dust puff kicked up where each KING lands. A particle burst (THREE.Points) that
+  // billows OUTWARD from the impact along the ground (the strike's momentum), rises, expands and disperses.
+  // It's a pure function of t (deterministic per-particle constants, no Math.random) so it bakes with the
+  // clip identically. Tunables in SMOKE — change numbers, not structure. ============================
+  const SMOKE = { per: 22, life: 1.0, drift: 1.15, tau: 0.45, rise: 0.55, size: 0.29, grow: 1.8, alpha: 0.4 };
+  const _smokeSpawns = [
+    { o: boardData.squareXYZ('e8').clone(), t0: BLACK_KING_LANDS },   // where the black king lands
+    { o: boardData.squareXYZ('c1').clone(), t0: WHITE_KING_LANDS },   // where the white king lands
+  ];
+  const _smokeN = SMOKE.per * _smokeSpawns.length;
+  const _smokeGeo = new THREE.BufferGeometry();
+  const _smokePos = new Float32Array(_smokeN * 3), _smokeA = new Float32Array(_smokeN), _smokeS = new Float32Array(_smokeN);
+  _smokeGeo.setAttribute('position', new THREE.BufferAttribute(_smokePos, 3));
+  _smokeGeo.setAttribute('aAlpha', new THREE.BufferAttribute(_smokeA, 1));
+  _smokeGeo.setAttribute('aSize', new THREE.BufferAttribute(_smokeS, 1));
+  const _smokeP = [];   // per-particle constants: outward direction + speed + base size (deterministic hash, no RNG)
+  for (let s = 0; s < _smokeSpawns.length; s++) {
+    for (let i = 0; i < SMOKE.per; i++) {
+      const h = (n) => { const x = Math.sin((i + 1) * 12.9898 + (s + 1) * 3.77 + n * 78.233) * 43758.5453; return x - Math.floor(x); };
+      const ang = h(1) * Math.PI * 2, elev = 0.10 + h(2) * 0.28, ce = Math.cos(elev), se = Math.sin(elev);  // mostly along the ground, slight rise
+      _smokeP.push({ spawn: _smokeSpawns[s], dir: [Math.cos(ang) * ce, se, Math.sin(ang) * ce],
+        speed: SMOKE.drift * (0.5 + h(3) * 0.75), sz: SMOKE.size * (0.7 + h(4) * 0.7), aS: 0.7 + h(5) * 0.5, wob: h(6) * 6.283 });
+    }
+  }
+  const _smokeMat = new THREE.ShaderMaterial({
+    uniforms: { uColor: { value: new THREE.Color(0xe9e3d7) }, uScale: { value: 300 } },   // light warm dust; uScale = world→pixel size factor
+    vertexShader: `attribute float aAlpha; attribute float aSize; uniform float uScale; varying float vA;
+      void main(){ vA = aAlpha; vec4 mv = modelViewMatrix * vec4(position, 1.0);
+        gl_PointSize = min(360.0, aSize * uScale / max(0.02, -mv.z)); gl_Position = projectionMatrix * mv; }`,
+    fragmentShader: `uniform vec3 uColor; varying float vA;
+      void main(){ float d = length(gl_PointCoord - 0.5); float a = smoothstep(0.5, 0.05, d) * vA;
+        if (a <= 0.003) discard; gl_FragColor = vec4(uColor, a); }`,
+    transparent: true, depthWrite: false, depthTest: true, blending: THREE.NormalBlending,
+  });
+  const _smoke = new THREE.Points(_smokeGeo, _smokeMat); _smoke.frustumCulled = false; _smoke.renderOrder = 5; scene.add(_smoke);
+  function _smokeScale() { _smokeMat.uniforms.uScale.value = 0.5 * renderer.domElement.height / Math.tan((camera.fov * Math.PI / 180) / 2); }
+  _smokeScale();
+  function setSmoke(t) {
+    let any = false;
+    for (let j = 0; j < _smokeN; j++) {
+      const p = _smokeP[j], age = t - p.spawn.t0;
+      if (age <= 0 || age >= SMOKE.life) { _smokeA[j] = 0; continue; }
+      any = true;
+      const k = age / SMOKE.life;
+      const horiz = p.speed * SMOKE.tau * (1 - Math.exp(-age / SMOKE.tau));   // momentum: fast burst outward, then drag eases it
+      const wob = 0.05 * Math.sin(age * 3 + p.wob), o = p.spawn.o;
+      _smokePos[j * 3]     = o.x + p.dir[0] * horiz + wob;
+      _smokePos[j * 3 + 1] = o.y + p.dir[1] * horiz * 1.4 + SMOKE.rise * age;   // drift + buoyant rise
+      _smokePos[j * 3 + 2] = o.z + p.dir[2] * horiz + wob;
+      _smokeS[j] = p.sz * (0.5 + SMOKE.grow * k);                              // expands as it disperses
+      _smokeA[j] = p.aS * _q5(_clamp(k / 0.15)) * (1 - _q5(_clamp((k - 0.35) / 0.65))) * SMOKE.alpha;   // smooth swell in, graceful fade out
+    }
+    _smoke.visible = any;
+    if (any) { _smokeGeo.attributes.position.needsUpdate = true; _smokeGeo.attributes.aAlpha.needsUpdate = true; _smokeGeo.attributes.aSize.needsUpdate = true; }
+  }
+
+  // ---- the BRILLIANT "boom": an expanding light-grey shockwave ring on the board where the queen lands (Qd8+).
+  // Starts small at her landing spot, grows outward and fades — a pure function of t (bakes with the clip). ----
+  function shockTex() {                          // a soft grey RING: clear centre → bright ring → clear edge
+    const cv = document.createElement('canvas'); cv.width = cv.height = 128; const x = cv.getContext('2d');
+    const g = x.createRadialGradient(64, 64, 8, 64, 64, 64);
+    g.addColorStop(0.00, 'rgba(255,255,255,0)');
+    g.addColorStop(0.55, 'rgba(255,255,255,0)');
+    g.addColorStop(0.80, 'rgba(255,255,255,0.95)');   // the ring itself
+    g.addColorStop(0.92, 'rgba(255,255,255,0.30)');
+    g.addColorStop(1.00, 'rgba(255,255,255,0)');
+    x.fillStyle = g; x.fillRect(0, 0, 128, 128); return new THREE.CanvasTexture(cv);
+  }
+  const SHOCK = { land: MOVES[1].at + MOVES[1].dur, dur: 1.35, from: 0.04, to: 12.0, alpha: 0.85 };   // Qd8+ lands → a boom that spreads from UNDER her across the WHOLE board (starts as a point at her base)
+  const shock = new THREE.Mesh(new THREE.PlaneGeometry(1, 1),
+    new THREE.MeshBasicMaterial({ map: shockTex(), color: 0xe8dfce, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide }));
+  shock.rotation.x = -Math.PI / 2;               // lie flat on the board surface
+  shock.position.copy(boardData.squareXYZ('d8')); shock.position.y += 0.02;
+  shock.renderOrder = 6; shock.visible = false; scene.add(shock);
+  const _shockScale = (age) => { const k = _clamp(age / SHOCK.dur); return SHOCK.from + (SHOCK.to - SHOCK.from) * (1 - (1 - k) * (1 - k)); };
+  const shockRadius = (age) => 0.40 * _shockScale(age);   // world radius of the expanding ring front (the radial tremble keys off this)
+  function setShock(t) {
+    const age = t - SHOCK.land;
+    if (age <= 0 || age >= SHOCK.dur) { shock.visible = false; return; }
+    shock.visible = true; const k = age / SHOCK.dur;
+    shock.scale.set(_shockScale(age), _shockScale(age), 1);
+    shock.material.opacity = SHOCK.alpha * (1 - _q5(k)) * (1 - k * 0.35);   // gets bigger AND lighter (fainter) as it reaches the edges
+  }
+
+  // landing envelope: a SMOOTH glow that swells up, holds a beat, then eases fully back to 0 — reaching 0
+  // well inside its beat (span 1.2s) so a held keyboard step never freezes a piece mid-glow ("stays red").
+  function _landEnv(t, landT, span = 1.2) {
     const k = (t - landT) / span;
     if (k <= 0 || k >= 1) return 0;
-    const rise = Math.min(1, k / 0.10);
-    const fade = 1 - _clamp((k - 0.5) / 0.5);
-    const bump = Math.exp(-Math.pow((k - 0.30) / 0.085, 2));        // one sharp pulse just after the glow-up
-    return _clamp((rise * 0.55 + bump * 0.75) * fade, 0, 1.3);
+    const up = _q5(_clamp(k / 0.22));              // smooth glow-up
+    const down = _q5(_clamp((k - 0.42) / 0.58));   // smooth fade — reaches 0 exactly at k=1
+    return up * (1 - down);
   }
 
   function sizeVignette() {
     const h = 2 * Math.tan((camera.fov * Math.PI / 180) / 2) * VIGN_DIST;
     vignette.scale.set(h * camera.aspect, h, 1);   // exactly fill the view at VIGN_DIST (elliptical follows the frame)
-    ratingGlow.scale.copy(vignette.scale);
   }
   sizeVignette();   // size once now (fov is fixed; only aspect changes → re-sized in resize(), not per-frame)
-  function aimBeam(beam, fromSq, toSq, opacity) {
+  function aimBeam(beam, fromSq, toSq, opacity, grow = 1) {
     if (opacity <= 0.001) { beam.visible = false; return; }
     const a = boardData.squareXYZ(fromSq).clone(); a.y += BEAM_Y;
     const b = boardData.squareXYZ(toSq).clone(); b.y += BEAM_Y;
     _bv.subVectors(b, a); const len = _bv.length();
-    beam.position.copy(a); beam.scale.set(1, len, 1);
+    beam.position.copy(a); beam.scale.set(1, len * grow, 1);   // grow<1 → the bolt is still travelling from `from` toward `to`
     beam.quaternion.setFromUnitVectors(_UP, _bv.normalize());
     beam.material.opacity = opacity; beam.visible = true;
   }
@@ -513,6 +917,9 @@ export async function createEnderScene(canvas) {
   // baselines captured once, so every effect is a clean lerp away from the built state (and restores for t<drain)
   const _spotBaseAngle = spot.angle, _spotBaseInt = spot.intensity, _spotBaseTgt = spot.target.position.clone();
   const _ambBase = amb.intensity, _expBase = renderer.toneMappingExposure, _fogBase = scene.fog.density;
+  const _fogColorBase = scene.fog.color.clone(), _ratingCol = new THREE.Color();   // for the "void air takes the rating colour" tint
+  const _coolBase = coolRim.intensity, _cyanBase = cyanRim.intensity, _warmBase = warmRim.intensity, _glintBase = glint.intensity;   // room-fill baselines (dimmed by the drain / queen focus)
+  const _darkBg = new THREE.Color(0x041615), _heroBg = new THREE.Color(0xeceae4), _bgScratch = new THREE.Color();   // final HERO beat: the room floods to a clean light backdrop for the floating pieces
   const _triWave = (t, a, b) => { const k = _clamp((t - a) / (b - a)); return Math.sin(Math.PI * k); };   // 0→1→0 over [a,b]
   const _kpos = new THREE.Vector3();
   function setEffects(t) {
@@ -521,19 +928,25 @@ export async function createEnderScene(canvas) {
     let glowColor = 0xffffff, glowAmt = 0;
     for (const r of _ratedFx) {
       const env = _landEnv(t, r.landT);
-      pulse(r.m.mover, r.fx.color, env * r.fx.pulse);             // the moved piece glows + pulses once then fades
-      const k = t - r.landT;                                      // the on-square badge: pop in, hold, fade (mate lingers)
-      let bo = 0, bs = 0.5;
+      // the moved piece glows up then fully fades — but NEVER a king (the user wants zero highlight on the king)
+      if (r.m.mover && r.m.mover.userData.type !== 'king') pulse(r.m.mover, r.fx.color, env * r.fx.pulse);
+      const k = t - r.landT;                                      // the on-square badge: SMOOTH swell in, hold, ease out (mate lingers)
+      let bo = 0, bs = 0.46;
       if (k > -0.05) {
-        const pop = _clamp(k / 0.22), out = r.last ? 0 : _clamp((k - 1.15) / 0.6);
-        bo = pop * (1 - out);
-        bs = 0.46 * (0.72 + 0.40 * Math.min(1, k / 0.16));        // a little overshoot as it pops on
+        const inK = _q5(_clamp(k / 0.42));                       // quintic fade-in — same timing for every rating (incl. forced)
+        const out = r.last ? 0 : _q5(_clamp((k - 0.85) / 0.5));  // quintic fade-out
+        bo = inK * (1 - out);
+        bs = 0.46 * (0.6 + 0.4 * _easeOutBack(_clamp(k / 0.5)));  // scale grows with a gentle overshoot, then settles — no snap
       }
       r.sprite.material.opacity = bo; r.sprite.visible = bo > 0.01; r.sprite.scale.set(bs, bs, 1);
       if (env * r.fx.glow > glowAmt) { glowAmt = env * r.fx.glow; glowColor = r.fx.color; }
     }
-    ratingGlow.material.color.setHex(glowColor);
-    ratingGlow.material.opacity = glowAmt;
+    // the rating glow is a REAL glow in the world: two coloured lights wash the chess set + the fog around it,
+    // and the void air takes a tint of the colour. Depth + parallax → never a frame-edge vignette.
+    _ratingCol.setHex(glowColor);
+    ratingLightA.color.copy(_ratingCol); ratingLightA.intensity = glowAmt * 55;
+    ratingLightB.color.copy(_ratingCol); ratingLightB.intensity = glowAmt * 44;
+    scene.fog.color.copy(_fogColorBase).lerp(_ratingCol, glowAmt * 0.7);
 
     // attack-line beams. Double-check: BOTH lines bloom converging on d8 (the only honest way to show it);
     // they fade as the king flees, then on the mate the BISHOP's killing line d8→c7 re-lights PRIMARY while
@@ -554,37 +967,78 @@ export async function createEnderScene(canvas) {
     aimBeam(rookBeam, 'd1', rTo, rookO * 0.85);
     aimBeam(bishopBeam, bFrom, bTo, bishO);
 
-    // the room DRAINS to black from the sacrifice onward — ambient/exposure/fog/vignette gather darkness at
-    // the edges — while the SPOTLIGHT tightens and continuously HUNTS the king's live position, so he stays
-    // lit as everything else falls away (chiaroscuro: the light is the cage). Continuous (not a square-snap).
-    const drain = _q5(_clamp((t - DRAIN_FROM) / (MATE_AT - DRAIN_FROM)));
-    amb.intensity = _mx(_ambBase, 0.34, drain);
-    renderer.toneMappingExposure = _mx(_expBase, 0.70, drain);
-    scene.fog.density = _mx(_fogBase, 0.085, drain);
-    vignette.material.opacity = drain * VIGN_MAX;
-    spot.angle = _mx(_spotBaseAngle, _spotBaseAngle * 0.74, drain);
-    spot.intensity = _mx(_spotBaseInt, _spotBaseInt * 1.18, drain);
-    if (_theKing) {
-      _theKing.getWorldPosition(_kpos);
-      spot.target.position.set(_mx(_spotBaseTgt.x, _kpos.x, drain), _spotBaseTgt.y, _mx(_spotBaseTgt.z, _kpos.z, drain));
+    // ---- the QUEEN's move gets its own spotlight beat: the room DIMS as she readies, a tight spot isolates
+    // her and TRACKS her glide up the d-file for the brilliant sacrifice — THEN the existing drain carries the
+    // whole room to black while the spot hunts the king (chiaroscuro: the light is the cage). One continuous
+    // darkening curve (queen dim → drain to black), so nothing snaps at the hand-off. ----
+    const Q_FROM = MOVES[1].at - 0.4;                 // the room begins to dim + the spot finds the queen (start of her scene)
+    const Q_LAND = MOVES[1].at + MOVES[1].dur;        // she lands on d8
+    const Q_DARK = 0.95;                               // how DARK the room gets during her move — near-black, so the queen pops
+    // the queen focus is a TEMPORARY dark spotlight beat that RECOVERS to full brightness after she lands
+    // (the room is NOT dim the whole time). The ENDING drain re-darkens the room for the death sequence.
+    let qDark = 0;
+    if (t >= Q_FROM && t < Q_LAND + 1.9) { const up = _q5(_clamp((t - Q_FROM) / 0.9)), down = _q5(_clamp((t - (Q_LAND + 0.45)) / 1.35)); qDark = Q_DARK * up * (1 - down); }
+    const DRAIN2 = MOVES[3].at - 0.6;                  // the room sinks to black for the finale from the double-check (Bg5+) onward
+    const dark = Math.max(qDark, _q5(_clamp((t - DRAIN2) / (MATE_AT - DRAIN2))));
+    amb.intensity = _mx(_ambBase, 0.07, dark);
+    renderer.toneMappingExposure = _mx(_expBase, 0.42, dark);
+    scene.fog.density = _mx(_fogBase, 0.09, dark);
+    vignette.material.opacity = dark * VIGN_MAX;
+    coolRim.intensity = _mx(_coolBase, _coolBase * 0.06, dark);   // dim the room fill so the SPOT dominates (but recovers after the beat)
+    cyanRim.intensity = _mx(_cyanBase, _cyanBase * 0.06, dark);
+    warmRim.intensity = _mx(_warmBase, _warmBase * 0.06, dark);
+    glint.intensity   = _mx(_glintBase, _glintBase * 0.16, dark);
+    // ---- the final HERO beat: as the blast whites out, the room floods to a clean LIGHT backdrop so the
+    // surviving pieces read (dark-on-light) as they hover + rotate under the closing invitation. ----
+    const hero = _q5(_clamp((eAge(t) - 2.4) / 1.0));
+    // ALWAYS reset the background from the dark base (hero=0 → dark) so the light NEVER sticks on scrub/replay —
+    // the surroundings only go white as the blast's glow actually reaches them.
+    _bgScratch.copy(_darkBg).lerp(_heroBg, hero); scene.background.copy(_bgScratch); scene.fog.color.lerp(_heroBg, hero);
+    if (hero > 0) {
+      amb.intensity = _mx(amb.intensity, 1.35, hero);
+      renderer.toneMappingExposure = _mx(renderer.toneMappingExposure, 1.0, hero);
+      scene.fog.density = _mx(scene.fog.density, 0.008, hero);
+      vignette.material.opacity = _mx(vignette.material.opacity, 0.0, hero);
+      coolRim.intensity = _mx(coolRim.intensity, _coolBase * 0.9, hero);   // restore fill so the pieces keep their form on white
+      warmRim.intensity = _mx(warmRim.intensity, _warmBase * 0.9, hero);
+      glint.intensity   = _mx(glint.intensity, _glintBase, hero);
+    }
+    // the spotlight: during the queen's beat it eases smoothly to a TIGHT, bright, soft-edged pool that TRACKS
+    // her up the d-file; afterwards it widens back to the drain's hunt of the king.
+    const inQueen = t >= Q_FROM && t < Q_LAND + 0.2;
+    const qf = inQueen ? _q5(_clamp((t - Q_FROM) / 0.6)) * (1 - _q5(_clamp((t - (Q_LAND + 0.05)) / 0.18))) : 0;   // smoother onset
+    const wideAngle = _mx(_spotBaseAngle, _spotBaseAngle * 0.74, dark);
+    spot.angle = _mx(wideAngle, 0.18, qf);                       // a tight ~10° cone isolates the queen
+    spot.penumbra = _mx(1, 0.6, qf);                             // a soft, smooth pool edge — cinematic, not a hard circle
+    spot.intensity = _mx(_spotBaseInt, _spotBaseInt * 1.18, dark) * _mx(1, 1.95, qf);   // brighter on her against the darker room
+    let _stgt = null;
+    if (inQueen && MOVES[1].mover) { MOVES[1].mover.getWorldPosition(_kpos); _stgt = qf; }   // follow the queen up the d-file
+    else if (_theKing) { _theKing.getWorldPosition(_kpos); _stgt = dark; }                    // then hunt the king
+    if (_stgt !== null) {
+      spot.target.position.set(_mx(_spotBaseTgt.x, _kpos.x, _stgt), _spotBaseTgt.y, _mx(_spotBaseTgt.z, _kpos.z, _stgt));
       spot.target.updateMatrixWorld();
     }
   }
 
   // ---- rating lower-third (the page's move-rating language): a PURE function of t the DOM layer reads ----
-  // Kept as live HTML (ender.js) so the captions stay editable without re-rendering the clip — only the
-  // heavy WebGL bakes to video. One badge per RATED move; the forced replies (Kxd8, Kc7) get none.
+  // Kept as live HTML (ender.js) so the captions stay editable without re-rendering the clip — only the heavy
+  // WebGL bakes to video. One badge per rated move (Kc7 is the only unrated reply). outAt values COMPLETE the
+  // fade before each beat's step-boundary, so a held keyboard step never freezes a caption mid-fade.
+  // fin/fout = fade-in / fade-out seconds (default 0.45 / 0.5). Forced captions use fast fades so they fully
+  // clear inside their short beats (a held keyboard step never freezes them mid-fade).
   const BADGES = [
-    { rating: 'blunder',     label: 'Blunder',      move: 'Nxe4', icon: 'blunder.svg',   inAt: 9.20,  outAt: 11.00 },
-    { rating: 'brilliant',   label: 'Brilliant',    move: 'Qd8+', icon: 'brilliant.svg', inAt: 13.00, outAt: 15.10 },
-    { rating: 'doublecheck', label: 'Double check', move: 'Bg5+', icon: 'great.svg',     inAt: 18.90, outAt: 21.30 },
-    { rating: 'mate',        label: 'Checkmate',    move: 'Bd8#', icon: null,             inAt: 24.70, outAt: 9999 }, // lingers: the final word (and the reduced-motion still)
+    { rating: 'blunder',     label: 'Blunder',      move: 'Nxe4', icon: 'blunder.svg',   inAt: 9.20,  outAt: 10.70 },
+    { rating: 'brilliant',   label: 'Brilliant',    move: 'Qd8+', icon: 'brilliant.svg', inAt: 13.00, outAt: 14.70 },
+    { rating: 'forced',      label: 'Forced',       move: 'Kxd8', icon: 'forced.svg',    inAt: 16.40, outAt: 18.00 }, // king must take the queen out of check — same on-screen time as the others
+    { rating: 'doublecheck', label: 'Double check', move: 'Bg5+', icon: 'great.svg',     inAt: 18.90, outAt: 20.70 },
+    { rating: 'forced',      label: 'Forced',       move: 'Kc7',  icon: 'forced.svg',    inAt: 22.20, outAt: 23.80 }, // king is forced to flee the double check
+    { rating: 'mate',        label: 'Checkmate',    move: 'Bd8#', icon: 'checkmate.svg',  inAt: 24.70, outAt: 26.10 }, // the "#" badge — fades right after the check
   ];
   function badgeAt(t) {
     for (const b of BADGES) {
       if (t < b.inAt - 0.05 || t > b.outAt) continue;
-      const fin = _clamp((t - b.inAt) / 0.45);
-      const fout = _clamp((t - (b.outAt - 0.5)) / 0.5);
+      const fin = _clamp((t - b.inAt) / (b.fin || 0.45));
+      const fout = _clamp((t - (b.outAt - (b.fout || 0.5))) / (b.fout || 0.5));
       const opacity = fin * (1 - fout);
       if (opacity > 0.01) return { rating: b.rating, label: b.label, move: b.move, icon: b.icon, opacity: +opacity.toFixed(3) };
     }
@@ -613,14 +1067,332 @@ export async function createEnderScene(canvas) {
     return { fill, label: cur.label, mate: cur.mate > 0 || !!cur.checkmate };
   }
 
+  // ---- the ENDING camera: mate hand-off → a tense CLOSE ORBIT around the king + bishop → a lunge-in as the
+  // bishop's bolt strikes → ride the fall → HOLD, then FADE to black → reveal a TOP-DOWN of the defeated king
+  // → a short pause → a slow straight ZOOM-OUT (same orientation) as the sad defeat. Explicit eye+tgt poses. ----
+  const _c7w = boardData.squareXYZ('c7');
+  const _deadPos = _c7w.clone().addScaledVector(_resignDir, 0.42); _deadPos.y = _c7w.y;   // ≈ centre of the lying king
+  const _mateEye = new THREE.Vector3(-0.463, 1.75, -2.965);       // the mate pose eye — the orbit BEGINS here (no push-in)
+  // close orbit: rotate around the king+bishop midpoint while pushing IN closer. No lens warp — a plain move.
+  const _orbC = _c7w.clone().add(boardData.squareXYZ('d8')).multiplyScalar(0.5); _orbC.y += 0.28;
+  const _ob0 = _mateEye.clone().sub(_orbC); const ORB_r0 = _ob0.length(); _ob0.normalize();
+  const ORB_el = Math.asin(Math.max(-1, Math.min(1, _ob0.y))), ORB_az0 = Math.atan2(_ob0.x, -_ob0.z);
+  const ORB = { azOff: 1.4, r1mul: 0.55 };                        // rotate a LOT around the pair + get much closer (tense)
+  const _orbCe = Math.cos(ORB_el), _orbSe = Math.sin(ORB_el);
+  const _orbEyeAt = (az, rad) => [_orbC.x + Math.sin(az) * _orbCe * rad, _orbC.y + _orbSe * rad, _orbC.z - Math.cos(az) * _orbCe * rad];
+  const _orbEye0 = _orbEyeAt(ORB_az0, ORB_r0), _orbEye1 = _orbEyeAt(ORB_az0 + ORB.azOff, ORB_r0 * ORB.r1mul);
+  const _kb = [_c7w.x, _c7w.y + 0.30, _c7w.z];   // the king's mid-body — the death shot looks LEVEL at this
+  const _lungeEye = [_c7w.x - 0.08, _c7w.y + 0.34, _c7w.z - 1.7];   // LOW + LEVEL, front of the king — the FULL king stays in frame (never looking down)
+  const _mateTgt = [-0.30, -0.52, 1.16];   // the mate view's look point — the orbit eases OFF this so there's no fast shift to the king
+  // the top-down of the fallen king: look at the king's centre (nudged toward the crown so its FULL body shows,
+  // crown not clipped). The defeat zoom-out just recedes ALONG this axis (no rotation).
+  const _tdLook = _deadPos.clone().addScaledVector(_resignDir, 0.12); const _tdLookA = [_tdLook.x, _tdLook.y, _tdLook.z];
+  const _tdV = [0.08, 2.5, 0.08], _td = (s) => [_tdLook.x + _tdV[0] * s, _tdLook.y + _tdV[1] * s, _tdLook.z + _tdV[2] * s];
+  const _fallHold = { eye: [_deadPos.x - 0.22, _deadPos.y + 0.42, _deadPos.z - 1.45], tgt: [_deadPos.x, _deadPos.y + 0.06, _deadPos.z] };   // lower + more level, so the falling king reads fully
+  // the detonation shot: a LOW, PIECE-LEVEL POV (cut to it behind the black — no visible camera move). Sits
+  // just above the board and close, so the featured pieces read big in the FOREGROUND (like the hero pieces),
+  // with the fireball rising behind them.
+  const _boardMid = boardData.squareXYZ('d4').lerp(boardData.squareXYZ('e5'), 0.5);   // centre of the set
+  const _pcEye = [_boardMid.x - 0.25, _c7w.y + 0.36, _boardMid.z - 3.9], _pcTgt = [_boardMid.x, _c7w.y + 0.82, _boardMid.z - 0.7];   // low, but tilted UP so the full featured pieces sit in-frame
+  const END_CAM = [
+    { t: MATE_AT,    eye: [-0.463, 1.75, -2.965], tgt: _mateTgt, ease: 'smoother' },   // == the mate pose (seamless hand-off from setCam)
+    { t: BUILD_AT,   eye: _orbEye0, tgt: _mateTgt, ease: 'smoother' },                 // hold the mate LOOK (the orbit eases off it below — no fast shift to the king)
+    { t: SHOOT_AT,   eye: _orbEye1, tgt: [_orbC.x, _orbC.y, _orbC.z], ease: 'smooth' },// = the orbit end
+    { t: HIT_AT,     eye: _lungeEye, tgt: [_kb[0], _kb[1], _kb[2]], ease: 'smooth' },  // LUNGE close (push-in from the orbit's end) as the bolt strikes (tgt live-tracked below)
+    { t: FALL_END,   eye: _fallHold.eye, tgt: _fallHold.tgt, ease: 'smooth' },         // ride the fall down + settle
+    { t: FADE_OUT,   eye: _fallHold.eye, tgt: _fallHold.tgt, ease: 'smooth' },         // hold on the lying king...
+    { t: FADE_BLACK, eye: _fallHold.eye, tgt: _fallHold.tgt, ease: 'smooth' },         // ...STILL holding as the screen fades to FULL BLACK (we never see the camera move)
+    { t: FADE_IN,    eye: _td(1), tgt: _tdLookA, ease: 'smooth' },                     // (behind black) NOW at the top-down — revealed as it fades in
+    { t: FADE_DONE,  eye: _td(1), tgt: _tdLookA, ease: 'smoother' },                   // top-down of the defeated king — FULL body, centred — hold to comprehend
+    { t: RISE_AT,    eye: _td(1), tgt: _tdLookA, ease: 'smooth' },                     // top-down HELD — the king dissolves + shakes
+    { t: F2_BLACK,   eye: _td(1), tgt: _tdLookA, ease: 'smooth' },                     // …still held as the screen fades to full black
+    { t: F2_BLACK + 0.01, eye: _pcEye, tgt: _pcTgt, ease: 'smooth' },                  // CUT (behind the black) to the piece-level POV — no visible move
+    { t: DURATION,   eye: _pcEye, tgt: _pcTgt, ease: 'smooth' },                       // held STATIC — the slow-mo blast + scatter play out in front of it
+  ];
+  function _lerpEyeTgt(ks, t) {
+    if (t <= ks[0].t) return ks[0];
+    const last = ks[ks.length - 1]; if (t >= last.t) return last;
+    let i = 0; while (i < ks.length - 1 && t > ks[i + 1].t) i++;
+    const a = ks[i], b = ks[i + 1];
+    const e = (_easeName[b.ease] || _easeName.smooth)((t - a.t) / (b.t - a.t));
+    return { eye: [_mx(a.eye[0], b.eye[0], e), _mx(a.eye[1], b.eye[1], e), _mx(a.eye[2], b.eye[2], e)],
+             tgt: [_mx(a.tgt[0], b.tgt[0], e), _mx(a.tgt[1], b.tgt[1], e), _mx(a.tgt[2], b.tgt[2], e)] };
+  }
+  function setEndCam(t) {
+    if (t >= BUILD_AT && t < SHOOT_AT) {
+      // a tense CLOSE ORBIT around the king + bishop (no lens warp): rotate around them while pushing IN closer
+      const op = _q5(_clamp((t - BUILD_AT) / (SHOOT_AT - BUILD_AT)));
+      const az = ORB_az0 + ORB.azOff * op, rad = _mx(ORB_r0, ORB_r0 * ORB.r1mul, op);
+      camera.position.set(_orbC.x + Math.sin(az) * _orbCe * rad, _orbC.y + _orbSe * rad, _orbC.z - Math.cos(az) * _orbCe * rad);
+      const lk = _q5(_clamp((t - BUILD_AT) / 1.4));   // ease the LOOK off the mate point onto the orbit centre — no fast shift to the king
+      lookTarget.set(_mx(_mateTgt[0], _orbC.x, lk), _mx(_mateTgt[1], _orbC.y, lk), _mx(_mateTgt[2], _orbC.z, lk));
+      return;
+    }
+    const p = _lerpEyeTgt(END_CAM, t);
+    camera.position.set(p.eye[0], p.eye[1], p.eye[2]);
+    if (t >= WOBBLE_AT && t < FALL_END + 0.25 && _theKing) { _theKing.getWorldPosition(_kpos); lookTarget.set(_kpos.x, _kpos.y + 0.26, _kpos.z); }   // track the struck + falling king (look at its MID so the full body stays framed)
+    else lookTarget.set(p.tgt[0], p.tgt[1], p.tgt[2]);
+  }
+
+  // ============================================================================================
+  // BRILLIANT-move flourishes — the Qd8+ sacrifice. Each is self-contained + FX-gated (kill any freely).
+  // ============================================================================================
+  const _Q = MOVES[1], _qLand = _Q.at + _Q.dur;
+  const _qPosAt = (tt) => { const pp = _q5(_clamp((tt - _Q.at) / _Q.dur));
+    return new THREE.Vector3().lerpVectors(_Q.fromXYZ, _Q.toXYZ, pp).setY(_mx(_Q.fromXYZ.y, _Q.toXYZ.y, pp) + _Q.arc * Math.sin(Math.PI * pp)); };
+  const qHalo = new THREE.Sprite(new THREE.SpriteMaterial({ map: radialTex([[0, 'rgba(255,238,180,0.95)'], [0.4, 'rgba(255,205,95,0.4)'], [1, 'rgba(0,0,0,0)']]), transparent: true, opacity: 0, depthWrite: false, depthTest: false, blending: THREE.AdditiveBlending }));
+  qHalo.renderOrder = 6; qHalo.visible = false; scene.add(qHalo);   // #8 charge glow
+  const _ignite = ['d3', 'd4', 'd5', 'd6', 'd7', 'd8'].map((sq) => {   // #3 d-file ignite
+    const mm = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: radialTex([[0, 'rgba(255,224,140,0.9)'], [0.5, 'rgba(255,185,75,0.35)'], [1, 'rgba(0,0,0,0)']]), transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending }));
+    mm.rotation.x = -Math.PI / 2; const pp = boardData.squareXYZ(sq); mm.position.set(pp.x, pp.y + 0.014, pp.z); mm.scale.set(0.44, 0.44, 1); mm.renderOrder = 4; mm.visible = false; scene.add(mm); return { mm, z: pp.z };
+  });
+  const _goldMat = new THREE.ShaderMaterial({ uniforms: { uColor: { value: new THREE.Color(0xffd070) }, uScale: { value: 300 } },
+    vertexShader: `attribute float aAlpha; attribute float aSize; uniform float uScale; varying float vA; void main(){ vA=aAlpha; vec4 mv=modelViewMatrix*vec4(position,1.0); gl_PointSize=min(150.0, aSize*uScale/max(0.02,-mv.z)); gl_Position=projectionMatrix*mv; }`,
+    fragmentShader: `uniform vec3 uColor; varying float vA; void main(){ float d=length(gl_PointCoord-0.5); float a=smoothstep(0.5,0.0,d)*vA; if(a<=0.003)discard; gl_FragColor=vec4(uColor,a); }`,
+    transparent: true, depthWrite: false, depthTest: false, blending: THREE.AdditiveBlending });
+  const CT_N = 20, _ctGeo = new THREE.BufferGeometry(), _ctPos = new Float32Array(CT_N * 3), _ctA = new Float32Array(CT_N), _ctS = new Float32Array(CT_N);   // #2 comet trail
+  _ctGeo.setAttribute('position', new THREE.BufferAttribute(_ctPos, 3)); _ctGeo.setAttribute('aAlpha', new THREE.BufferAttribute(_ctA, 1)); _ctGeo.setAttribute('aSize', new THREE.BufferAttribute(_ctS, 1));
+  const _comet = new THREE.Points(_ctGeo, _goldMat); _comet.frustumCulled = false; _comet.renderOrder = 6; _comet.visible = false; scene.add(_comet);
+  const GB_N = 26, _gbGeo = new THREE.BufferGeometry(), _gbPos = new Float32Array(GB_N * 3), _gbA = new Float32Array(GB_N), _gbS = new Float32Array(GB_N);   // #6 gold burst
+  _gbGeo.setAttribute('position', new THREE.BufferAttribute(_gbPos, 3)); _gbGeo.setAttribute('aAlpha', new THREE.BufferAttribute(_gbA, 1)); _gbGeo.setAttribute('aSize', new THREE.BufferAttribute(_gbS, 1));
+  const _gbP = []; for (let i = 0; i < GB_N; i++) { const h = (n) => { const x = Math.sin((i + 3) * 12.9898 + n * 78.233) * 43758.5453; return x - Math.floor(x); };
+    const th = h(1) * 6.283, ph = 0.15 + h(2) * 1.2; _gbP.push({ dir: [Math.sin(ph) * Math.cos(th), Math.cos(ph), Math.sin(ph) * Math.sin(th)], sp: 2.4 * (0.5 + h(3) * 0.8), sz: 0.055 * (0.6 + h(4) * 0.8), aS: 0.7 + h(5) * 0.5 }); }
+  const _gb = new THREE.Points(_gbGeo, _goldMat); _gb.frustumCulled = false; _gb.renderOrder = 7; _gb.visible = false; scene.add(_gb);
+  const _gbOrigin = boardData.squareXYZ('d8').clone(); _gbOrigin.y += 0.2;
+  const _trembleP = [...boardData.pieces.values()]; const _d8pos = boardData.squareXYZ('d8');
+  function _brScale() { _goldMat.uniforms.uScale.value = 0.5 * renderer.domElement.height / Math.tan((camera.fov * Math.PI / 180) / 2); }
+  _brScale();
+  function setBrilliant(t) {
+    // #8 — a gold halo follows the queen, its glow BUILDING through the glide, a flash at landing, then fade
+    if (FX.chargeGlow && _Q.mover && t >= _Q.at - 0.1 && t < _qLand + 0.8) {
+      _Q.mover.getWorldPosition(_kpos); qHalo.position.set(_kpos.x, _kpos.y + 0.22, _kpos.z);
+      const build = _q5(_clamp((t - _Q.at) / _Q.dur)) * 0.7, flash = t >= _qLand ? Math.exp(-Math.pow((t - _qLand) / 0.25, 2)) : 0, out = _clamp((t - _qLand) / 0.8);
+      qHalo.material.opacity = Math.max(build * (1 - out), flash); qHalo.scale.setScalar(0.55 + 0.5 * build + 0.7 * flash); qHalo.visible = qHalo.material.opacity > 0.02;
+    } else qHalo.visible = false;
+    // #3 — each d-file square glows as she passes over it, then fades out
+    const qz = _Q.mover ? (_Q.mover.getWorldPosition(_kpos), _kpos.z) : -99;
+    for (const g of _ignite) {
+      if (!FX.ignite || t < _Q.at || t > _qLand + 1.2) { g.mm.visible = false; continue; }
+      const k = qz >= g.z - 0.12 ? _clamp((t - _Q.at) / 0.3) : 0, fade = 1 - _clamp((t - _qLand) / 1.2);
+      g.mm.material.opacity = k * 0.9 * fade; g.mm.visible = g.mm.material.opacity > 0.02;
+    }
+    // #2 — a comet trail of gold motes strung along her recent path, fading with age
+    if (FX.cometTrail && t >= _Q.at && t < _qLand + 0.5) {
+      for (let i = 0; i < CT_N; i++) { const pp = _qPosAt(t - i * 0.05), age = i / CT_N;
+        _ctPos[i * 3] = pp.x; _ctPos[i * 3 + 1] = pp.y + 0.12; _ctPos[i * 3 + 2] = pp.z;
+        _ctA[i] = (1 - age) * (1 - age) * 0.8 * (1 - _clamp((t - _qLand) / 0.5)); _ctS[i] = 0.16 * (1 - age * 0.7); }
+      _comet.visible = true; _ctGeo.attributes.position.needsUpdate = true; _ctGeo.attributes.aAlpha.needsUpdate = true; _ctGeo.attributes.aSize.needsUpdate = true;
+    } else _comet.visible = false;
+    // #6 — a gold spark burst on landing + a quick board-wide tremble
+    if (FX.goldBurst) {
+      const age = t - _qLand;
+      if (age > 0 && age < 0.8) { for (let i = 0; i < GB_N; i++) { const p = _gbP[i];
+          _gbPos[i * 3] = _gbOrigin.x + p.dir[0] * p.sp * age; _gbPos[i * 3 + 1] = _gbOrigin.y + p.dir[1] * p.sp * age - 0.5 * 4.0 * age * age; _gbPos[i * 3 + 2] = _gbOrigin.z + p.dir[2] * p.sp * age;
+          _gbS[i] = p.sz; _gbA[i] = p.aS * (1 - _q5(age / 0.8)); }
+        _gb.visible = true; _gbGeo.attributes.position.needsUpdate = true; _gbGeo.attributes.aAlpha.needsUpdate = true; _gbGeo.attributes.aSize.needsUpdate = true;
+      } else _gb.visible = false;
+      // RADIAL tremble: each piece shudders as the shockwave RING sweeps past it — in order, from d8 outward
+      if (age > 0 && age < SHOCK.dur + 0.4) {
+        const rad = shockRadius(age);
+        for (let i = 0; i < _trembleP.length; i++) { const w = _trembleP[i];
+          const te = rad - Math.hypot(w.position.x - _d8pos.x, w.position.z - _d8pos.z);   // how far the ring front has passed this piece
+          if (te > 0 && te < 0.5) { const env = Math.sin((te / 0.5) * Math.PI);   // the wave LIFTS each piece as it passes — a natural little hop
+            w.position.y += 0.055 * env; }
+        }
+      }
+    } else _gb.visible = false;
+    // #9 — foreshadow the net: the rook's d-file line flashes for a beat after she lands (reuses the attack beam)
+    if (FX.foreshadow && t >= _qLand + 0.15 && t < _qLand + 1.1) aimBeam(rookBeam, 'd1', 'd8', Math.sin(_clamp((t - (_qLand + 0.15)) / 0.95) * Math.PI) * 0.6);
+  }
+
+  // ============================================================================================
+  // THE MUSHROOM CLOUD — the dissolving king detonates: a YELLOW ground SHOCKWAVE (the brilliant boom, but
+  // yellow) + a rising FIREBALL that mushrooms into a billowing vortex-ring cap, glowing brighter until the
+  // whole screen goes WHITE for the final message. Deterministic → bakes. (Real cloud physics: a buoyant
+  // column rises and its edges curl into a vortex ring → the cap.)
+  // ============================================================================================
+  const _blast = boardData.squareXYZ('c7'); const _blastY = _blast.y;
+  // SLOW MOTION: the blast starts FAST (the first frames), then eases into slow-mo so the mushroom + the neat
+  // outward scatter can be savoured. eAge(t) is the effective age the mushroom / scatter / whiteout all read.
+  const eAge = (t) => { const r = t - EXPLODE_AT; if (r <= 0) return 0; return r < 0.22 ? 2.3 * r : 0.506 + (r - 0.22) * 0.45; };
+  const _exRing = new THREE.Mesh(new THREE.PlaneGeometry(1, 1),   // the yellow ground shockwave
+    new THREE.MeshBasicMaterial({ map: shockTex(), color: 0xffd23a, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide }));
+  _exRing.rotation.x = -Math.PI / 2; _exRing.position.set(_blast.x, _blastY + 0.03, _blast.z); _exRing.renderOrder = 9; _exRing.visible = false; scene.add(_exRing);
+  const _fireball = new THREE.Sprite(new THREE.SpriteMaterial({ map: radialTex([[0, 'rgba(255,255,240,1)'], [0.3, 'rgba(255,214,90,0.9)'], [0.65, 'rgba(255,120,30,0.4)'], [1, 'rgba(0,0,0,0)']]), transparent: true, opacity: 0, depthWrite: false, depthTest: false, blending: THREE.AdditiveBlending }));
+  _fireball.renderOrder = 10; _fireball.visible = false; scene.add(_fireball);   // the rising fireball core
+  // ---- a REAL fire billboard: the roiling fireball + column. Ported from a self-contained procedural fire
+  // shader (simplex noise → fbm → fire gradient, NO textures), masked to a mushroom silhouette. Faces the
+  // camera; rises + grows; driven by eAge → bakes. Toggle: FX.fireShader. ----
+  const _fbMat = new THREE.ShaderMaterial({
+    uniforms: { uTime: { value: 0 }, uFade: { value: 1 } },
+    vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+    fragmentShader: [
+      'precision highp float; varying vec2 vUv; uniform float uTime, uFade;',
+      'vec2 hash(vec2 p){ p = vec2(dot(p, vec2(127.1,311.7)), dot(p, vec2(269.5,183.3))); return -1.0 + 2.0*fract(sin(p)*43758.5453123); }',
+      'float noise(in vec2 p){ const float K1=0.366025404, K2=0.211324865; vec2 i=floor(p+(p.x+p.y)*K1); vec2 a=p-i+(i.x+i.y)*K2; vec2 o=step(a.yx,a.xy); vec2 b=a-o+K2; vec2 c=a-1.0+2.0*K2; vec3 h=max(0.5-vec3(dot(a,a),dot(b,b),dot(c,c)),0.0); vec3 n=h*h*h*h*vec3(dot(a,hash(i+0.0)),dot(b,hash(i+o)),dot(c,hash(i+1.0))); return dot(n, vec3(70.0)); }',
+      'float fbm(in vec2 p){ float f=0.0; mat2 m=mat2(1.6,1.2,-1.2,1.6); f=0.5*noise(p); p=m*p; f+=0.25*noise(p); p=m*p; f+=0.125*noise(p); p=m*p; f+=0.0625*noise(p); return 0.5+0.5*f; }',
+      'void main(){',
+      '  vec2 uv = vUv;',
+      '  float stem = smoothstep(0.14, 0.03, abs(uv.x-0.5)) * smoothstep(0.58, 0.40, uv.y);',
+      '  vec2 cc = (uv - vec2(0.5, 0.70)); cc.x *= 1.45;',
+      '  float cap = smoothstep(0.31, 0.05, length(cc));',
+      '  float shape = clamp(stem + cap, 0.0, 1.0);',
+      '  float boil = fbm(uv * 4.5 + vec2(0.0, -uTime * 0.5));',
+      '  shape *= 0.5 + 0.7 * boil; shape = smoothstep(0.28, 0.72, shape);',
+      '  float n = fbm(uv * vec2(5.0, 6.0) + vec2(uTime * 0.06, -uTime * 0.6));',
+      '  vec3 col = n * vec3(2.0*n, 2.0*n*n*n, n*n*n*n) * 2.4;',
+      '  float alpha = shape * (0.35 + 0.9 * n) * uFade;',
+      '  if (alpha < 0.01) discard;',
+      '  gl_FragColor = vec4(col, alpha);',
+      '}',
+    ].join('\n'),
+    transparent: true, depthWrite: false, depthTest: false, side: THREE.DoubleSide, blending: THREE.AdditiveBlending,
+  });
+  const _fb = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), _fbMat); _fb.renderOrder = 9; _fb.frustumCulled = false; _fb.visible = false; scene.add(_fb);
+  // the mushroom cloud: a narrow STEM + a wide DOME cap whose edges curl down (the vortex ring), billowing +
+  // rising. Coloured fire-orange at the base → dim smoke-grey up top (aH = height fraction, fed per-frame).
+  const MUSH = { n: 220, dur: 3.8, capH: 1.15, capR: 2.1, dome: 0.85, stemR: 0.24 };
+  const _muGeo = new THREE.BufferGeometry();
+  const _muPos = new Float32Array(MUSH.n * 3), _muA = new Float32Array(MUSH.n), _muS = new Float32Array(MUSH.n), _muH = new Float32Array(MUSH.n);
+  _muGeo.setAttribute('position', new THREE.BufferAttribute(_muPos, 3)); _muGeo.setAttribute('aAlpha', new THREE.BufferAttribute(_muA, 1));
+  _muGeo.setAttribute('aSize', new THREE.BufferAttribute(_muS, 1)); _muGeo.setAttribute('aH', new THREE.BufferAttribute(_muH, 1));
+  const _muP = [];
+  for (let i = 0; i < MUSH.n; i++) { const h = (n) => { const x = Math.sin((i + 9) * 12.9898 + n * 78.233) * 43758.5453; return x - Math.floor(x); };
+    const isCap = h(1) < 0.66, ang = h(2) * 6.283;
+    let tR, tY;
+    if (isCap) { const rf = 0.12 + h(3) * 0.88;                                   // radial fraction across the cap
+      tR = MUSH.capR * rf; tY = MUSH.capH + MUSH.dome * (1.0 - rf * rf) - 0.5 * Math.max(0, rf - 0.72) + h(4) * 0.18; }   // DOME, edges CURL down (vortex ring)
+    else { tR = MUSH.stemR * (0.3 + h(3) * 0.95); tY = h(4) * MUSH.capH; }         // the stem column
+    _muP.push({ ang, tR, tY, isCap, rise: 0.82 + h(5) * 0.36, size: 0.34 + h(6) * 0.45, wob: h(7) * 6.283, aS: 0.42 + h(8) * 0.4 }); }
+  const _muMat = new THREE.ShaderMaterial({ uniforms: { uScale: { value: 300 } },
+    vertexShader: `attribute float aAlpha; attribute float aSize; attribute float aH; uniform float uScale; varying float vA; varying float vH;
+      void main(){ vA = aAlpha; vH = aH; vec4 mv = modelViewMatrix * vec4(position, 1.0); gl_PointSize = min(420.0, aSize * uScale / max(0.02, -mv.z)); gl_Position = projectionMatrix * mv; }`,
+    fragmentShader: `varying float vA; varying float vH; void main(){ float d = length(gl_PointCoord - 0.5); float a = smoothstep(0.5, 0.03, d) * vA; if (a <= 0.003) discard;
+      vec3 fire = vec3(1.0, 0.55, 0.13), smoke = vec3(0.42, 0.4, 0.42);
+      vec3 col = mix(fire, smoke, smoothstep(0.05, 0.5, vH));   // glowing fire at the base → grey smoke up top
+      gl_FragColor = vec4(col + vec3(0.35) * a * (1.0 - vH), a); }`,
+    transparent: true, depthWrite: false, depthTest: false, blending: THREE.AdditiveBlending });
+  const _mush = new THREE.Points(_muGeo, _muMat); _mush.frustumCulled = false; _mush.renderOrder = 10; _mush.visible = false; scene.add(_mush);
+  function _muScale() { _muMat.uniforms.uScale.value = 0.5 * renderer.domElement.height / Math.tan((camera.fov * Math.PI / 180) / 2); }
+  _muScale();
+  function setMushroom(t) {
+    const age = eAge(t);   // slow-motion time
+    if (t < EXPLODE_AT || age > MUSH.dur + 0.6) { _mush.visible = false; _fireball.visible = false; _exRing.visible = false; _fb.visible = false; return; }
+    if (FX.fireShader) {                                            // the REAL fire billboard: rises + grows, faces the camera
+      _fb.visible = true; const g = _q5(_clamp(age / 1.5)); const W = 0.6 + 3.0 * g, H = 0.8 + 4.2 * g;
+      _fb.scale.set(W, H, 1); _fb.position.set(_blast.x, _blastY + 0.02 + H * 0.4, _blast.z); _fb.quaternion.copy(camera.quaternion);
+      _fbMat.uniforms.uTime.value = age; _fbMat.uniforms.uFade.value = (age < 0.2 ? _clamp(age / 0.2) : 1) * (1 - _q5(_clamp((age - 1.35) / 1.0)));   // fully gone before the calm hero reveal
+    } else _fb.visible = false;
+    if (age < 1.7) { _exRing.visible = true; const rk = age / 1.7, sc = 0.2 + 30 * (1 - (1 - rk) * (1 - rk)); _exRing.scale.set(sc, sc, 1); _exRing.material.opacity = 0.9 * (1 - _q5(rk)); }
+    else _exRing.visible = false;
+    const fb = _clamp(age / 2.4); _fireball.visible = fb < 0.99;   // the fireball rises then dims into the cloud
+    _fireball.position.set(_blast.x, _blastY + 0.2 + 2.0 * _q5(fb), _blast.z); _fireball.scale.setScalar(0.6 + 2.5 * _q5(fb));
+    _fireball.material.opacity = (age < 0.18 ? _clamp(age / 0.18) : 1) * (1 - _q5(_clamp((age - 1.3) / 1.5)));
+    _mush.visible = true;
+    const form = _q5(_clamp(age / (MUSH.dur * 0.55))), gRise = 0.55 * age, k = age / MUSH.dur, top = MUSH.capH + MUSH.dome + gRise + 0.4;
+    for (let i = 0; i < MUSH.n; i++) { const p = _muP[i];
+      const tt = age * 1.3 + p.wob, rWob = (p.isCap ? 0.16 : 0.05) * Math.sin(tt), yWob = 0.09 * Math.cos(tt * 1.2);   // billow + roll (turbulence)
+      const y = p.tY * form * p.rise + gRise + yWob, r = (p.tR + rWob) * form;
+      _muPos[i * 3] = _blast.x + Math.cos(p.ang) * r; _muPos[i * 3 + 1] = _blastY + 0.14 + y; _muPos[i * 3 + 2] = _blast.z + Math.sin(p.ang) * r;
+      _muS[i] = p.size * (0.5 + form * 1.5); _muH[i] = _clamp(y / top);
+      _muA[i] = p.aS * (age < 0.28 ? _clamp(age / 0.28) : 1) * (1 - _q5(_clamp((k - 0.6) / 0.4))); }
+    _muGeo.attributes.position.needsUpdate = true; _muGeo.attributes.aAlpha.needsUpdate = true; _muGeo.attributes.aSize.needsUpdate = true; _muGeo.attributes.aH.needsUpdate = true;
+  }
+  // the blast keeps just a FEW pieces (the hero shot): they surge into the FOREGROUND close to camera, TILTED
+  // outward (right-side pieces lean right, left lean left), then hover + turn slowly. Every OTHER piece is blown
+  // clean out of frame. Deterministic → bakes.
+  const _scPieces = _trembleP.filter((w) => w !== _theKing && w !== MOVES[0].cap_g && w !== MOVES[2].cap_g);
+  const _bc = new THREE.Vector3(); _scPieces.forEach((w) => _bc.add(w.position)); if (_scPieces.length) _bc.multiplyScalar(1 / _scPieces.length);
+  const SC_SETTLE = 1.5;
+  const _E = new THREE.Vector3(_pcEye[0], _pcEye[1], _pcEye[2]), _Tt = new THREE.Vector3(_pcTgt[0], _pcTgt[1], _pcTgt[2]);
+  const _fwd = _Tt.clone().sub(_E).normalize(), _rightV = _fwd.clone().cross(_UP).normalize(), _upV = _rightV.clone().cross(_fwd).normalize();
+  // featured slots (L→R): screen x-offset · depth in front of camera · y-offset · outward ROLL tilt
+  const FEAT = [
+    { xo: -1.08, dp: 2.55, yo: -0.04, roll:  0.34 },
+    { xo: -0.54, dp: 2.20, yo:  0.05, roll:  0.16 },
+    { xo:  0.05, dp: 2.75, yo: -0.08, roll:  0.00 },
+    { xo:  0.60, dp: 2.20, yo:  0.05, roll: -0.16 },
+    { xo:  1.12, dp: 2.55, yo: -0.04, roll: -0.34 },
+  ];
+  const _byType = {}, _feat = [];                                  // pick 5 of VARIED type (nicer than 5 pawns), rest blown away
+  for (const w of _scPieces) { const ty = w.userData.type; if (!_byType[ty] && _feat.length < 5) { _feat.push(w); _byType[ty] = 1; } }
+  for (const w of _scPieces) { if (_feat.length >= 5) break; if (!_feat.includes(w)) _feat.push(w); }
+  const _scat = _scPieces.map((w, i) => {
+    const h = (n) => { const x = Math.sin((i + 5) * 12.9898 + n * 78.233) * 43758.5453; return x - Math.floor(x); };
+    const fi = _feat.indexOf(w), featured = fi >= 0 && fi < FEAT.length;
+    let neat = null, roll = 0;
+    if (featured) { const f = FEAT[fi]; neat = _E.clone().addScaledVector(_fwd, f.dp).addScaledVector(_rightV, f.xo).addScaledVector(_upV, f.yo); roll = f.roll; }
+    return { w, idx: i, rest: null, neat, roll, featured, away: null, restQ: null,   // rest/away/restQ captured LAZILY at the blast (pieces have moved by then)
+      hAmp: 0.02 + h(3) * 0.03, hPh: h(4) * 6.283, hFq: 0.45 + h(5) * 0.3, spin: (h(6) < 0.5 ? -1 : 1) * (0.09 + h(7) * 0.07), flySp: 5.5 + h(1) * 4 };
+  });
+  const _scQ = new THREE.Quaternion(), _spinQ = new THREE.Quaternion();
+  function setScatter(t) {
+    if (t < EXPLODE_AT) return;
+    const a = eAge(t);
+    const settled = _q5(_clamp(a / SC_SETTLE));
+    for (const s of _scat) {
+      if (!s.rest) {   // capture the piece's ACTUAL pose at the blast (it has moved since build)
+        s.rest = s.w.position.clone(); s.restQ = s.w.quaternion.clone();
+        s.away = s.rest.clone().sub(_bc); s.away.y = 0;
+        if (s.away.lengthSq() < 1e-4) s.away.set(Math.cos(s.idx * 2.4), 0, Math.sin(s.idx * 2.4)); s.away.normalize();
+      }
+      if (s.featured) {
+        s.w.position.lerpVectors(s.rest, s.neat, settled);                       // surge into the foreground, close to camera
+        s.w.position.y += s.hAmp * Math.sin(a * s.hFq * 6.283 + s.hPh) * settled; // gentle hover once there
+        _scQ.setFromAxisAngle(_fwd, s.roll * settled);                           // TILT outward (screen-space roll)
+        _spinQ.setFromAxisAngle(_UP, s.spin * a);                                // a slow turn on its own axis
+        s.w.quaternion.copy(_scQ).multiply(_spinQ).multiply(s.restQ);
+        s.w.visible = true;
+      } else {                                                                    // everyone else: blown clean out of frame
+        s.w.position.copy(s.rest).addScaledVector(s.away, s.flySp * a);
+        s.w.position.y = s.rest.y + 3.0 * a - 0.5 * 4.0 * a * a;
+        s.w.visible = a < 1.6 && s.w.position.y > -6;
+      }
+    }
+  }
+  function flashAt(t) { const e = eAge(t); return _q5(_clamp((e - 1.6) / 0.7)) * (1 - _q5(_clamp((e - 2.6) / 0.95))); }   // the glow's OPACITY: builds to a peak WHITEOUT, then RECEDES to reveal the tableau
+  function flashGrowAt(t) { return _q5(_clamp(eAge(t) / 2.0)); }                  // the glow's RADIUS: expands from the blast outward so the surroundings only turn white as it REACHES them
+  function ctaAt(t) { return _q5(_clamp((t - (EXPLODE_AT + 6.2)) / 1.2)); }       // …then the invitation fades up over the living pieces
+
+  let directorMode = false;   // dev camera-director tool: when on, frame() leaves the camera to the user's OrbitControls
+  function setDirector(b) { directorMode = !!b; }
   // frame(t): the master cinematic clock. setShot stays exported for the offline render stage.
   function frame(t) {
-    setCam(t);
     setIntro(t);                          // lands + reveals every piece at its rest (cheap; idempotent for large t)
-    if (t >= MOVE_START) setMoves(t);     // override the movers with the combination
+    setKing(t);                           // the two kings drop straight down, one at a time, after the rest have landed
+    if (t >= MOVE_START) setMoves(t);     // move the pieces first (so the ending camera can track the falling king)
+    if (!directorMode) {                  // DIRECTOR MODE (dev tool): the user's OrbitControls own the camera — skip the cinematic camera
+      if (setKingCam(t)) { /* the king entrances own the camera */ }
+      else if (t >= MATE_AT) setEndCam(t);  // the death sequence owns the camera (close-up → top-down → crane away)
+      else setCam(t);                       // the move cinematic's keyframed path
+    }
+    setSmoke(t);                          // dust puffs kicked up where the two kings land
+    setShock(t);                          // the brilliant "boom" shockwave when the queen lands on d8
+    setKillBeam(t);                       // the bishop's kill-bolt fired from the top of its head at the king
+    setImpact(t);                         // hot sparks + a flash where the bolt strikes (impact damage)
     setEffects(t);
+    setBrilliant(t);                      // the Qd8+ flourishes (charge glow · ignite · gold burst + tremble · foreshadow)
+    setMushroom(t);                       // the king's detonation → a rising yellow MUSHROOM CLOUD + ground shockwave → whiteout
+    setScatter(t);                        // …and the blast blows every remaining piece off the board (runs LAST — owns the piece transforms)
     if (t <= MOVES_END + 0.2) renderer.shadowMap.needsUpdate = true;   // shadows track the rain + the moves, then freeze
   }
+
+  // ---- named beats, for keyboard step-through (each plays start→end as one burst, then holds at its end) ----
+  // The ends sit on natural HOLD frames (just before the next fade/move) so a paused beat reads cleanly.
+  const SCENES = [
+    { label: 'The board assembles', start: 0,                 end: FO_A_S },
+    { label: 'The black king lands', start: FO_A_S,           end: FO_B_S },
+    { label: 'The white king lands', start: FO_B_S,           end: FO_C_S },
+    { label: 'Blunder · Nxe4',       start: FO_C_S,           end: MOVES[1].at - 0.4 },
+    { label: 'Sacrifice · Qd8+',     start: MOVES[1].at - 0.4, end: MOVES[2].at - 0.4 },
+    { label: 'Forced · Kxd8',        start: MOVES[2].at - 0.4, end: MOVES[3].at - 0.4 },
+    { label: 'Double check · Bg5+',  start: MOVES[3].at - 0.4, end: MOVES[4].at - 0.4 },
+    { label: 'The king flees · Kc7', start: MOVES[4].at - 0.4, end: MOVES[5].at - 0.4 },
+    { label: 'Mate · Bd8#',          start: MOVES[5].at - 0.4, end: BUILD_AT },
+    { label: 'The king falls',       start: BUILD_AT,         end: FADE_OUT },
+    { label: 'Defeat',               start: FADE_OUT,         end: RISE_AT },
+    { label: 'Detonation · the end', start: RISE_AT,          end: DURATION },
+  ];
 
   // ---- public api ----
   function render() { camera.lookAt(lookTarget); camera.updateMatrixWorld(); renderer.render(scene, camera); }
@@ -628,6 +1400,11 @@ export async function createEnderScene(canvas) {
     const w = innerWidth, h = innerHeight;
     camera.aspect = w / h; camera.updateProjectionMatrix(); renderer.setSize(w, h);
     sizeVignette();   // aspect changed → re-fit the camera-child vignette to the new frame
+    _smokeScale();    // drawing-buffer height changed → keep the particle point-size world-correct
+    _sparkScale();
+    _ashScale();
+    _brScale();
+    _muScale();
   }
   // gentle rim drift so the metal/marble never sits dead-still
   let _t = 0;
@@ -639,7 +1416,7 @@ export async function createEnderScene(canvas) {
   }
 
   return {
-    scene, camera, renderer, lookTarget, render, resize, tick, setShot, frame, badgeAt, evalAt, duration: DURATION,
+    scene, camera, renderer, lookTarget, render, resize, tick, setShot, frame, badgeAt, evalAt, cutFadeAt, flashAt, flashGrowAt, ctaAt, setDirector, scenes: SCENES, duration: DURATION,
     pieces: boardData.pieces, GRID: boardData.GRID, squareXYZ: boardData.squareXYZ,
     refs: { spot, wash, beam, VolMat, fog: scene.fog, bulbGlass, amb, coolRim, cyanRim, warmRim, lampGroup, boardRoot: boardData.root, rookBeam, bishopBeam },
   };

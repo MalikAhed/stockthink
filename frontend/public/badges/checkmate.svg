@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+    <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+    <svg xmlns="http://www.w3.org/2000/svg" class="" width="100%" height="100%" viewBox="0 0 18 19">
+        <g id="checkmate">
+    <path class="icon-shadow" opacity="0.3" d="M9,.5a9,9,0,1,0,9,9A9,9,0,0,0,9,.5Z"></path>
+    <path class="icon-background" fill="#e0b64a" d="M9,0a9,9,0,1,0,9,9A9,9,0,0,0,9,0Z"></path>
+    <g fill="#2a2005">
+      <rect x="6.15" y="4.6" width="1.5" height="9.8" rx="0.55" transform="rotate(10 6.9 9.5)"></rect>
+      <rect x="10.35" y="4.6" width="1.5" height="9.8" rx="0.55" transform="rotate(10 11.1 9.5)"></rect>
+      <rect x="4.2" y="7.35" width="9.6" height="1.5" rx="0.55"></rect>
+      <rect x="4.2" y="10.15" width="9.6" height="1.5" rx="0.55"></rect>
+    </g>
+  </g>
+    </svg>

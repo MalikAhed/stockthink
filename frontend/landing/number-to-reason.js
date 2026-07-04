@@ -18,7 +18,7 @@ import { Reel, Scrubber } from './scrub.js';
   // Kept short on purpose: the long banner/seldepth/nodes/nps strings only padded the typing time.
   const TERM = [
     { pr: '$', t: './stockfish' },
-    { t: 'Stockfish 16.1', cls: 'di' },
+    { t: 'Stockfish 18', cls: 'di' },
     { pr: '>', t: 'position fen 3q2k1/1pp2ppp/3b4/8/2B1P3/8/PP3PPP/3R2K1 w' },
     { pr: '>', t: 'go depth 20' },
     { t: 'info depth 20 score cp 312 pv e4e5', cls: 'di' },
@@ -178,7 +178,7 @@ import { Reel, Scrubber } from './scrub.js';
     b.innerHTML = h;
   }
 
-  const setStep = (n, name) => { stepEl.innerHTML = 'Step ' + n + ' / 4 &nbsp;·&nbsp; <b>' + name + '</b>'; stepEl.classList.add('in'); reel.cue(0, n + ' · ' + name); };
+  const setStep = (n, name) => { reel.cue(0, n + ' · ' + name); };
   const cap = (txt) => { capEl.textContent = txt; capEl.classList.add('in'); };
   const capSwap = (txt) => { capEl.classList.remove('in'); at(240, () => { capEl.textContent = txt; capEl.classList.add('in'); }); };
   const capHide = () => capEl.classList.remove('in');

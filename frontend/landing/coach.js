@@ -484,7 +484,7 @@ function buildTimeline() {
       .to(g.position, { x: POS.recoil[0] + EMERGE[i][0], y: POS.recoil[1] + EMERGE[i][1], z: POS.recoil[2] + EMERGE[i][2], duration: 0.6, ease: 'power2.out' }, '<'); // bud out top/left/right
   });
   tl.to({}, { duration: 0.3 }); // hold them around Claude a beat
-  showCap('>-0.1', 'It spawns subagents that study the book from every angle in parallel.');
+  showCap('>-0.1', 'It studies the book closely, learning a new concept.');
   // they FLY OVER to the book (each to its first angle), facing it as they go — staggered so it's not in unison
   tl.add(() => { clonesFace = true; });
   cloneGroups.forEach((g, i) => {
