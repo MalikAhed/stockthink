@@ -87,6 +87,8 @@
 .ender-cta {
   position: fixed; inset: 0; z-index: 63; display: flex; align-items: center; justify-content: center;
   opacity: 0; pointer-events: none;
+  /* short smoothing so per-scroll-event opacity steps (and the hard reset on exit) glide instead of popping */
+  transition: opacity 0.28s ease;
   /* transparent up top so the floating pieces show; a light scrim (matches the hero backdrop #eceae4) grounds the text */
   background: linear-gradient(to top, rgba(236,234,228,0.97) 0%, rgba(236,234,228,0.86) 20%, rgba(236,234,228,0.18) 44%, rgba(236,234,228,0) 62%);
 }
@@ -108,7 +110,7 @@
 .ender-cta-btn2:hover { background: rgba(11, 12, 14, 0.06); border-color: rgba(11, 12, 14, 0.55); box-shadow: none; }
 
 /* the front-of-text hero-piece canvas — stacked above the CTA copy (z 63), idle-transparent until the reveal */
-.ender-front { position: fixed; inset: 0; width: 100%; height: 100%; display: block; z-index: 64; pointer-events: none; opacity: 0; }
+.ender-front { position: fixed; inset: 0; width: 100%; height: 100%; display: block; z-index: 64; pointer-events: none; opacity: 0; transition: opacity 0.28s ease; }
 
 /* dev-only CAMERA DIRECTOR panel (tree-shaken from prod) */
 .ender-dir { position: fixed; top: 12px; left: 12px; z-index: 90; font: 500 12px/1.4 'Inter', system-ui, sans-serif; color: #eee; }

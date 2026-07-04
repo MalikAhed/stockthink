@@ -87,10 +87,11 @@ if (section && canvas) {
     evalBar.append(evFill, evNum);
     overlay.appendChild(evalBar);
   }
+  let lastShowFront = false;   // mirrored from the loop so onScroll can keep the front canvas honest between frames
   function updateHud(t) {
     if (!view) return;
-    // the king-entrance fade veil
-    if (view.cutFadeAt) cutVeil.style.opacity = String(view.cutFadeAt(t));
+    // the king-entrance fade veil — also scaled by exitFade so a mid-cut scroll-away can't leave a dark pane
+    if (view.cutFadeAt) cutVeil.style.opacity = String(view.cutFadeAt(t) * exitFade);
     // the explosion flash + the final CTA reveal
     if (view.flashAt) {                                    // the detonation glow: a radial white that EXPANDS from the blast to engulf the surroundings
       const fa = (director ? 0 : view.flashAt(t)) * exitFade; flash.style.opacity = String(fa);
@@ -132,7 +133,15 @@ if (section && canvas) {
     // the CTA / flash / front-piece are fixed <body> overlays → they DON'T scroll away with the section. Fade
     // them as the finale leaves the viewport in EITHER direction (1 while it covers the frame; →0 as an edge scrolls in).
     const lead = Math.max(r.top, innerHeight - r.bottom, 0);
-    exitFade = clamp01(1 - lead / (innerHeight * 0.4));
+    exitFade = clamp01(1 - lead / (innerHeight * 0.6));
+    // Re-apply the fixed overlays' opacities NOW, from the scroll handler itself: the rAF loop is
+    // throttled (fps cap) and stops entirely once `active` flips, so a fast flick used to leave the
+    // CTA/flash/front-piece at their last-rendered opacity for several frames — the "text doesn't go
+    // away smoothly when I scroll back up" bug. Scroll events outrun the gated loop, so drive it here too.
+    if (view) {
+      updateHud(curT);
+      frontCanvas.style.opacity = lastShowFront ? String(exitFade) : '0';
+    }
     // start the cinematic clock once the basement is genuinely being revealed (not while behind the veil) —
     // otherwise the rain would play out unseen. One-shot; re-armed when the section fully leaves.
     if (revealP > 0.05 && !playing && !RM) { playing = true; clockStart = performance.now(); }
@@ -240,6 +249,7 @@ if (section && canvas) {
     // front-of-text hero piece: once the tableau has settled (the reveal), lift it onto the front layer so it
     // renders ABOVE the CTA copy. Before then it plays the game normally in the main pass.
     const showFront = !director && view.frontPieces && view.frontPieces.length && t > view.duration - 6.0;   // lift onto the front layer just BEFORE the CTA reveals (under the whiteout), so the hero piece glides in ABOVE the copy
+    lastShowFront = showFront;
     if (view.setFrontActive) view.setFrontActive(showFront);
     view.render();
     if (showFront) view.renderFront(frontCanvas);
@@ -261,8 +271,8 @@ if (section && canvas) {
       active = on;
       if (on && view && !raf) loop();
       if (!on && e.intersectionRatio <= 0.01) { playing = false; navMode = false; navTag.classList.remove('show');
-        flash.style.opacity = '0'; cta.style.opacity = '0'; cta.style.pointerEvents = 'none';
-        frontCanvas.style.opacity = '0'; if (view && view.setFrontActive) view.setFrontActive(false); }   // don't let the flash/CTA/front piece linger + block the page
+        flash.style.opacity = '0'; cta.style.opacity = '0'; cta.style.pointerEvents = 'none'; cutVeil.style.opacity = '0';
+        lastShowFront = false; frontCanvas.style.opacity = '0'; if (view && view.setFrontActive) view.setFrontActive(false); }   // don't let the flash/CTA/cut-veil/front piece linger + block the page
     });
   }, { threshold: [0, 0.01] });
   flip.observe(section);
