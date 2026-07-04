@@ -182,6 +182,21 @@ WebGL / software GPU → `min`; saveData / deviceMemory≤2 / mobile / cores≤4
 - `fpsGate()` now takes NO arg — it reads `QUALITY.fpsCap` live (so a demotion tightens every loop at once).
   The old per-module `FPS` export is gone.
 
+**Three.js "faster WITHOUT lowering quality" (reusable, the standard pro moves — pixel-identical output):**
+- **Never re-bake the shadow map every frame.** A shadow pass re-renders every caster from the light's POV —
+  as costly as a second scene. Set `renderer.shadowMap.autoUpdate = false` and drive `needsUpdate` yourself
+  ONLY when a caster actually moved (or half-rate for soft/slow shadows — imperceptible ≤1-frame lag). The
+  finale (`ender-scene.js`) was setting `needsUpdate=true` every frame for ~45s → now half-rate (`_shadowFrame & 1`).
+  Camera motion NEVER needs a shadow re-bake (the map is from the light, not the eye).
+- **`powerPreference:'high-performance'`** on every `WebGLRenderer` — a free hint so dual-GPU laptops pick the
+  discrete GPU instead of the weak integrated one.
+- Other zero-quality levers when needed: `matrixAutoUpdate=false` on static decor (call `updateMatrix()` once
+  FIRST or it snaps to origin), reuse geometries/materials, no per-frame allocations (scratch objects), keep
+  render loops visibility-gated + fps-capped (already done). Quality-COST levers (DPR, fewer lights, drop AA)
+  stay in `perf.js`'s tier system — don't reach for them to fix a hotspot you haven't profiled. **If lag
+  persists after the free wins, PROFILE (`renderer.info.render.calls/triangles` + DevTools Performance)** to
+  find the real hotspot rather than guessing.
+
 **v2 — the frame-rate governor (2026-06-21; never regress).** `requestAnimationFrame` fires at the DISPLAY
 refresh, so on 120/144Hz panels every on-screen WebGL loop re-rendered 120–144×/sec (the hero is TWO
 full-screen contexts) — the real cause of the "laggy / low fps" report, NOT gating. Fix: `perf.js` exports
@@ -214,6 +229,12 @@ add red accent lines or any flourish he didn't ask for · over-plan a fix I can 
 show a screenshot unprompted.
 
 ## Mistakes to avoid (real bugs, kept for immunity)
+- **`position:fixed` overlays appended to `<body>` do NOT scroll away with their section** — the finale's
+  CTA/flash/front-piece lingered over the next section after the cinematic ended (they're driven only by the
+  clock, force-hidden only at `ratio≤0.01`). Fix: an `exitFade` computed in `onScroll` from the section rect
+  (`lead = max(r.top, innerHeight - r.bottom, 0)` → `1 - lead/(0.4·vh)`; 1 while it covers the frame, →0 as
+  either edge scrolls in) multiplied into every fixed overlay's opacity in `ender.js`. In-section (non-fixed)
+  layers like `.ender-canvas` don't need this — they scroll off naturally.
 - `buildAbsBoard` does `el.innerHTML=h` → wipes overlay children of `#engBoard`. Put scan/net/arrow
   overlays as **siblings in `.engboardwrap`**, not inside the board element.
 - Bottom-anchored overlays collide with a zoomed full-bleed element → zoom a bit less + bias the camera
@@ -277,9 +298,18 @@ show a screenshot unprompted.
   Open FEN `rnb1kb1r/pp3ppp/2p2n2/4q3/4N3/3Q4/PPPB1PPP/2KR1BNR b kq - 0 8`. Line is engine-verified
   (chessops + SF18 d24; `Kc7→Bd8#` chosen, `Ke8→Rd8#` is the verified sibling). Dev harness:
   `editor/probes/finale-stage.html` + `probe-finale.mjs <t…>` (screenshots any beat) + `probe-finale-pos.mjs`
-  (numeric square check) + `badge-preview.html` (the HUD). **OPEN:** it's ~30s AUTOPLAY-on-arrival — long
+  (numeric square check) + `badge-preview.html` (the HUD). **OPEN:** it's ~45s AUTOPLAY-on-arrival — long
   for a scroll page; duration / the 220vh section / autoplay-vs-scroll-scrub are open dials for the user.
   Re-render to video on approval (studio.js drives `frame(t)`; `FRAMES ≈ DURATION*24`).
+  **ENDING (death → nuclear blast → hero tableau → CTA) — DONE & approved (2026-07-04).** After the mate:
+  king topples → dissolves+shakes → DETONATES (fireball + heat wobble + radial whiteout). Out of the white
+  the **4 surviving black pieces GLIDE IN like the hero pieces** (blown out under the white, then descend
+  from above-and-to-a-side, lean→straighten→soft-land onto the dialled `TABLEAU[]` poses; tunables in
+  `const HERO={hide,glide,lat,tilt}` + `setScatter`). The **CTA (`.ender-cta` = copy + bottom scrim) fades in
+  WITH the pieces** — `ctaAt` retimed to `EXPLODE_AT+4.1` (~39.5s), was `+7.2` (felt ~3s late). The f6 knight
+  is `front:true` → renders on `.ender-front` ABOVE the copy (`ender.js` lifts it at `t>duration-6.0`, under
+  the white). **The `mushroom-explosion.html` finale STUDIO was removed** (done with it) — tune `ender-scene.js`
+  directly now. Not a Vite entry (inputs: `index.html` + `landing/index.html`), so the build is unaffected.
 
 After the finale: an optional further cinematic — editable 3D masters now at
 `~/stockthink-3d-source/landing-source-html/` (the basement/board source HTML moved out of the repo).

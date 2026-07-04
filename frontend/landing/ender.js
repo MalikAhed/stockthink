@@ -16,6 +16,7 @@ if (section && canvas) {
   let building = false;
   let active = false;       // section in view -> run the rAF loop
   let raf = 0;
+  let exitFade = 1;         // 1 while the finale covers the viewport; →0 as it scrolls away — fades the fixed CTA/flash/front overlays (they live on <body>, so they don't scroll off with the section) so the final title never lingers over the next/previous section
   let clockStart = 0;       // performance.now() when the cinematic began
   let playing = false;      // armed once the basement is actually being revealed
   // ---- keyboard scene step-through (← / → walk the beats; each plays as ONE burst then holds) ----
@@ -51,11 +52,17 @@ if (section && canvas) {
   cta.innerHTML =
     '<div class="ender-cta-in">' +
       '<div class="ender-cta-kick">The why behind every move</div>' +
-      '<h2 class="ender-cta-h">Your games hide<br>moments <span class="am">like that</span>.</h2>' +
-      '<p class="ender-cta-p">StockThink reviews any game the way a grandmaster would &mdash; surfacing every brilliancy and blunder, and the idea that turned it. Free, in your browser.</p>' +
-      '<a class="ender-cta-btn" href="' + B0 + '">Analyse my game &rarr;</a>' +
+      '<h2 class="ender-cta-h">Your games hide<br>moments <span class="am">like that</span><svg class="cta-brill" viewBox="0 0 18 19" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path opacity=".3" d="M9,.5a9,9,0,1,0,9,9A9,9,0,0,0,9,.5Z"/><path fill="#1bada6" d="M9,0a9,9,0,1,0,9,9A9,9,0,0,0,9,0Z"/><path fill="#fff" d="M12.57,14.1a.51.51,0,0,1,0,.13.44.44,0,0,1-.08.11l-.11.08-.13,0h-2l-.13,0L10,14.34A.41.41,0,0,1,10,14.1V12.2A.32.32,0,0,1,10,12a.39.39,0,0,1,.1-.08l.13,0h2a.31.31,0,0,1,.24.1.39.39,0,0,1,.08.1.51.51,0,0,1,0,.13Zm-.12-3.93a.17.17,0,0,1,0,.12.41.41,0,0,1-.07.11.4.4,0,0,1-.23.08H10.35a.31.31,0,0,1-.34-.31L9.86,3.4A.36.36,0,0,1,10,3.16a.23.23,0,0,1,.11-.08.27.27,0,0,1,.13,0H12.3a.32.32,0,0,1,.25.1.36.36,0,0,1,.09.24Z"/><path fill="#fff" d="M8.07,14.1a.51.51,0,0,1,0,.13.44.44,0,0,1-.08.11l-.11.08-.13,0h-2l-.13,0-.11-.08a.41.41,0,0,1-.08-.24V12.2a.27.27,0,0,1,0-.13.36.36,0,0,1,.07-.1.39.39,0,0,1,.1-.08l.13,0h2A.31.31,0,0,1,8,12a.39.39,0,0,1,.08.1.51.51,0,0,1,0,.13ZM8,10.17a.17.17,0,0,1,0,.12.41.41,0,0,1-.07.11.4.4,0,0,1-.23.08H5.85a.31.31,0,0,1-.34-.31L5.36,3.4a.36.36,0,0,1,.09-.24.23.23,0,0,1,.11-.08.27.27,0,0,1,.13,0H7.8a.35.35,0,0,1,.25.1.36.36,0,0,1,.09.24Z"/></svg></h2>' +
+      '<div class="ender-cta-btns">' +
+        '<a class="ender-cta-btn" href="' + B0 + '">Analyse your games &rarr;</a>' +
+        '<a class="ender-cta-btn ender-cta-btn2" href="mailto:abodsaid1996@gmail.com">Contact developer</a>' +
+      '</div>' +
     '</div>';
   document.body.appendChild(cta);
+
+  // ---- front-of-text layer: a canvas stacked ABOVE the CTA copy; the scene renders the flagged hero piece here
+  //      so it reads IN FRONT of the text during the final reveal. Empty/idle until the tableau settles. ----
+  const frontCanvas = document.createElement('canvas'); frontCanvas.className = 'ender-front'; document.body.appendChild(frontCanvas);
 
   // ---- the rating lower-third (the page's move-rating language) ------------------------------------
   // Built once into the section's overlay; driven each frame by the scene's pure badgeAt(t). Kept as
@@ -86,10 +93,10 @@ if (section && canvas) {
     if (view.cutFadeAt) cutVeil.style.opacity = String(view.cutFadeAt(t));
     // the explosion flash + the final CTA reveal
     if (view.flashAt) {                                    // the detonation glow: a radial white that EXPANDS from the blast to engulf the surroundings
-      const fa = director ? 0 : view.flashAt(t); flash.style.opacity = String(fa);
+      const fa = (director ? 0 : view.flashAt(t)) * exitFade; flash.style.opacity = String(fa);
       if (fa > 0 && view.flashGrowAt) { const R = view.flashGrowAt(t) * 165; flash.style.background = 'radial-gradient(circle at 50% 54%, #fff 0%, #fff ' + (R * 0.5).toFixed(1) + '%, rgba(255,255,255,0) ' + R.toFixed(1) + '%)'; }
     }
-    if (view.ctaAt) { const c = director ? 0 : view.ctaAt(t); cta.style.opacity = String(c); cta.style.pointerEvents = c > 0.5 ? 'auto' : 'none'; }
+    if (view.ctaAt) { const c = (director ? 0 : view.ctaAt(t)) * exitFade; cta.style.opacity = String(c); cta.style.pointerEvents = c > 0.5 ? 'auto' : 'none'; }
     // the rating lower-third
     if (cap && view.badgeAt) {
       const b = view.badgeAt(t);
@@ -122,6 +129,10 @@ if (section && canvas) {
     const revealP = clamp01(-r.top / (innerHeight * 0.6));          // 0→1 over the first ~⅔ viewport once pinned
     canvas.style.opacity = String(clamp01(revealP / 0.5));                            // opaque by the halfway point
     fade.style.opacity = String(approachP * (1 - clamp01((revealP - 0.5) / 0.5)));   // holds black, then lifts
+    // the CTA / flash / front-piece are fixed <body> overlays → they DON'T scroll away with the section. Fade
+    // them as the finale leaves the viewport in EITHER direction (1 while it covers the frame; →0 as an edge scrolls in).
+    const lead = Math.max(r.top, innerHeight - r.bottom, 0);
+    exitFade = clamp01(1 - lead / (innerHeight * 0.4));
     // start the cinematic clock once the basement is genuinely being revealed (not while behind the veil) —
     // otherwise the rain would play out unseen. One-shot; re-armed when the section fully leaves.
     if (revealP > 0.05 && !playing && !RM) { playing = true; clockStart = performance.now(); }
@@ -226,7 +237,13 @@ if (section && canvas) {
     if (director && dirControls) { dirControls.update(); view.lookTarget.copy(dirControls.target); }   // OrbitControls own the camera
     updateHud(t);                        // the rating lower-third (🔴 Blunder · ✨ Brilliant · 🟢 Double check · 👑 Checkmate)
     view.tick();                         // gentle rim-light drift
+    // front-of-text hero piece: once the tableau has settled (the reveal), lift it onto the front layer so it
+    // renders ABOVE the CTA copy. Before then it plays the game normally in the main pass.
+    const showFront = !director && view.frontPieces && view.frontPieces.length && t > view.duration - 6.0;   // lift onto the front layer just BEFORE the CTA reveals (under the whiteout), so the hero piece glides in ABOVE the copy
+    if (view.setFrontActive) view.setFrontActive(showFront);
     view.render();
+    if (showFront) view.renderFront(frontCanvas);
+    frontCanvas.style.opacity = showFront ? String(exitFade) : '0';
   }
 
   // build + render only while the section is anywhere near the viewport
@@ -244,7 +261,8 @@ if (section && canvas) {
       active = on;
       if (on && view && !raf) loop();
       if (!on && e.intersectionRatio <= 0.01) { playing = false; navMode = false; navTag.classList.remove('show');
-        flash.style.opacity = '0'; cta.style.opacity = '0'; cta.style.pointerEvents = 'none'; }   // don't let the flash/CTA linger + block the page
+        flash.style.opacity = '0'; cta.style.opacity = '0'; cta.style.pointerEvents = 'none';
+        frontCanvas.style.opacity = '0'; if (view && view.setFrontActive) view.setFrontActive(false); }   // don't let the flash/CTA/front piece linger + block the page
     });
   }, { threshold: [0, 0.01] });
   flip.observe(section);

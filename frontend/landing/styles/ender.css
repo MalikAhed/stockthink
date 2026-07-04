@@ -85,22 +85,30 @@
 /* the final call-to-action — a clean black-on-WHITE screen that fades up out of the whiteout. Matches the
    site's black/white type; black pill button. */
 .ender-cta {
-  position: fixed; inset: 0; z-index: 63; display: flex; align-items: flex-end; justify-content: center;
+  position: fixed; inset: 0; z-index: 63; display: flex; align-items: center; justify-content: center;
   opacity: 0; pointer-events: none;
   /* transparent up top so the floating pieces show; a light scrim (matches the hero backdrop #eceae4) grounds the text */
   background: linear-gradient(to top, rgba(236,234,228,0.97) 0%, rgba(236,234,228,0.86) 20%, rgba(236,234,228,0.18) 44%, rgba(236,234,228,0) 62%);
 }
-.ender-cta-in { max-width: 720px; padding: 0 30px 7vh; text-align: center; }
-.ender-cta-kick { margin-bottom: 24px; font: 500 12px/1 ui-monospace, "SF Mono", Menlo, monospace; letter-spacing: 0.3em; text-transform: uppercase; color: #a0a6ae; }
-.ender-cta-h { margin: 0 0 24px; font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-weight: 800; font-size: clamp(40px, 7.6vw, 90px); letter-spacing: -0.045em; line-height: 0.95; color: #0b0c0e; }
-.ender-cta-h .am { color: #ff9e2c; }   /* the site's amber accent — a spark of life */
+.ender-cta-in { max-width: 760px; padding: 0 30px; text-align: center; }
+.ender-cta-kick { margin-bottom: 18px; font: 500 12px/1 ui-monospace, "SF Mono", Menlo, monospace; letter-spacing: 0.3em; text-transform: uppercase; color: #a0a6ae; }
+.ender-cta-h { margin: 0 0 34px; font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-weight: 800; font-size: clamp(32px, 5.6vw, 70px); letter-spacing: -0.04em; line-height: 1.0; color: #0b0c0e; }
+.ender-cta-h .am { color: #26c2a3; }   /* the "brilliant" move colour — the spark of life */
+.cta-brill { display: inline-block; width: 0.78em; height: 0.78em; vertical-align: 0.04em; margin-left: 0.1em; }
 .ender-cta-p { margin: 0 auto 38px; max-width: 490px; font: 400 clamp(15px, 2.1vw, 18px)/1.55 'Inter', system-ui, sans-serif; color: #565b63; }
+.ender-cta-btns { display: flex; gap: 14px; justify-content: center; align-items: center; flex-wrap: wrap; }
 .ender-cta-btn {
   display: inline-block; text-decoration: none; font: 700 15px/1 'Inter', system-ui, sans-serif; letter-spacing: 0.005em;
-  color: #ffffff; background: #0b0c0e; padding: 17px 34px; border-radius: 999px;
-  box-shadow: 0 12px 34px rgba(10, 10, 10, 0.18); transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+  color: #ffffff; background: #0b0c0e; padding: 17px 34px; border-radius: 999px; border: 1.5px solid #0b0c0e;
+  box-shadow: 0 12px 34px rgba(10, 10, 10, 0.18); transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease, border-color 0.18s ease;
 }
 .ender-cta-btn:hover { transform: translateY(-2px); background: #000; box-shadow: 0 16px 44px rgba(10, 10, 10, 0.28); }
+/* secondary — outlined "contact developer" sitting next to the primary */
+.ender-cta-btn2 { color: #0b0c0e; background: transparent; border-color: rgba(11, 12, 14, 0.3); box-shadow: none; }
+.ender-cta-btn2:hover { background: rgba(11, 12, 14, 0.06); border-color: rgba(11, 12, 14, 0.55); box-shadow: none; }
+
+/* the front-of-text hero-piece canvas — stacked above the CTA copy (z 63), idle-transparent until the reveal */
+.ender-front { position: fixed; inset: 0; width: 100%; height: 100%; display: block; z-index: 64; pointer-events: none; opacity: 0; }
 
 /* dev-only CAMERA DIRECTOR panel (tree-shaken from prod) */
 .ender-dir { position: fixed; top: 12px; left: 12px; z-index: 90; font: 500 12px/1.4 'Inter', system-ui, sans-serif; color: #eee; }

@@ -43,7 +43,7 @@ function radialTex(stops) {
 }
 
 export async function createEnderScene(canvas) {
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: QUALITY.antialias });
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: QUALITY.antialias, powerPreference: 'high-performance' });
   registerRenderer(renderer);   // perf manager owns the pixel ratio (and can lower it live)
   renderer.setSize(innerWidth, innerHeight);
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -400,7 +400,7 @@ export async function createEnderScene(canvas) {
   const F2_IN     = MATE_AT + 9.5;    // reveal the piece-level POV
   const F2_DONE   = MATE_AT + 10.0;   // piece-level revealed (king still shaking on the board)
   const EXPLODE_AT= MATE_AT + 10.6;   // ≈35.4 — it DETONATES: a SLOW-MO mushroom + a neat outward piece scatter → whiteout
-  const MATE_HOLD = 18.6;             // + the slow-mo blast → whiteout → the floating tableau + invitation
+  const MATE_HOLD = 20.4;             // + the slow-mo blast → whiteout → a held CLEAR tableau beat → the invitation
   const MOVES_END = MATE_AT + MATE_HOLD;
   const DURATION = MOVES_END;                     // the finale runs ≈42s (the message lingers after)
   const DRAIN_FROM = 13.2;                        // the room starts draining to black from the sacrifice's landing
@@ -990,7 +990,9 @@ export async function createEnderScene(canvas) {
     glint.intensity   = _mx(_glintBase, _glintBase * 0.16, dark);
     // ---- the final HERO beat: as the blast whites out, the room floods to a clean LIGHT backdrop so the
     // surviving pieces read (dark-on-light) as they hover + rotate under the closing invitation. ----
-    const hero = _q5(_clamp((eAge(t) - 2.4) / 1.0));
+    // the light backdrop rises EXACTLY as the whiteout recedes (a cross-fade), so the room + bulb + pieces
+    // resolve smoothly OUT of the white instead of popping in after it clears. Matched to flashAt's recede.
+    const hero = _q5(_clamp((eAge(t) - 1.8) / 1.6));
     // ALWAYS reset the background from the dark base (hero=0 → dark) so the light NEVER sticks on scrub/replay —
     // the surroundings only go white as the blast's glow actually reaches them.
     _bgScratch.copy(_darkBg).lerp(_heroBg, hero); scene.background.copy(_bgScratch); scene.fog.color.lerp(_heroBg, hero);
@@ -1093,7 +1095,7 @@ export async function createEnderScene(canvas) {
   // just above the board and close, so the featured pieces read big in the FOREGROUND (like the hero pieces),
   // with the fireball rising behind them.
   const _boardMid = boardData.squareXYZ('d4').lerp(boardData.squareXYZ('e5'), 0.5);   // centre of the set
-  const _pcEye = [_boardMid.x - 0.25, _c7w.y + 0.36, _boardMid.z - 3.9], _pcTgt = [_boardMid.x, _c7w.y + 0.82, _boardMid.z - 0.7];   // low, but tilted UP so the full featured pieces sit in-frame
+  const _pcEye = [4.8, 0.68, 3.98], _pcTgt = [2.25, 0.71, 1.97];   // the hero shot the user dialled in the studio — pieces surge toward THIS side
   const END_CAM = [
     { t: MATE_AT,    eye: [-0.463, 1.75, -2.965], tgt: _mateTgt, ease: 'smoother' },   // == the mate pose (seamless hand-off from setCam)
     { t: BUILD_AT,   eye: _orbEye0, tgt: _mateTgt, ease: 'smoother' },                 // hold the mate LOOK (the orbit eases off it below — no fast shift to the king)
@@ -1233,15 +1235,14 @@ export async function createEnderScene(canvas) {
       'float fbm(in vec2 p){ float f=0.0; mat2 m=mat2(1.6,1.2,-1.2,1.6); f=0.5*noise(p); p=m*p; f+=0.25*noise(p); p=m*p; f+=0.125*noise(p); p=m*p; f+=0.0625*noise(p); return 0.5+0.5*f; }',
       'void main(){',
       '  vec2 uv = vUv;',
-      '  float stem = smoothstep(0.14, 0.03, abs(uv.x-0.5)) * smoothstep(0.58, 0.40, uv.y);',
-      '  vec2 cc = (uv - vec2(0.5, 0.70)); cc.x *= 1.45;',
-      '  float cap = smoothstep(0.31, 0.05, length(cc));',
-      '  float shape = clamp(stem + cap, 0.0, 1.0);',
+      '  vec2 cc = (uv - vec2(0.5, 0.5));',                          // a ROUND fireball (not a mushroom column)
+      '  float shape = smoothstep(0.5, 0.06, length(cc));',
       '  float boil = fbm(uv * 4.5 + vec2(0.0, -uTime * 0.5));',
       '  shape *= 0.5 + 0.7 * boil; shape = smoothstep(0.28, 0.72, shape);',
       '  float n = fbm(uv * vec2(5.0, 6.0) + vec2(uTime * 0.06, -uTime * 0.6));',
-      '  vec3 col = n * vec3(2.0*n, 2.0*n*n*n, n*n*n*n) * 2.4;',
-      '  float alpha = shape * (0.35 + 0.9 * n) * uFade;',
+      '  vec3 col = n * vec3(2.2*n, 2.0*n*n*n, n*n*n*n) * 3.4;',   // hotter, brighter fire gradient
+      '  col += vec3(1.5, 0.95, 0.5) * pow(shape, 2.6);',          // a white-hot GLOWING core (blooms into the whiteout)
+      '  float alpha = shape * (0.5 + 0.9 * n) * uFade;',
       '  if (alpha < 0.01) discard;',
       '  gl_FragColor = vec4(col, alpha);',
       '}',
@@ -1256,31 +1257,32 @@ export async function createEnderScene(canvas) {
   const _muPos = new Float32Array(MUSH.n * 3), _muA = new Float32Array(MUSH.n), _muS = new Float32Array(MUSH.n), _muH = new Float32Array(MUSH.n);
   _muGeo.setAttribute('position', new THREE.BufferAttribute(_muPos, 3)); _muGeo.setAttribute('aAlpha', new THREE.BufferAttribute(_muA, 1));
   _muGeo.setAttribute('aSize', new THREE.BufferAttribute(_muS, 1)); _muGeo.setAttribute('aH', new THREE.BufferAttribute(_muH, 1));
+  // a normal explosion BURST: each particle flies out from the blast in a random direction (biased up + out),
+  // rises then falls under gravity, and fades fire→smoke. Deterministic (seeded per-i) → bakes with the clip.
   const _muP = [];
   for (let i = 0; i < MUSH.n; i++) { const h = (n) => { const x = Math.sin((i + 9) * 12.9898 + n * 78.233) * 43758.5453; return x - Math.floor(x); };
-    const isCap = h(1) < 0.66, ang = h(2) * 6.283;
-    let tR, tY;
-    if (isCap) { const rf = 0.12 + h(3) * 0.88;                                   // radial fraction across the cap
-      tR = MUSH.capR * rf; tY = MUSH.capH + MUSH.dome * (1.0 - rf * rf) - 0.5 * Math.max(0, rf - 0.72) + h(4) * 0.18; }   // DOME, edges CURL down (vortex ring)
-    else { tR = MUSH.stemR * (0.3 + h(3) * 0.95); tY = h(4) * MUSH.capH; }         // the stem column
-    _muP.push({ ang, tR, tY, isCap, rise: 0.82 + h(5) * 0.36, size: 0.34 + h(6) * 0.45, wob: h(7) * 6.283, aS: 0.42 + h(8) * 0.4 }); }
+    const ang = h(1) * 6.283, rad = 0.5 + h(2) * 1.7;                             // outward radial speed
+    _muP.push({ dx: Math.cos(ang) * rad, dz: Math.sin(ang) * rad, dy: 0.5 + h(3) * 1.9,  // up bias
+      spd: 0.7 + h(4) * 1.5, size: 0.34 + h(6) * 0.5, wob: h(7) * 6.283, aS: 0.4 + h(8) * 0.45, smoke: 0.2 + h(5) * 0.8 }); }
   const _muMat = new THREE.ShaderMaterial({ uniforms: { uScale: { value: 300 } },
     vertexShader: `attribute float aAlpha; attribute float aSize; attribute float aH; uniform float uScale; varying float vA; varying float vH;
       void main(){ vA = aAlpha; vH = aH; vec4 mv = modelViewMatrix * vec4(position, 1.0); gl_PointSize = min(420.0, aSize * uScale / max(0.02, -mv.z)); gl_Position = projectionMatrix * mv; }`,
     fragmentShader: `varying float vA; varying float vH; void main(){ float d = length(gl_PointCoord - 0.5); float a = smoothstep(0.5, 0.03, d) * vA; if (a <= 0.003) discard;
       vec3 fire = vec3(1.0, 0.55, 0.13), smoke = vec3(0.42, 0.4, 0.42);
       vec3 col = mix(fire, smoke, smoothstep(0.05, 0.5, vH));   // glowing fire at the base → grey smoke up top
-      gl_FragColor = vec4(col + vec3(0.35) * a * (1.0 - vH), a); }`,
+      gl_FragColor = vec4(col + vec3(0.55) * a * (1.0 - vH), a); }`,
     transparent: true, depthWrite: false, depthTest: false, blending: THREE.AdditiveBlending });
   const _mush = new THREE.Points(_muGeo, _muMat); _mush.frustumCulled = false; _mush.renderOrder = 10; _mush.visible = false; scene.add(_mush);
   function _muScale() { _muMat.uniforms.uScale.value = 0.5 * renderer.domElement.height / Math.tan((camera.fov * Math.PI / 180) / 2); }
   _muScale();
   function setMushroom(t) {
     const age = eAge(t);   // slow-motion time
-    if (t < EXPLODE_AT || age > MUSH.dur + 0.6) { _mush.visible = false; _fireball.visible = false; _exRing.visible = false; _fb.visible = false; return; }
+    if (t < EXPLODE_AT || age > MUSH.dur + 0.6) { _mush.visible = false; _fireball.visible = false; _exRing.visible = false; _fb.visible = false; _heatStrength = 0; return; }
+    // heat haze: snaps on with the blast, lingers through the fireball, gone before the calm hero reveal
+    _heatTime = age; _heatStrength = (age < 0.12 ? _clamp(age / 0.12) : 1) * (1 - _q5(_clamp((age - 1.9) / 1.3)));
     if (FX.fireShader) {                                            // the REAL fire billboard: rises + grows, faces the camera
-      _fb.visible = true; const g = _q5(_clamp(age / 1.5)); const W = 0.6 + 3.0 * g, H = 0.8 + 4.2 * g;
-      _fb.scale.set(W, H, 1); _fb.position.set(_blast.x, _blastY + 0.02 + H * 0.4, _blast.z); _fb.quaternion.copy(camera.quaternion);
+      _fb.visible = true; const g = _q5(_clamp(age / 1.2)); const S = 1.1 + 4.2 * g;   // a round fireball that blooms + rises
+      _fb.scale.set(S, S, 1); _fb.position.set(_blast.x, _blastY + 0.35 + S * 0.22, _blast.z); _fb.quaternion.copy(camera.quaternion);
       _fbMat.uniforms.uTime.value = age; _fbMat.uniforms.uFade.value = (age < 0.2 ? _clamp(age / 0.2) : 1) * (1 - _q5(_clamp((age - 1.35) / 1.0)));   // fully gone before the calm hero reveal
     } else _fb.visible = false;
     if (age < 1.7) { _exRing.visible = true; const rk = age / 1.7, sc = 0.2 + 30 * (1 - (1 - rk) * (1 - rk)); _exRing.scale.set(sc, sc, 1); _exRing.material.opacity = 0.9 * (1 - _q5(rk)); }
@@ -1289,13 +1291,14 @@ export async function createEnderScene(canvas) {
     _fireball.position.set(_blast.x, _blastY + 0.2 + 2.0 * _q5(fb), _blast.z); _fireball.scale.setScalar(0.6 + 2.5 * _q5(fb));
     _fireball.material.opacity = (age < 0.18 ? _clamp(age / 0.18) : 1) * (1 - _q5(_clamp((age - 1.3) / 1.5)));
     _mush.visible = true;
-    const form = _q5(_clamp(age / (MUSH.dur * 0.55))), gRise = 0.55 * age, k = age / MUSH.dur, top = MUSH.capH + MUSH.dome + gRise + 0.4;
     for (let i = 0; i < MUSH.n; i++) { const p = _muP[i];
-      const tt = age * 1.3 + p.wob, rWob = (p.isCap ? 0.16 : 0.05) * Math.sin(tt), yWob = 0.09 * Math.cos(tt * 1.2);   // billow + roll (turbulence)
-      const y = p.tY * form * p.rise + gRise + yWob, r = (p.tR + rWob) * form;
-      _muPos[i * 3] = _blast.x + Math.cos(p.ang) * r; _muPos[i * 3 + 1] = _blastY + 0.14 + y; _muPos[i * 3 + 2] = _blast.z + Math.sin(p.ang) * r;
-      _muS[i] = p.size * (0.5 + form * 1.5); _muH[i] = _clamp(y / top);
-      _muA[i] = p.aS * (age < 0.28 ? _clamp(age / 0.28) : 1) * (1 - _q5(_clamp((k - 0.6) / 0.4))); }
+      const s = p.spd, wob = 0.12 * Math.sin(age * 1.6 + p.wob);
+      const x = p.dx * s * age + wob, z = p.dz * s * age + wob;
+      const y = p.dy * s * age - 0.4 * age * age;                                  // rise, then gravity pulls it back
+      _muPos[i * 3] = _blast.x + x; _muPos[i * 3 + 1] = _blastY + 0.16 + Math.max(-0.1, y); _muPos[i * 3 + 2] = _blast.z + z;
+      _muS[i] = p.size * (0.6 + age * 0.6);                                         // swell as it dissipates
+      _muH[i] = p.smoke * _q5(_clamp(age / 1.4));                                   // fire → smoke over time
+      _muA[i] = p.aS * (age < 0.18 ? _clamp(age / 0.18) : 1) * (1 - _q5(_clamp((age - 1.1) / 1.7))); }
     _muGeo.attributes.position.needsUpdate = true; _muGeo.attributes.aAlpha.needsUpdate = true; _muGeo.attributes.aSize.needsUpdate = true; _muGeo.attributes.aH.needsUpdate = true;
   }
   // the blast keeps just a FEW pieces (the hero shot): they surge into the FOREGROUND close to camera, TILTED
@@ -1303,33 +1306,43 @@ export async function createEnderScene(canvas) {
   // clean out of frame. Deterministic → bakes.
   const _scPieces = _trembleP.filter((w) => w !== _theKing && w !== MOVES[0].cap_g && w !== MOVES[2].cap_g);
   const _bc = new THREE.Vector3(); _scPieces.forEach((w) => _bc.add(w.position)); if (_scPieces.length) _bc.multiplyScalar(1 / _scPieces.length);
-  const SC_SETTLE = 1.5;
-  const _E = new THREE.Vector3(_pcEye[0], _pcEye[1], _pcEye[2]), _Tt = new THREE.Vector3(_pcTgt[0], _pcTgt[1], _pcTgt[2]);
-  const _fwd = _Tt.clone().sub(_E).normalize(), _rightV = _fwd.clone().cross(_UP).normalize(), _upV = _rightV.clone().cross(_fwd).normalize();
-  // featured slots (L→R): screen x-offset · depth in front of camera · y-offset · outward ROLL tilt
-  const FEAT = [
-    { xo: -1.08, dp: 2.55, yo: -0.04, roll:  0.34 },
-    { xo: -0.54, dp: 2.20, yo:  0.05, roll:  0.16 },
-    { xo:  0.05, dp: 2.75, yo: -0.08, roll:  0.00 },
-    { xo:  0.60, dp: 2.20, yo:  0.05, roll: -0.16 },
-    { xo:  1.12, dp: 2.55, yo: -0.04, roll: -0.34 },
+  // featured survivors re-form from the whiteout, then GLIDE IN like the hero pieces (above-and-to-a-side →
+  // lean → straighten → soft-land). hide = eAge at which they snap to their sky start (hidden under full white);
+  // glide = how long the descent takes; lat/tilt = when the sideways offset / the lean have fully closed.
+  const HERO = { hide: 1.4, glide: 1.8, lat: 0.6, tilt: 0.72 };
+  // THE FINAL TABLEAU — the exact poses the user dialled in the studio (📋 Copy piece layout). Four surviving
+  // black pieces GLIDE into the FOREGROUND and settle here; every OTHER piece is blown clean out of frame.
+  // pos = parent-local position · rotDeg = local XYZ euler (degrees) · front = renders IN FRONT of the CTA text.
+  const TABLEAU = [
+    { sq: 'a8', pos: [1.34, 0.9, 2.59],  rot: [-9, 46, -28] },                  // black rook
+    { sq: 'b8', pos: [3.6, 0.42, 3.76],  rot: [14, -17, 2] },                   // black knight
+    { sq: 'c8', pos: [4.25, 1.08, 2.24], rot: [-180, -88, 34] },                // black bishop
+    { sq: 'f6', pos: [2.52, 0.29, 1.02], rot: [136, 32, -148], front: true },   // black knight — sits IN FRONT of the copy
   ];
-  const _byType = {}, _feat = [];                                  // pick 5 of VARIED type (nicer than 5 pawns), rest blown away
-  for (const w of _scPieces) { const ty = w.userData.type; if (!_byType[ty] && _feat.length < 5) { _feat.push(w); _byType[ty] = 1; } }
-  for (const w of _scPieces) { if (_feat.length >= 5) break; if (!_feat.includes(w)) _feat.push(w); }
+  const _D2R = Math.PI / 180, _frontPieces = [], _tabByPiece = new Map();
+  for (const spec of TABLEAU) {
+    const w = _scPieces.find((p) => p.userData && p.userData.square === spec.sq);
+    if (!w) continue;
+    const target = new THREE.Vector3(spec.pos[0], spec.pos[1], spec.pos[2]);
+    const targetQ = new THREE.Quaternion().setFromEuler(new THREE.Euler(spec.rot[0] * _D2R, spec.rot[1] * _D2R, spec.rot[2] * _D2R, 'XYZ'));
+    _tabByPiece.set(w, { target, targetQ, front: !!spec.front });
+    if (spec.front) _frontPieces.push(w);
+  }
   const _scat = _scPieces.map((w, i) => {
     const h = (n) => { const x = Math.sin((i + 5) * 12.9898 + n * 78.233) * 43758.5453; return x - Math.floor(x); };
-    const fi = _feat.indexOf(w), featured = fi >= 0 && fi < FEAT.length;
-    let neat = null, roll = 0;
-    if (featured) { const f = FEAT[fi]; neat = _E.clone().addScaledVector(_fwd, f.dp).addScaledVector(_rightV, f.xo).addScaledVector(_upV, f.yo); roll = f.roll; }
-    return { w, idx: i, rest: null, neat, roll, featured, away: null, restQ: null,   // rest/away/restQ captured LAZILY at the blast (pieces have moved by then)
-      hAmp: 0.02 + h(3) * 0.03, hPh: h(4) * 6.283, hFq: 0.45 + h(5) * 0.3, spin: (h(6) < 0.5 ? -1 : 1) * (0.09 + h(7) * 0.07), flySp: 5.5 + h(1) * 4 };
+    const tab = _tabByPiece.get(w), featured = !!tab;
+    // the hero-glide START: above the dialled pose + a per-piece sideways offset it glides in from
+    const gStart = tab ? tab.target.clone().add(new THREE.Vector3(
+      Math.cos(h(8) * 6.283) * (0.9 + h(9) * 1.3), 2.6 + h(10) * 1.3, Math.sin(h(8) * 6.283) * (0.9 + h(9) * 1.3))) : null;
+    return { w, idx: i, rest: null, restQ: null, away: null, featured,   // rest/away/restQ captured LAZILY at the blast (pieces have moved by then)
+      target: tab ? tab.target : null, targetQ: tab ? tab.targetQ : null,
+      gStart, lean: (0.10 + h(11) * 0.15) * (h(12) < 0.5 ? -1 : 1),   // a small left/right lean that straightens before touchdown
+      hAmp: 0.014 + h(3) * 0.02, hPh: h(4) * 6.283, hFq: 0.45 + h(5) * 0.3, spin: (h(6) < 0.5 ? -1 : 1) * (0.09 + h(7) * 0.07), flySp: 5.5 + h(1) * 4 };
   });
-  const _scQ = new THREE.Quaternion(), _spinQ = new THREE.Quaternion();
+  const _headQ = new THREE.Quaternion();
   function setScatter(t) {
     if (t < EXPLODE_AT) return;
     const a = eAge(t);
-    const settled = _q5(_clamp(a / SC_SETTLE));
     for (const s of _scat) {
       if (!s.rest) {   // capture the piece's ACTUAL pose at the blast (it has moved since build)
         s.rest = s.w.position.clone(); s.restQ = s.w.quaternion.clone();
@@ -1337,25 +1350,45 @@ export async function createEnderScene(canvas) {
         if (s.away.lengthSq() < 1e-4) s.away.set(Math.cos(s.idx * 2.4), 0, Math.sin(s.idx * 2.4)); s.away.normalize();
       }
       if (s.featured) {
-        s.w.position.lerpVectors(s.rest, s.neat, settled);                       // surge into the foreground, close to camera
-        s.w.position.y += s.hAmp * Math.sin(a * s.hFq * 6.283 + s.hPh) * settled; // gentle hover once there
-        _scQ.setFromAxisAngle(_fwd, s.roll * settled);                           // TILT outward (screen-space roll)
-        _spinQ.setFromAxisAngle(_UP, s.spin * a);                                // a slow turn on its own axis
-        s.w.quaternion.copy(_scQ).multiply(_spinQ).multiply(s.restQ);
-        s.w.visible = true;
-      } else {                                                                    // everyone else: blown clean out of frame
+        if (a < HERO.hide) {                                                     // …blown out with the rest while the whiteout builds over them…
+          s.w.position.copy(s.rest).addScaledVector(s.away, s.flySp * a);
+          s.w.position.y = s.rest.y + 3.0 * a - 0.5 * 4.0 * a * a;
+          _headQ.setFromUnitVectors(_UP, s.away);
+          s.w.quaternion.copy(s.restQ).slerp(_headQ, _q5(_clamp(a / 0.4)));
+          s.w.visible = s.w.position.y > -6;
+        } else {                                                                 // …then GLIDE IN out of the white (hero-style): sideways offset closes early, soft vertical land
+          const gp = _clamp((a - HERO.hide) / HERO.glide);
+          const latP = _smoother(_clamp(gp / HERO.lat));                         // lateral closes early → straight-down, centred touchdown
+          const vP = _smoother(gp);                                             // soft, decelerating descent
+          s.w.position.set(
+            s.gStart.x + (s.target.x - s.gStart.x) * latP,
+            s.gStart.y + (s.target.y - s.gStart.y) * vP,
+            s.gStart.z + (s.target.z - s.gStart.z) * latP);
+          s.w.position.y += s.hAmp * Math.sin(a * s.hFq * 6.283 + s.hPh) * vP;   // a barely-there hover once it's alive
+          const roll = s.lean * (1 - _smoother(_clamp(gp / HERO.tilt)));         // the lean straightens before it lands
+          _rollQ.setFromAxisAngle(_WORLDZ, roll);
+          s.w.quaternion.multiplyQuaternions(_rollQ, s.targetQ);                 // world lean ∘ the dialled orientation
+          s.w.visible = true;
+        }
+      } else {                                                                    // everyone else: blown out, HEAD-FIRST away from the king
         s.w.position.copy(s.rest).addScaledVector(s.away, s.flySp * a);
         s.w.position.y = s.rest.y + 3.0 * a - 0.5 * 4.0 * a * a;
-        s.w.visible = a < 1.6 && s.w.position.y > -6;
+        _headQ.setFromUnitVectors(_UP, s.away);                                  // head leads along `away`, base trails toward the king
+        s.w.quaternion.copy(s.restQ).slerp(_headQ, _q5(_clamp(a / 0.4)));        // snap into the spear pose in the first instants
+        s.w.visible = a < 1.8 && s.w.position.y > -6;
       }
     }
   }
-  function flashAt(t) { const e = eAge(t); return _q5(_clamp((e - 1.6) / 0.7)) * (1 - _q5(_clamp((e - 2.6) / 0.95))); }   // the glow's OPACITY: builds to a peak WHITEOUT, then RECEDES to reveal the tableau
-  function flashGrowAt(t) { return _q5(_clamp(eAge(t) / 2.0)); }                  // the glow's RADIUS: expands from the blast outward so the surroundings only turn white as it REACHES them
-  function ctaAt(t) { return _q5(_clamp((t - (EXPLODE_AT + 6.2)) / 1.2)); }       // …then the invitation fades up over the living pieces
+  // the whiteout is the explosion's OWN brightness blowing out the screen — it builds WITH the fireball's
+  // peak (not as a separate fade after it dies), tops out as the blast is brightest, then RECEDES to reveal
+  // the settled tableau. eAge peak ≈1.5 = right when the fireball glows hottest + the pieces reach their pose.
+  function flashAt(t) { const e = eAge(t); return _q5(_clamp((e - 0.55) / 0.95)) * (1 - _q5(_clamp((e - 1.8) / 1.6))); }   // recede is SLOW + long-tailed so nothing snaps as the scene resolves out of the white
+  function flashGrowAt(t) { return _q5(_clamp(eAge(t) / 1.4)); }                  // radius fills fast so the brightness engulfs the frame at the peak
+  function ctaAt(t) { return _q5(_clamp((t - (EXPLODE_AT + 4.1)) / 1.8)); }       // the invitation (+ its bottom scrim) rises WITH the surviving pieces as the whiteout recedes
 
   let directorMode = false;   // dev camera-director tool: when on, frame() leaves the camera to the user's OrbitControls
   function setDirector(b) { directorMode = !!b; }
+  let _shadowFrame = 0;       // shadow-map re-bake is HALF-RATE: a full scene pass from the light's POV every frame is wasted on these soft, slow shadows — updating at half the framerate is imperceptible (≤1 frame lag) and halves that cost
   // frame(t): the master cinematic clock. setShot stays exported for the offline render stage.
   function frame(t) {
     setIntro(t);                          // lands + reveals every piece at its rest (cheap; idempotent for large t)
@@ -1374,7 +1407,7 @@ export async function createEnderScene(canvas) {
     setBrilliant(t);                      // the Qd8+ flourishes (charge glow · ignite · gold burst + tremble · foreshadow)
     setMushroom(t);                       // the king's detonation → a rising yellow MUSHROOM CLOUD + ground shockwave → whiteout
     setScatter(t);                        // …and the blast blows every remaining piece off the board (runs LAST — owns the piece transforms)
-    if (t <= MOVES_END + 0.2) renderer.shadowMap.needsUpdate = true;   // shadows track the rain + the moves, then freeze
+    if (t <= MOVES_END + 0.2 && (++_shadowFrame & 1)) renderer.shadowMap.needsUpdate = true;   // shadows track the rain + the moves (half-rate), then freeze
   }
 
   // ---- named beats, for keyboard step-through (each plays start→end as one burst, then holds at its end) ----
@@ -1394,8 +1427,79 @@ export async function createEnderScene(canvas) {
     { label: 'Detonation · the end', start: RISE_AT,          end: DURATION },
   ];
 
+  // ---- HEAT DISTORTION: real screen-space refraction over the fireball. Core THREE only (a render target +
+  // a fullscreen quad), NO addon imports, so it never touches the studio's boot path. The scene is rendered
+  // to a target, then a passthrough quad re-samples it with a rising fbm heat-haze offset, masked to the blast
+  // and ramped by _heatStrength (set in setMushroom). When strength≈0 the offset is 0 → a pixel-identical
+  // passthrough. Deterministic → bakes with the clip. Manual linear→sRGB keeps colour 1:1 with a direct render.
+  let _heatStrength = 0, _heatTime = 0;
+  const _heatRT = new THREE.WebGLRenderTarget(1, 1, { magFilter: THREE.LinearFilter, minFilter: THREE.LinearFilter, depthBuffer: false });
+  const _heatCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+  const _heatScene = new THREE.Scene();
+  const _heatMat = new THREE.ShaderMaterial({
+    uniforms: { tDiffuse: { value: null }, uTime: { value: 0 }, uStrength: { value: 0 }, uAspect: { value: 1 }, uCenter: { value: new THREE.Vector2(0.5, 0.5) }, uRadius: { value: 0.55 } },
+    vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',
+    fragmentShader: [
+      'precision highp float; varying vec2 vUv;',
+      'uniform sampler2D tDiffuse; uniform float uTime, uStrength, uAspect, uRadius; uniform vec2 uCenter;',
+      'vec2 hash(vec2 p){ p = vec2(dot(p, vec2(127.1,311.7)), dot(p, vec2(269.5,183.3))); return -1.0 + 2.0*fract(sin(p)*43758.5453123); }',
+      'float noise(in vec2 p){ const float K1=0.366025404, K2=0.211324865; vec2 i=floor(p+(p.x+p.y)*K1); vec2 a=p-i+(i.x+i.y)*K2; vec2 o=step(a.yx,a.xy); vec2 b=a-o+K2; vec2 c=a-1.0+2.0*K2; vec3 h=max(0.5-vec3(dot(a,a),dot(b,b),dot(c,c)),0.0); vec3 n=h*h*h*h*vec3(dot(a,hash(i+0.0)),dot(b,hash(i+o)),dot(c,hash(i+1.0))); return dot(n, vec3(70.0)); }',
+      'float fbm(in vec2 p){ float f=0.0; mat2 m=mat2(1.6,1.2,-1.2,1.6); f=0.5*noise(p); p=m*p; f+=0.25*noise(p); p=m*p; f+=0.125*noise(p); return 0.5+0.5*f; }',
+      'void main(){',
+      '  vec2 d = vUv - uCenter; d.x *= uAspect; float dist = length(d);',
+      '  float radial = smoothstep(uRadius, 0.0, dist);',
+      '  float above = smoothstep(-0.14, 0.42, vUv.y - uCenter.y);',   // heat rises → more haze above the blast
+      '  float mask = radial * mix(0.28, 1.0, above) * uStrength;',
+      '  float n1 = fbm(vec2(vUv.x*13.0, vUv.y*7.0 - uTime*2.1));',
+      '  float n2 = fbm(vec2(vUv.x*21.0 + 4.0, vUv.y*10.0 - uTime*3.1));',
+      '  vec2 off = vec2(n1-0.5, (n2-0.5)*1.7) * 0.058 * mask;',       // stronger, clearly-visible heat wobble
+      '  off.y += 0.015 * mask * sin(vUv.x*46.0 + uTime*7.0);',        // rising shimmer
+      '  vec3 lin = texture2D(tDiffuse, clamp(vUv + off, 0.001, 0.999)).rgb;',
+      '  vec3 srgb = mix(lin*12.92, 1.055*pow(max(lin,0.0), vec3(0.41666))-0.055, step(0.0031308, lin));',
+      '  gl_FragColor = vec4(srgb, 1.0);',
+      '}',
+    ].join('\n'),
+    depthTest: false, depthWrite: false, toneMapped: false,
+  });
+  _heatScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), _heatMat));
+  const _heatV = new THREE.Vector3();
+  function _sizeHeatRT() { const el = renderer.domElement; _heatRT.setSize(el.width, el.height); _heatMat.uniforms.uAspect.value = el.width / Math.max(1, el.height); }
+  _sizeHeatRT();
+
+  // ---- FRONT-OF-TEXT layer: the dialled hero piece(s) render to a SEPARATE canvas the caller stacks ABOVE the
+  // HTML CTA copy, so they read IN FRONT of the text. Core THREE only; the caller owns the canvas + the timing.
+  // setFrontActive(true) moves the flagged pieces onto layer 1 (so the MAIN render drops them) — call it only
+  // during the reveal; renderFront() then draws just those pieces (camera on layer 1) into the front canvas.
+  let _frontR = null;
+  function setFrontActive(on) { const L = on ? 1 : 0; for (const w of _frontPieces) w.traverse((c) => c.layers.set(L)); }
+  function renderFront(canvas) {
+    if (!_frontPieces.length || !canvas) return;
+    if (!_frontR) {
+      _frontR = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+      _frontR.setPixelRatio(Math.min(1.5, (typeof devicePixelRatio !== 'undefined' ? devicePixelRatio : 1)));
+      _frontR.setClearColor(0x000000, 0); _frontR.outputColorSpace = renderer.outputColorSpace; _frontR.toneMapping = renderer.toneMapping;
+      _frontR.setSize(innerWidth, innerHeight);
+      scene.traverse((o) => { if (o.isLight) o.layers.enableAll(); });   // lights must reach layer 1 too
+    }
+    _frontR.toneMappingExposure = renderer.toneMappingExposure;
+    const bg = scene.background; scene.background = null;
+    camera.layers.set(1); _frontR.render(scene, camera); camera.layers.set(0);
+    scene.background = bg;
+  }
+  function _resizeFront() { if (_frontR) _frontR.setSize(innerWidth, innerHeight); }
+
   // ---- public api ----
-  function render() { camera.lookAt(lookTarget); camera.updateMatrixWorld(); renderer.render(scene, camera); }
+  function render() {
+    camera.lookAt(lookTarget); camera.updateMatrixWorld();
+    if (_heatStrength > 0.01) {                       // composite the heat-haze pass over the blast
+      _heatV.set(_blast.x, _blastY + 1.2, _blast.z).project(camera);
+      _heatMat.uniforms.uCenter.value.set(_heatV.x * 0.5 + 0.5, _heatV.y * 0.5 + 0.5);
+      _heatMat.uniforms.uStrength.value = _heatStrength; _heatMat.uniforms.uTime.value = _heatTime;
+      renderer.setRenderTarget(_heatRT); renderer.render(scene, camera); renderer.setRenderTarget(null);
+      _heatMat.uniforms.tDiffuse.value = _heatRT.texture;
+      renderer.render(_heatScene, _heatCam);
+    } else renderer.render(scene, camera);
+  }
   function resize() {
     const w = innerWidth, h = innerHeight;
     camera.aspect = w / h; camera.updateProjectionMatrix(); renderer.setSize(w, h);
@@ -1405,6 +1509,8 @@ export async function createEnderScene(canvas) {
     _ashScale();
     _brScale();
     _muScale();
+    _sizeHeatRT();    // keep the heat render-target matched to the drawing buffer
+    _resizeFront();   // keep the front-of-text canvas matched to the viewport
   }
   // gentle rim drift so the metal/marble never sits dead-still
   let _t = 0;
@@ -1417,6 +1523,7 @@ export async function createEnderScene(canvas) {
 
   return {
     scene, camera, renderer, lookTarget, render, resize, tick, setShot, frame, badgeAt, evalAt, cutFadeAt, flashAt, flashGrowAt, ctaAt, setDirector, scenes: SCENES, duration: DURATION,
+    frontPieces: _frontPieces, setFrontActive, renderFront,
     pieces: boardData.pieces, GRID: boardData.GRID, squareXYZ: boardData.squareXYZ,
     refs: { spot, wash, beam, VolMat, fog: scene.fog, bulbGlass, amb, coolRim, cyanRim, warmRim, lampGroup, boardRoot: boardData.root, rookBeam, bishopBeam },
   };
