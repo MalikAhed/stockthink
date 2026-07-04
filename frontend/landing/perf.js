@@ -96,47 +96,92 @@ function applyLiteClasses() {
   b.classList.toggle('lite-cinema', !QUALITY.cinema);
 }
 
-// ---- graduated demotion: each call applies the next-cheapest relief, in the user's priority order ----
+// ---- graduated demotion LADDER, now RECOVERABLE --------------------------------------------------
+// Each rung applies the next-cheapest relief, in the user's priority order:
 // lower DPR → drop the hovering hero → lower DPR → drop the story → lower DPR → drop the gears (last).
+// The old watchdog was ONE-WAY: two janky seconds (a fast scroll flick, a lazy GLB parse, a GC pause)
+// permanently killed the hero, then the coach cinematic, then the gears until a refresh — the reported
+// "3D vanishes until I reload" bugs. Now the level is a NUMBER on this ladder: demote() steps down,
+// promote() steps back UP once frames have been clean for a sustained stretch, re-deriving QUALITY
+// from the boot preset each time so the two directions can never drift apart.
+const _boot = { dpr: QUALITY.dpr, fpsCap: QUALITY.fpsCap, hero: QUALITY.hero, cinema: QUALITY.cinema, gears: QUALITY.gears };
+const LADDER = [
+  (q) => { q.dpr = Math.min(q.dpr, 1.0); },
+  (q) => { q.hero = false; },                                        // drop the hovering first
+  (q) => { q.dpr = Math.min(q.dpr, 0.8); q.fpsCap = Math.min(q.fpsCap, 30); },
+  (q) => { q.cinema = false; },                                      // then the story
+  (q) => { q.dpr = Math.min(q.dpr, 0.6); q.fpsCap = Math.min(q.fpsCap, 24); },
+  (q) => { q.gears = false; },                                       // spinning gears dropped last
+];
 const _demoteCbs = [];
 export function onDemote(cb) { _demoteCbs.push(cb); }
-let _demoted = false;
-function demote(reason) {
-  let did = true;
-  if (QUALITY.dpr > 1.0) { QUALITY.dpr = 1.0; }
-  else if (QUALITY.hero) { QUALITY.hero = false; }                       // drop the hovering first
-  else if (QUALITY.dpr > 0.8) { QUALITY.dpr = 0.8; QUALITY.fpsCap = 30; }
-  else if (QUALITY.cinema) { QUALITY.cinema = false; }                   // then the story
-  else if (QUALITY.dpr > 0.6) { QUALITY.dpr = 0.6; QUALITY.fpsCap = 24; }
-  else if (QUALITY.gears) { QUALITY.gears = false; }                     // spinning gears dropped last
-  else did = false;                                                     // already minimal
-  if (!did) return false;
-  _demoted = true;
+let _level = 0;
+function applyLevel(dir, reason) {
+  QUALITY.dpr = _boot.dpr; QUALITY.fpsCap = _boot.fpsCap;
+  QUALITY.hero = _boot.hero; QUALITY.cinema = _boot.cinema; QUALITY.gears = _boot.gears;
+  for (let i = 0; i < _level; i++) LADDER[i](QUALITY);
   applyDprToAll();
   applyLiteClasses();
   _demoteCbs.forEach((cb) => { try { cb(QUALITY); } catch (e) {} });
-  try { console.warn(`[perf] demote (${reason}) → tier-ish dpr=${QUALITY.dpr} hero=${QUALITY.hero} cinema=${QUALITY.cinema} gears=${QUALITY.gears}`); } catch (e) {}
+  try { console.warn(`[perf] ${dir} (${reason}) → level ${_level}/${LADDER.length} dpr=${QUALITY.dpr} hero=${QUALITY.hero} cinema=${QUALITY.cinema} gears=${QUALITY.gears}`); } catch (e) {}
+}
+function demote(reason) {
+  if (_level >= LADDER.length) return false;
+  _level++; applyLevel('demote', reason);
+  return true;
+}
+function promote(reason) {
+  if (_level <= 0) return false;
+  _level--; applyLevel('promote', reason);
   return true;
 }
 
-// ---- adaptive FPS watchdog -----------------------------------------------------------------------
-// Counts dropped frames (interval > 33ms ≈ slower than 30fps) over rolling ~1s windows. Two consecutive
-// bad windows → one demotion, then a cooldown so the relief can take effect before re-judging. One-way.
+// ---- adaptive FPS watchdog (two-way) ---------------------------------------------------------------
+// Counts dropped frames (interval > 34ms ≈ slower than 30fps) over rolling ~1s windows.
+// DOWN: 3 consecutive bad windows → one demotion + a cooldown so the relief can take effect.
+// UP:   `goodNeeded` consecutive clean windows → one promotion back toward the boot tier. If a promotion
+//       is quickly followed by another demotion (a flap — the device really can't afford that level),
+//       goodNeeded doubles, so an overloaded GPU settles instead of oscillating.
+// Windows judged while the user is FLICK-scrolling need a much worse ratio to count as bad: fast wheel
+// flicks always drop frames (layout + compositing, not the GPU), and demoting 3D for that is what made
+// scenes vanish. Hidden-tab windows are discarded entirely (rAF is throttled to a crawl there).
 export function startWatchdog() {
   applyLiteClasses();                          // reflect the boot tier immediately
   if (QUALITY.tier === 'min') return;          // nothing heavy to watch
-  let winStart = performance.now(), last = winStart, frames = 0, dropped = 0, badStreak = 0, cooldownUntil = 0;
+  let winStart = performance.now(), last = winStart, frames = 0, dropped = 0;
+  let badStreak = 0, goodStreak = 0, cooldownUntil = 0;
+  let goodNeeded = 5, lastPromoteAt = -1e9;
+  let winScroll = 0, lastY = scrollY;
+  document.addEventListener('visibilitychange', () => {
+    winStart = last = performance.now(); frames = 0; dropped = 0; winScroll = 0; badStreak = 0;
+  });
   function tick(now) {
     requestAnimationFrame(tick);
     const dt = now - last; last = now;
-    frames++; if (dt > 33) dropped++;
+    const y = scrollY; winScroll += Math.abs(y - lastY); lastY = y;
+    frames++; if (dt > 34) dropped++;
     if (now - winStart < 1000) return;
     const ratio = dropped / Math.max(1, frames);
-    winStart = now; frames = 0; dropped = 0;
+    const flicking = winScroll > innerHeight * 1.2;   // >1.2 viewports/sec = a flick, not browsing
+    winStart = now; frames = 0; dropped = 0; winScroll = 0;
+    if (document.hidden) { badStreak = 0; return; }
     if (now < cooldownUntil) return;
-    if (ratio > 0.3) {                         // >30% of frames dropped this second
-      if (++badStreak >= 2) { if (demote('sustained jank')) { cooldownUntil = now + 2500; } badStreak = 0; }
-    } else { badStreak = 0; }
+    if (ratio > (flicking ? 0.6 : 0.3)) {
+      goodStreak = 0;
+      if (++badStreak >= 3) {
+        badStreak = 0;
+        if (demote('sustained jank')) {
+          cooldownUntil = now + 3000;
+          if (now - lastPromoteAt < 15000) goodNeeded = Math.min(goodNeeded * 2, 48);   // flap → back off
+        }
+      }
+    } else {
+      badStreak = 0;
+      if (ratio < 0.12 && !flicking && ++goodStreak >= goodNeeded) {
+        goodStreak = 0;
+        if (promote('recovered')) { lastPromoteAt = now; cooldownUntil = now + 2500; }
+      }
+    }
   }
   requestAnimationFrame(tick);
 }
