@@ -4,7 +4,7 @@ import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { fpsGate, QUALITY, registerRenderer } from './perf.js';
 
 const canvas=document.getElementById('c');
-const renderer=new THREE.WebGLRenderer({canvas,antialias:QUALITY.antialias,alpha:true});
+const renderer=new THREE.WebGLRenderer({canvas,antialias:QUALITY.antialias,alpha:true,powerPreference:'high-performance'});
 registerRenderer(renderer);   // perf manager sets pixel ratio (and can lower it live)
 renderer.setSize(innerWidth,innerHeight);
 renderer.toneMapping=THREE.ACESFilmicToneMapping;
@@ -165,7 +165,7 @@ let shadowBlob=null;
 
 // ===== BACK SCENE (bishop + rook behind the text) =====
 const canvasB=document.getElementById('cBack');
-const rendererB=new THREE.WebGLRenderer({canvas:canvasB,antialias:QUALITY.antialias,alpha:true});
+const rendererB=new THREE.WebGLRenderer({canvas:canvasB,antialias:QUALITY.antialias,alpha:true,powerPreference:'high-performance'});
 registerRenderer(rendererB);
 rendererB.setSize(innerWidth,innerHeight);
 rendererB.toneMapping=THREE.ACESFilmicToneMapping; rendererB.toneMappingExposure=1.0; rendererB.outputColorSpace=THREE.SRGBColorSpace;

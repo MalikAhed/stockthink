@@ -68,7 +68,7 @@ function convertMaterials(root){
 }
 
 function makeLayer(canvas){
-  const renderer=new THREE.WebGLRenderer({canvas,antialias:QUALITY.antialias,alpha:true});
+  const renderer=new THREE.WebGLRenderer({canvas,antialias:QUALITY.antialias,alpha:true,powerPreference:'high-performance'});
   registerRenderer(renderer);   // perf manager owns the pixel ratio (and can lower it live)
   renderer.outputColorSpace=THREE.SRGBColorSpace;
   renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.05;

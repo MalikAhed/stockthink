@@ -118,7 +118,7 @@ const ENTER = {
 };
 
 // ---- renderer / scene ----------------------------------------------------------
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: QUALITY.antialias, alpha: true });
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: QUALITY.antialias, alpha: true, powerPreference: 'high-performance' });
 registerRenderer(renderer);   // perf manager owns the pixel ratio (and can lower it live)
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.4;
@@ -594,6 +594,12 @@ function loopWithoutIntro() {
   if (RM()) return;        // reduced motion: stay parked on the final frame, don't loop
   tl.play('act1 · look right');
 }
+
+// Kick the board GLB fetch/parse EARLY (~1.5 screens out), not when the section is already on
+// screen — parsing it during the entrance was a visible stutter right as the cinematic started.
+new IntersectionObserver((entries, ob) => {
+  if (entries.some((e) => e.isIntersecting)) { ob.disconnect(); ensureBoard(); }
+}, { rootMargin: '150% 0px' }).observe(section);
 
 const io = new IntersectionObserver((entries) => {
   entries.forEach((e) => {
