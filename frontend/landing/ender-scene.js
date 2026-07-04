@@ -1389,6 +1389,83 @@ export async function createEnderScene(canvas) {
   let directorMode = false;   // dev camera-director tool: when on, frame() leaves the camera to the user's OrbitControls
   function setDirector(b) { directorMode = !!b; }
   let _shadowFrame = 0;       // shadow-map re-bake is HALF-RATE: a full scene pass from the light's POV every frame is wasted on these soft, slow shadows — updating at half the framerate is imperceptible (≤1 frame lag) and halves that cost
+  // ===== THE LIGHT-UP ENTRY (the coach → finale transition) ========================================
+  // Replaces the scroll-driven black veil: the page keeps its own background, a warm glow blooms where
+  // the bulb hangs, the bulb sputters alight, its pool grows to reveal the table, then the board — and
+  // once the pool has swallowed the viewport the basement owns the screen and the rain begins.
+  // Driven by the MASTER clock m (seconds since the section pinned); the game timeline runs on
+  // t = m - LIGHTUP.lead (ender.js), so every approved beat timing below is untouched. The offline
+  // render path never calls setLightup, so the baked clip is pixel-identical to before.
+  const LIGHTUP = {
+    lead: 3.4,                    // how long the light-up runs before the game clock (the rain) starts
+    igniteAt: 0.45, igniteDur: 1.25,   // the bulb sputters, catches, holds
+    coneAt: 1.35, coneDur: 1.5,        // spotlight cone + table pool swell → the TABLE reads
+    roomAt: 2.1, roomDur: 2.2,         // room fill: rims/ambient/exposure ease up → the BOARD reads
+    fullAt: 6.9,                       // by here every value is restored to its authored base
+    holeStart: 0.35, holeFull: 6.6,    // the page-hole opens with the first sputter; swallows the screen just before the first king fade
+  };
+  // deterministic sputter — an old bulb catching: dips and surges, then holds steady (no Math.random, bake-safe)
+  const LU_FLICK = [[0, 0], [0.06, 0.5], [0.12, 0.06], [0.2, 0.72], [0.28, 0.12], [0.38, 0.9], [0.48, 0.42], [0.6, 1], [1, 1]];
+  function _luFlick(p) {
+    if (p <= 0) return 0; if (p >= 1) return 1;
+    for (let i = 1; i < LU_FLICK.length; i++) {
+      if (p <= LU_FLICK[i][0]) {
+        const a = LU_FLICK[i - 1], b = LU_FLICK[i];
+        const k = (p - a[0]) / (b[0] - a[0]);
+        return a[1] + (b[1] - a[1]) * (k < 0.5 ? 2 * k * k : 1 - 2 * (1 - k) * (1 - k));
+      }
+    }
+    return 1;
+  }
+  const _luBase = { spot: spot.intensity, wash: wash.intensity, floorB: floorBounce.intensity, fillPt: fillPt.intensity,
+    amb: amb.intensity, cool: coolRim.intensity, cyan: cyanRim.intensity, warm: warmRim.intensity, glint: glint.intensity,
+    fillD: fillD.intensity, bulb: bulbGlass.material.emissiveIntensity, halo: lampHalo.material.opacity,
+    pool: tablePool.material.opacity, beamScale: VolMat.uniforms.uBeamScale.value, shadeIn: shadeIn.material.emissiveIntensity,
+    exp: renderer.toneMappingExposure };
+  let _luDone = false;
+  function _luRestore() {
+    spot.intensity = _luBase.spot; wash.intensity = _luBase.wash; floorBounce.intensity = _luBase.floorB; fillPt.intensity = _luBase.fillPt;
+    amb.intensity = _luBase.amb; coolRim.intensity = _luBase.cool; cyanRim.intensity = _luBase.cyan; warmRim.intensity = _luBase.warm;
+    glint.intensity = _luBase.glint; fillD.intensity = _luBase.fillD; bulbGlass.material.emissiveIntensity = _luBase.bulb;
+    lampHalo.material.opacity = _luBase.halo; tablePool.material.opacity = _luBase.pool; VolMat.uniforms.uBeamScale.value = _luBase.beamScale;
+    shadeIn.material.emissiveIntensity = _luBase.shadeIn; filament.visible = true;
+  }
+  // Call AFTER frame(t) each render (so it wins over setEffects' per-frame exposure while active).
+  function setLightup(m) {
+    if (m >= LIGHTUP.fullAt) { if (!_luDone) { _luDone = true; _luRestore(); } return; }
+    _luDone = false;
+    const flick = _luFlick((m - LIGHTUP.igniteAt) / LIGHTUP.igniteDur);
+    const cone = _smoother((m - LIGHTUP.coneAt) / LIGHTUP.coneDur);
+    const room = _smoother((m - LIGHTUP.roomAt) / LIGHTUP.roomDur);
+    bulbGlass.material.emissiveIntensity = _luBase.bulb * flick;
+    filament.visible = flick > 0.06;
+    lampHalo.material.opacity = _luBase.halo * flick;
+    shadeIn.material.emissiveIntensity = _luBase.shadeIn * Math.max(flick * 0.5, cone);
+    spot.intensity = _luBase.spot * (0.10 * flick + 0.90 * cone);
+    VolMat.uniforms.uBeamScale.value = _luBase.beamScale * cone;
+    tablePool.material.opacity = _luBase.pool * cone;
+    wash.intensity = _luBase.wash * cone;
+    floorBounce.intensity = _luBase.floorB * room;
+    fillPt.intensity = _luBase.fillPt * room;
+    amb.intensity = _luBase.amb * (0.08 + 0.92 * room);
+    coolRim.intensity = _luBase.cool * room; cyanRim.intensity = _luBase.cyan * room; warmRim.intensity = _luBase.warm * room;
+    glint.intensity = _luBase.glint * room; fillD.intensity = _luBase.fillD * room;
+    renderer.toneMappingExposure = _luBase.exp * (0.30 + 0.70 * Math.max(flick * 0.35, room));
+  }
+  // screen-space position of the bulb — the page-hole overlay opens from here ({x,y} viewport fractions)
+  const _luV = new THREE.Vector3();
+  function bulbScreen() {
+    bulbGlass.getWorldPosition(_luV).project(camera);
+    return { x: (_luV.x + 1) / 2, y: (1 - _luV.y) / 2 };
+  }
+  // page-hole radius for master time m, as a fraction of the viewport diagonal (≥1.45 = fully open):
+  // a small sputtering glow first, then the pool accelerates and swallows the screen
+  function lightupHole(m) {
+    const flick = _luFlick((m - LIGHTUP.igniteAt) / LIGHTUP.igniteDur);
+    const grow = _smoother((m - LIGHTUP.holeStart) / (LIGHTUP.holeFull - LIGHTUP.holeStart));
+    return Math.min(1.5, 0.10 * flick + 1.45 * grow * grow);
+  }
+
   // frame(t): the master cinematic clock. setShot stays exported for the offline render stage.
   function frame(t) {
     setIntro(t);                          // lands + reveals every piece at its rest (cheap; idempotent for large t)
@@ -1523,6 +1600,7 @@ export async function createEnderScene(canvas) {
 
   return {
     scene, camera, renderer, lookTarget, render, resize, tick, setShot, frame, badgeAt, evalAt, cutFadeAt, flashAt, flashGrowAt, ctaAt, setDirector, scenes: SCENES, duration: DURATION,
+    setLightup, bulbScreen, lightupHole, lightupLead: LIGHTUP.lead,
     frontPieces: _frontPieces, setFrontActive, renderFront,
     pieces: boardData.pieces, GRID: boardData.GRID, squareXYZ: boardData.squareXYZ,
     refs: { spot, wash, beam, VolMat, fog: scene.fog, bulbGlass, amb, coolRim, cyanRim, warmRim, lampGroup, boardRoot: boardData.root, rookBeam, bishopBeam },

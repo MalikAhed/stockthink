@@ -3,12 +3,11 @@
    camera timeline (Phase 2). PHASE 1 just parks the establishing shot. The whole page flips
    to black while the finale is on screen (body.ending) so a light theme transitions into the
    cinematic dark — see ender.js. */
-/* No hard black panel here: the section + sticky backgrounds are TRANSPARENT so nothing dark
-   "cuts in" as the section scrolls up. The only black is the gradient veil (.ender-fade), and the
-   scene canvas fades in via opacity (driven by ender.js) — so the whole screen fades to black
-   uniformly, then the basement is revealed. */
-/* shorter than the old scrubbed finale (was 350vh): the video autoplays once on arrival, so the track only
-   needs room for the fade-to-black dissolve in + a comfortable beat to watch it, not a full scrub length. */
+/* No hard black panel here: the section + sticky backgrounds are TRANSPARENT, and the .ender-hole
+   overlay (page-coloured, with the growing light-pool hole — see ender.js) means the section scrolls
+   in looking like plain page until the bulb lights it from within. */
+/* shorter than the old scrubbed finale (was 350vh): the cinematic autoplays once on arrival, so the track
+   only needs room for the light-up entry + a comfortable beat to watch it, not a full scrub length. */
 .ender { position: relative; height: 220vh; }
 .ender-sticky { position: sticky; top: 0; height: 100vh; width: 100%; overflow: hidden; }
 /* now a <video> (was a WebGL canvas): cover-fit the viewport, start hidden (revealed under the veil) */
@@ -59,10 +58,11 @@
 .ender-eval.ev-mate .ev-fill { background: #ffffff; }
 .ender-eval.ev-mate .ev-num { color: #14150f; }
 
-/* the fade-to-black veil (driven by ender.js): a top-most full-screen black overlay whose opacity is
-   scrubbed by scroll — it fades the screen to black as the coach leaves, then lifts to reveal the
-   basement scene. Above all chrome; inert when clear. */
-.ender-fade { position: fixed; inset: 0; background: #000; opacity: 0; pointer-events: none; z-index: 60; }
+/* the LIGHT-UP entry overlay (driven by ender.js): painted the page's own background colour with a
+   growing transparent hole — the pool of the bulb's light opening over the page. Lives INSIDE the
+   sticky (scrolls away with the section, so nothing fixed can linger). Replaces the old .ender-fade
+   black veil. Sits above the canvas + HUD overlay; the fixed CTA/flash layers stay far above it. */
+.ender-hole { position: absolute; inset: 0; z-index: 3; background: var(--bg); pointer-events: none; }
 
 /* the king-entrance fade veil (driven by ender.js cutFadeAt): fades the screen out/in around each king's
    drop. Sits above the canvas + HUD but below the scroll reveal veil (60) so the reveal still wins. */

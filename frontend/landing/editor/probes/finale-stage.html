@@ -34,9 +34,11 @@ try {
   st.textContent = 'ready · ' + view.pieces.size + ' pieces';
   // ?t=<seconds> drives the master clock (intro + dolly + moves). Default 99 → fully assembled/mated still.
   let T = parseFloat(new URLSearchParams(location.search).get('t') ?? '99');
-  function loop(){ requestAnimationFrame(loop); view.frame(T); view.tick(); view.render(); }   // rAF first → resilient to any throw
+  let M = null;   // optional LIGHT-UP master clock (null → lights stay at their authored base)
+  function loop(){ requestAnimationFrame(loop); view.frame(T); if (M != null && view.setLightup) view.setLightup(M); view.tick(); view.render(); }   // rAF first → resilient to any throw
   loop();
   window.__setT = (t) => { T = t; };                     // probe can re-seek without reload
+  window.__setM = (m) => { M = m; };                     // probe can drive the light-up entry (setLightup)
 } catch (e) { st.textContent = 'ERR ' + (e.message||e); console.error(e); window.__enderErr = String(e.message||e); }
 </script>
 </body>
