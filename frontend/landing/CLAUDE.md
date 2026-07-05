@@ -64,7 +64,7 @@ with `probes/` (e.g. `node editor/probes/probe.mjs`). The render pipeline (`reco
 | `node editor/probe-wd.mjs <ms…> [light]` | **multi-phase** Beat-2 shots in ONE Chrome session → `/tmp/st-wd-<ms>.png` each. Pass every act offset at once (≈600 desktop · ≈4400 terminal · ≈9000 reformat · ≈13000 heat table · ≈18400 explanation). `light` = light theme. |
 | `node editor/devtest.mjs` | drives the Edit Interface headlessly (real Pick hover+click, dumps the tree) → `/tmp/st-editor-shot.png`. Run before editing `editor.js`. |
 | `[GL=sw] PORT=5173 STEP=N node editor/probe-scrub.mjs <fracs…>` | drive an animation's **scrubber** to fractions → `/tmp/st-scrub-N-NN.png` each (prints `time [label]`). STEP = section `data-step` (1,2,3,7,8,10). `GL=sw` to see the 3D coach (step 10), slowly. |
-| `GL=sw PORT=… node editor/probes/probe-lightup.mjs <m…>` | screenshot the finale **light-up entry** at master-clock times m (drives finale-stage `__setM`) → `/tmp/st-lightup-m*.png`. (`probe-dim.mjs` is OBSOLETE — it tested the removed `.ender-fade` veil.) |
+| `GL=sw PORT=… node editor/probes/probe-assembly.mjs <p_or_t…>` | screenshot the finale **assembly entry** at progress p (≤1, drives finale-stage `__setP`) or game times (>1) → `/tmp/st-asm-*.png`. `probe-assembly-page.mjs` = the same check on the REAL page (scrolls the live track). (`probe-dim.mjs` is OBSOLETE — it tested the removed `.ender-fade` veil.) ⚠ 2026-07-04 night: headless-chrome↔vite module fetches went flaky on this box (random `Failed to fetch` aborts, code-independent) — restart vite + retry, or verify with the user's eyes. |
 | `PORT=5173 node editor/probe-sweep.mjs <steps…>` | full-page consistency sweep: screenshot each `data-step` settled → `/tmp/st-sweep-<step>.png`. |
 
 **Dev scrubber** (`scrub.js`, DEV-only UI, tree-shaken from prod) — ONE universal frame-seekable bar on
@@ -325,15 +325,19 @@ show a screenshot unprompted.
   is `front:true` → renders on `.ender-front` ABOVE the copy (`ender.js` lifts it at `t>duration-6.0`, under
   the white). **The `mushroom-explosion.html` finale STUDIO was removed** (done with it) — tune `ender-scene.js`
   directly now. Not a Vite entry (inputs: `index.html` + `landing/index.html`), so the build is unaffected.
-  **ENTRY = the LIGHT-UP (2026-07-04, replaces the black-fade veil).** The section scrolls in wearing the
-  page's own background (`.ender-hole`, an in-section var(--bg) overlay — theme-aware, scrolls off
-  naturally); a warm pool blooms at the bulb while it SPUTTERS alight (deterministic flicker), grows over
-  the table → board, and swallows the viewport ("the site goes dark") just before the first king fade.
-  TWO clocks in ender.js: master `m` drives `view.setLightup(m)` + the hole (`lightupHole`/`bulbScreen`);
-  game `t = m − LIGHTUP.lead` (3.4s) drives `frame(t)` — all approved beat timings untouched, and the
-  offline render path never calls setLightup so bakes stay pixel-identical. Tunables: `LIGHTUP` block in
-  `ender-scene.js`. Verify: `probe-lightup.mjs`. Director/keyboard-nav/RM bypass the light-up (lights full,
-  hole hidden).
+  **ENTRY = the scroll-SCRUBBED ASSEMBLY (2026-07-04 night, v2 — replaced the radial light-up the user
+  disliked).** The canvas is alpha:true; while the page keeps its OWN background the set assembles out of
+  nowhere — table rises from below, lamp+cord drop from above, board slides in from the left, each part
+  fading in (per-part material opacity) — then the "lights go out": the dark room fades in via the clear-
+  colour alpha + fog, `body.ending` flips at assemP>0.75, and only at assemP=1 does the GAME clock arm
+  (the pieces rain). It's a PURE function of scroll (`assemP = -r.top/(0.9vh)` in ender.js) so scrolling
+  back up plays the whole entry in REVERSE; mid-game scroll-up FREEZES the game clock (resumes on return).
+  Scene side: `setAssembly(p)` + the `ASSEMBLY` tunables in ender-scene.js (windows/from-offsets); partial
+  p re-applies EVERY frame (frame()'s setEffects rewrites fog/bg — a memoized skip floods the fog back);
+  restore-at-1 runs once. `setEffects`' background write is null-guarded (bg is null during assembly).
+  The offline render path never calls setAssembly → bakes untouched. The CTA also fades on scroll-up via
+  a scrollY anchor captured when it first appears (`ctaAnchor` — edge-based exitFade alone was too late on
+  the 220vh track). Director/keyboard-nav/RM bypass the assembly (set fully built).
 
 After the finale: an optional further cinematic — editable 3D masters now at
 `~/stockthink-3d-source/landing-source-html/` (the basement/board source HTML moved out of the repo).

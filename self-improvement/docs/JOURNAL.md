@@ -6,6 +6,14 @@ for /work sessions). Past ~300 lines, /reflect compresses the oldest half into
 LESSONS.md. Entries below 2026-06-12p were migrated verbatim from
 self-improvement/improve/TRACKER.md's daily log (2026-06-12) — history is not rewritten.
 
+- **2026-07-05a** · /ui · Landing fast-edits round: big beat-1 gear shifted left 0.4 (covered the title);
+  finale entry v2 — the radial light-up REPLACED by the scroll-scrubbed ASSEMBLY (alpha canvas; table/
+  lamp/board glide+fade in from different directions over the page, lights-out at the end, fully
+  reversible on scroll-up, game clock freezes when reversed); f6 tableau knight nudged right (covered the
+  brilliant ✨ svg); CTA scroll-up fade anchored to where it appeared. Two real bugs caught: null
+  scene.background crash in setEffects during assembly + a memo that let fog flood back mid-assembly.
+  Evidence: build green; one real-page probe run verified flip/reverse before the headless-chrome↔vite
+  fetch flake made further probing impossible (noted in landing/CLAUDE.md) — user to verify live.
 - **2026-07-04b** · /ui · Landing smoothness pass — 6 fixes, one commit each (rollback-friendly):
   perf watchdog made TWO-WAY (one-way demotion was silently killing hero/coach/gears until refresh —
   the root of 3 reported "3D vanishes" bugs); ghost hero rook fixed (generation tokens on the async

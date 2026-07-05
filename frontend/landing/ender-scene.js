@@ -43,7 +43,7 @@ function radialTex(stops) {
 }
 
 export async function createEnderScene(canvas) {
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: QUALITY.antialias, powerPreference: 'high-performance' });
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: QUALITY.antialias, alpha: true, powerPreference: 'high-performance' });
   registerRenderer(renderer);   // perf manager owns the pixel ratio (and can lower it live)
   renderer.setSize(innerWidth, innerHeight);
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -139,7 +139,7 @@ export async function createEnderScene(canvas) {
   // enough to read as genuinely suspended, so the full lamp + its rope are visible in the wide shot
   const cord = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 2.6, 8),
     new THREE.MeshStandardMaterial({ color: 0x141414, roughness: 0.75, metalness: 0.2 }));
-  cord.position.set(0, 4.25, 0.1); setGroup.add(cord);   // spans y≈2.95 → 5.55
+  cord.position.set(0, 4.25, 0);   // spans y≈2.95 → 5.55 · parented to the LAMP group below so cord+lamp assemble as ONE part
 
   // ---- the cinematic spotlight + washes ----
   const SPOT_Y = 3.45, SPOT_X = 0, SPOT_Z = 0.1;
@@ -181,6 +181,7 @@ export async function createEnderScene(canvas) {
 
   // ---- caged Edison pendant ----
   const lampY = 2.75; const lampGroup = new THREE.Group(); lampGroup.position.set(0, 0, 0.1); scene.add(lampGroup);
+  lampGroup.add(cord);
   const metalDark = new THREE.MeshStandardMaterial({ color: 0x20211f, roughness: 0.5, metalness: 0.85 });
   const metalPatina = new THREE.MeshStandardMaterial({ color: 0x2c3a30, roughness: 0.55, metalness: 0.7 });
   const shadeOut = new THREE.Mesh(new THREE.ConeGeometry(0.62, 0.34, 48, 1, true), new THREE.MeshStandardMaterial({ color: 0x243029, roughness: 0.5, metalness: 0.6, side: THREE.DoubleSide }));
@@ -995,7 +996,9 @@ export async function createEnderScene(canvas) {
     const hero = _q5(_clamp((eAge(t) - 1.8) / 1.6));
     // ALWAYS reset the background from the dark base (hero=0 → dark) so the light NEVER sticks on scrub/replay —
     // the surroundings only go white as the blast's glow actually reaches them.
-    _bgScratch.copy(_darkBg).lerp(_heroBg, hero); scene.background.copy(_bgScratch); scene.fog.color.lerp(_heroBg, hero);
+    _bgScratch.copy(_darkBg).lerp(_heroBg, hero);
+    if (scene.background) scene.background.copy(_bgScratch);   // null during the assembly entry (page shows through)
+    scene.fog.color.lerp(_heroBg, hero);
     if (hero > 0) {
       amb.intensity = _mx(amb.intensity, 1.35, hero);
       renderer.toneMappingExposure = _mx(renderer.toneMappingExposure, 1.0, hero);
@@ -1317,7 +1320,7 @@ export async function createEnderScene(canvas) {
     { sq: 'a8', pos: [1.34, 0.9, 2.59],  rot: [-9, 46, -28] },                  // black rook
     { sq: 'b8', pos: [3.6, 0.42, 3.76],  rot: [14, -17, 2] },                   // black knight
     { sq: 'c8', pos: [4.25, 1.08, 2.24], rot: [-180, -88, 34] },                // black bishop
-    { sq: 'f6', pos: [2.52, 0.29, 1.02], rot: [136, 32, -148], front: true },   // black knight — sits IN FRONT of the copy
+    { sq: 'f6', pos: [3.05, 0.29, 1.02], rot: [136, 32, -148], front: true },   // black knight — nudged right so it clears the brilliant ✨ svg in the headline
   ];
   const _D2R = Math.PI / 180, _frontPieces = [], _tabByPiece = new Map();
   for (const spec of TABLEAU) {
@@ -1389,81 +1392,69 @@ export async function createEnderScene(canvas) {
   let directorMode = false;   // dev camera-director tool: when on, frame() leaves the camera to the user's OrbitControls
   function setDirector(b) { directorMode = !!b; }
   let _shadowFrame = 0;       // shadow-map re-bake is HALF-RATE: a full scene pass from the light's POV every frame is wasted on these soft, slow shadows — updating at half the framerate is imperceptible (≤1 frame lag) and halves that cost
-  // ===== THE LIGHT-UP ENTRY (the coach → finale transition) ========================================
-  // Replaces the scroll-driven black veil: the page keeps its own background, a warm glow blooms where
-  // the bulb hangs, the bulb sputters alight, its pool grows to reveal the table, then the board — and
-  // once the pool has swallowed the viewport the basement owns the screen and the rain begins.
-  // Driven by the MASTER clock m (seconds since the section pinned); the game timeline runs on
-  // t = m - LIGHTUP.lead (ender.js), so every approved beat timing below is untouched. The offline
-  // render path never calls setLightup, so the baked clip is pixel-identical to before.
-  const LIGHTUP = {
-    lead: 3.4,                    // how long the light-up runs before the game clock (the rain) starts
-    igniteAt: 0.45, igniteDur: 1.25,   // the bulb sputters, catches, holds
-    coneAt: 1.35, coneDur: 1.5,        // spotlight cone + table pool swell → the TABLE reads
-    roomAt: 2.1, roomDur: 2.2,         // room fill: rims/ambient/exposure ease up → the BOARD reads
-    fullAt: 6.9,                       // by here every value is restored to its authored base
-    holeStart: 0.35, holeFull: 6.6,    // the page-hole opens with the first sputter; swallows the screen just before the first king fade
+  // ===== THE ASSEMBLY ENTRY (the coach → finale transition; scroll-SCRUBBED so it reverses) =======
+  // The canvas is alpha:true — during assembly the scene has NO background, so the set floats on the
+  // PAGE itself (white in light theme): the table rises from below, the lamp (with its cord) drops from
+  // above, the board slides in from the side — each part fading in. Once everything is set up, the
+  // "lights go out": the dark room fades in around the set (clear-color alpha 0→1 + fog returns), and
+  // only then does the game clock start (the pieces drop). setAssembly(p) is a PURE function of
+  // p∈[0,1] driven by scroll in ender.js — scrolling back up plays the whole entry in reverse.
+  // The offline render path never calls setAssembly, so bakes are untouched.
+  const ASSEMBLY = {
+    table: [0.02, 0.40], lamp: [0.16, 0.56], board: [0.40, 0.78],   // per-part windows within p
+    dark: [0.72, 1.0],                                              // the room fades in around the finished set
+    tableFrom: [0, -3.2, 0], lampFrom: [0, 3.6, 0], boardFrom: [-4.8, 0.6, 0],   // where each part glides in from
   };
-  // deterministic sputter — an old bulb catching: dips and surges, then holds steady (no Math.random, bake-safe)
-  const LU_FLICK = [[0, 0], [0.06, 0.5], [0.12, 0.06], [0.2, 0.72], [0.28, 0.12], [0.38, 0.9], [0.48, 0.42], [0.6, 1], [1, 1]];
-  function _luFlick(p) {
-    if (p <= 0) return 0; if (p >= 1) return 1;
-    for (let i = 1; i < LU_FLICK.length; i++) {
-      if (p <= LU_FLICK[i][0]) {
-        const a = LU_FLICK[i - 1], b = LU_FLICK[i];
-        const k = (p - a[0]) / (b[0] - a[0]);
-        return a[1] + (b[1] - a[1]) * (k < 0.5 ? 2 * k * k : 1 - 2 * (1 - k) * (1 - k));
+  const _asmBg = scene.background;            // the authored dark background Color instance (restored at p=1)
+  const _asmFog = scene.fog.density;
+  function _collectMats(obj, arr, skip) {
+    if (skip && skip.has(obj)) return;
+    if ((obj.isMesh || obj.isSprite) && obj.material && arr.indexOf(obj.material) < 0) arr.push(obj.material);
+    for (const c of obj.children) _collectMats(c, arr, skip);
+  }
+  const _pieceWraps = new Set(boardData.pieces.values());   // pieces own their opacity (setIntro) — never touch them here
+  const _asmParts = [
+    { group: setGroup, win: ASSEMBLY.table, from: ASSEMBLY.tableFrom, mats: [] },
+    { group: lampGroup, win: ASSEMBLY.lamp, from: ASSEMBLY.lampFrom, mats: [] },
+    { group: boardData.root, win: ASSEMBLY.board, from: ASSEMBLY.boardFrom, mats: [] },
+  ];
+  for (const part of _asmParts) {
+    _collectMats(part.group, part.mats, _pieceWraps);
+    part.base = part.group.position.clone();
+    part.state = part.mats.map((m) => ({ m, op: m.opacity, tr: m.transparent }));
+  }
+  const _beamBase2 = VolMat.uniforms.uBeamScale.value;
+  let _asmP = -1;
+  function setAssembly(p) {
+    p = p < 0 ? 0 : p > 1 ? 1 : p;
+    if (p >= 1) {                                     // fully assembled → hand everything back untouched
+      if (_asmP === 1) return;                        // restore once; after that frame() owns everything again
+      _asmP = 1;
+      scene.background = _asmBg;
+      for (const part of _asmParts) {
+        part.group.position.copy(part.base); part.group.visible = true;
+        for (const s of part.state) { s.m.opacity = s.op; s.m.transparent = s.tr; }
       }
+      VolMat.uniforms.uBeamScale.value = _beamBase2;
+      return;
     }
-    return 1;
-  }
-  const _luBase = { spot: spot.intensity, wash: wash.intensity, floorB: floorBounce.intensity, fillPt: fillPt.intensity,
-    amb: amb.intensity, cool: coolRim.intensity, cyan: cyanRim.intensity, warm: warmRim.intensity, glint: glint.intensity,
-    fillD: fillD.intensity, bulb: bulbGlass.material.emissiveIntensity, halo: lampHalo.material.opacity,
-    pool: tablePool.material.opacity, beamScale: VolMat.uniforms.uBeamScale.value, shadeIn: shadeIn.material.emissiveIntensity,
-    exp: renderer.toneMappingExposure };
-  let _luDone = false;
-  function _luRestore() {
-    spot.intensity = _luBase.spot; wash.intensity = _luBase.wash; floorBounce.intensity = _luBase.floorB; fillPt.intensity = _luBase.fillPt;
-    amb.intensity = _luBase.amb; coolRim.intensity = _luBase.cool; cyanRim.intensity = _luBase.cyan; warmRim.intensity = _luBase.warm;
-    glint.intensity = _luBase.glint; fillD.intensity = _luBase.fillD; bulbGlass.material.emissiveIntensity = _luBase.bulb;
-    lampHalo.material.opacity = _luBase.halo; tablePool.material.opacity = _luBase.pool; VolMat.uniforms.uBeamScale.value = _luBase.beamScale;
-    shadeIn.material.emissiveIntensity = _luBase.shadeIn; filament.visible = true;
-  }
-  // Call AFTER frame(t) each render (so it wins over setEffects' per-frame exposure while active).
-  function setLightup(m) {
-    if (m >= LIGHTUP.fullAt) { if (!_luDone) { _luDone = true; _luRestore(); } return; }
-    _luDone = false;
-    const flick = _luFlick((m - LIGHTUP.igniteAt) / LIGHTUP.igniteDur);
-    const cone = _smoother((m - LIGHTUP.coneAt) / LIGHTUP.coneDur);
-    const room = _smoother((m - LIGHTUP.roomAt) / LIGHTUP.roomDur);
-    bulbGlass.material.emissiveIntensity = _luBase.bulb * flick;
-    filament.visible = flick > 0.06;
-    lampHalo.material.opacity = _luBase.halo * flick;
-    shadeIn.material.emissiveIntensity = _luBase.shadeIn * Math.max(flick * 0.5, cone);
-    spot.intensity = _luBase.spot * (0.10 * flick + 0.90 * cone);
-    VolMat.uniforms.uBeamScale.value = _luBase.beamScale * cone;
-    tablePool.material.opacity = _luBase.pool * cone;
-    wash.intensity = _luBase.wash * cone;
-    floorBounce.intensity = _luBase.floorB * room;
-    fillPt.intensity = _luBase.fillPt * room;
-    amb.intensity = _luBase.amb * (0.08 + 0.92 * room);
-    coolRim.intensity = _luBase.cool * room; cyanRim.intensity = _luBase.cyan * room; warmRim.intensity = _luBase.warm * room;
-    glint.intensity = _luBase.glint * room; fillD.intensity = _luBase.fillD * room;
-    renderer.toneMappingExposure = _luBase.exp * (0.30 + 0.70 * Math.max(flick * 0.35, room));
-  }
-  // screen-space position of the bulb — the page-hole overlay opens from here ({x,y} viewport fractions)
-  const _luV = new THREE.Vector3();
-  function bulbScreen() {
-    bulbGlass.getWorldPosition(_luV).project(camera);
-    return { x: (_luV.x + 1) / 2, y: (1 - _luV.y) / 2 };
-  }
-  // page-hole radius for master time m, as a fraction of the viewport diagonal (≥1.45 = fully open):
-  // a small sputtering glow first, then the pool accelerates and swallows the screen
-  function lightupHole(m) {
-    const flick = _luFlick((m - LIGHTUP.igniteAt) / LIGHTUP.igniteDur);
-    const grow = _smoother((m - LIGHTUP.holeStart) / (LIGHTUP.holeFull - LIGHTUP.holeStart));
-    return Math.min(1.5, 0.10 * flick + 1.45 * grow * grow);
+    _asmP = p;   // NOTE: partial p re-applies EVERY call (no memo) — frame()'s setEffects rewrites
+    // fog/background each frame, so a memoized skip would let the full fog flood back mid-assembly
+    const dark = _smoother((p - ASSEMBLY.dark[0]) / (ASSEMBLY.dark[1] - ASSEMBLY.dark[0]));
+    scene.background = null;                          // page shows through; the dark room fades in via clear alpha
+    renderer.setClearColor(_asmBg, dark);
+    scene.fog.density = _asmFog * dark;               // fog only once the room exists (it would tint parts on white)
+    VolMat.uniforms.uBeamScale.value = _beamBase2 * dark;   // the visible light cone belongs to the dark room
+    for (const part of _asmParts) {
+      const e = _smoother((p - part.win[0]) / (part.win[1] - part.win[0]));
+      part.group.visible = e > 0.001;
+      part.group.position.set(
+        part.base.x + part.from[0] * (1 - e),
+        part.base.y + part.from[1] * (1 - e),
+        part.base.z + part.from[2] * (1 - e),
+      );
+      for (const s of part.state) { s.m.transparent = true; s.m.opacity = s.op * e; }
+    }
   }
 
   // frame(t): the master cinematic clock. setShot stays exported for the offline render stage.
@@ -1600,7 +1591,7 @@ export async function createEnderScene(canvas) {
 
   return {
     scene, camera, renderer, lookTarget, render, resize, tick, setShot, frame, badgeAt, evalAt, cutFadeAt, flashAt, flashGrowAt, ctaAt, setDirector, scenes: SCENES, duration: DURATION,
-    setLightup, bulbScreen, lightupHole, lightupLead: LIGHTUP.lead,
+    setAssembly,
     frontPieces: _frontPieces, setFrontActive, renderFront,
     pieces: boardData.pieces, GRID: boardData.GRID, squareXYZ: boardData.squareXYZ,
     refs: { spot, wash, beam, VolMat, fog: scene.fog, bulbGlass, amb, coolRim, cyanRim, warmRim, lampGroup, boardRoot: boardData.root, rookBeam, bishopBeam },

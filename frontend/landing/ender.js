@@ -2,10 +2,11 @@
 // AUTHORING PHASE: the page ships this LIVE WebGL finale while we build the animated game; once the
 // cinematic is approved it bakes back to a <video> (ender-video.js) and the QUALITY.cinema gate returns.
 //
-// TWO clocks: the master clock `m` drives the LIGHT-UP entry (the bulb sputters alight, its pool of
-// light grows over the page and swallows the viewport), then the game clock t = m − lightupLead drives
-// view.frame(t): the pieces RAIN into the position, the camera dollies from the wide establishing shot
-// to the seated White POV, and the moves play. The old scroll-driven fade-to-black veil is gone.
+// ENTRY = the scroll-SCRUBBED ASSEMBLY: while the page keeps its own (white) background the set
+// assembles out of nowhere — table rises from below, lamp drops from above, board slides in — each
+// fading in; then the "lights go out" (the dark room fades in around the set) and only then does the
+// game clock start: the pieces rain, the kings land, the moves play. Scrolling back up plays the whole
+// entry in REVERSE (it's a pure function of scroll) and freezes the game clock until you return.
 import { fpsGate } from './perf.js';
 const section = document.querySelector('section.ender');
 const canvas = document.getElementById('enderScene');
@@ -27,30 +28,11 @@ if (section && canvas) {
   // ---- dev-only CAMERA DIRECTOR: scrub time + fly the camera (OrbitControls), drop keyframes, copy them out ----
   let director = false, dirT = 0, dirControls = null; const dirKeys = [];
 
-  // ---- the LIGHT-UP entry (replaces the fade-to-black veil) --------------------------------------
-  // An in-section overlay painted the PAGE's background colour (var(--bg), so it follows the theme)
-  // with a growing transparent hole: the section scrolls in looking like plain page, then a warm pool
-  // of light blooms where the bulb hangs (the bulb sputters alight inside it), grows over the table,
-  // then the board, and finally swallows the viewport — that moment IS "the site goes dark". It lives
-  // inside .ender-sticky (not on <body>), so scrolling away carries it off naturally — nothing fixed
-  // can linger. Radius/centre come from the scene (lightupHole/bulbScreen) each frame.
-  const sticky = section.querySelector('.ender-sticky');
-  const hole = document.createElement('div');
-  hole.className = 'ender-hole';
-  if (sticky) sticky.appendChild(hole);
-  let holeOpen = false;    // fully open → element display:none, gradient writes stop
-  function updateHole(m, skip) {
-    if (skip) { if (!holeOpen) { holeOpen = true; hole.style.display = 'none'; } return; }
-    const r = view ? view.lightupHole(m) : 0;
-    if (r >= 1.45) { if (!holeOpen) { holeOpen = true; hole.style.display = 'none'; } return; }
-    if (holeOpen) { holeOpen = false; hole.style.display = ''; }
-    if (r < 0.005) { hole.style.background = 'var(--bg)'; return; }
-    const p = view.bulbScreen();
-    hole.style.background = 'radial-gradient(circle ' + (r * 100).toFixed(2) + 'vmax at ' +
-      (p.x * 100).toFixed(1) + '% ' + (p.y * 100).toFixed(1) + '%, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 55%, var(--bg) 96%)';
-  }
-  function resetHole() { holeOpen = false; hole.style.display = ''; hole.style.background = 'var(--bg)'; }
-  resetHole();
+  // ---- the ASSEMBLY entry state (the parts/darkness themselves live in ender-scene setAssembly) ----
+  let assemP = 0;          // scroll-scrubbed assembly progress 0..1 (1 = set built + room dark → game may start)
+  let pauseAt = 0;         // wall-clock when the game froze because the user scrolled back up mid-game
+  let ctaAnchor = null;    // scrollY when the CTA first appeared — scrolling up from THERE fades it out
+  let ctaScrollFade = 1;   // the fade factor derived from ctaAnchor (shared with the front canvas)
 
   // ---- the king-entrance fade veil: a second black overlay driven by the scene's pure cutFadeAt(t) ----
   // Fades the screen out/in around each king's drop (the camera cuts to the close shot while it's black).
@@ -115,7 +97,16 @@ if (section && canvas) {
       const fa = (director ? 0 : view.flashAt(t)) * exitFade; flash.style.opacity = String(fa);
       if (fa > 0 && view.flashGrowAt) { const R = view.flashGrowAt(t) * 165; flash.style.background = 'radial-gradient(circle at 50% 54%, #fff 0%, #fff ' + (R * 0.5).toFixed(1) + '%, rgba(255,255,255,0) ' + R.toFixed(1) + '%)'; }
     }
-    if (view.ctaAt) { const c = (director ? 0 : view.ctaAt(t)) * exitFade; cta.style.opacity = String(c); cta.style.pointerEvents = c > 0.5 ? 'auto' : 'none'; }
+    if (view.ctaAt) {
+      const c0 = director ? 0 : view.ctaAt(t);
+      // scrolling UP from where the invite appeared fades it over ~half a viewport — the section is a
+      // 220vh track, so edge-based exitFade alone kicked in far too late ("text won't go away" bug)
+      if (c0 > 0.5 && ctaAnchor == null) ctaAnchor = scrollY;
+      if (c0 <= 0.01) ctaAnchor = null;
+      ctaScrollFade = ctaAnchor == null ? 1 : clamp01(1 - Math.max(0, ctaAnchor - scrollY) / (innerHeight * 0.5));
+      const c = c0 * exitFade * ctaScrollFade;
+      cta.style.opacity = String(c); cta.style.pointerEvents = c > 0.5 ? 'auto' : 'none';
+    }
     // the rating lower-third
     if (cap && view.badgeAt) {
       const b = view.badgeAt(t);
@@ -142,11 +133,14 @@ if (section && canvas) {
   }
 
   const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
-  let revealPLatest = 0;   // last computed pin progress — the loop arms the clock from it once the scene is built
   function onScroll() {
     const r = section.getBoundingClientRect();
-    const revealP = clamp01(-r.top / (innerHeight * 0.6));          // 0→1 over the first ~⅔ viewport once pinned
-    revealPLatest = revealP;
+    const on = r.bottom > 0 && r.top < innerHeight;
+    // the ASSEMBLY scrub: parts glide/fade in over the first ~viewport of the track — pure scroll, so
+    // scrolling back up plays it in reverse
+    assemP = clamp01(-r.top / (innerHeight * 0.9));
+    // the chrome recedes as the LIGHTS GO OUT (last quarter of the assembly), not on section-enter
+    document.body.classList.toggle('ending', on && assemP > 0.75);
     // the CTA / flash / front-piece are fixed <body> overlays → they DON'T scroll away with the section. Fade
     // them as the finale leaves the viewport in EITHER direction (1 while it covers the frame; →0 as an edge scrolls in).
     const lead = Math.max(r.top, innerHeight - r.bottom, 0);
@@ -157,13 +151,11 @@ if (section && canvas) {
     // away smoothly when I scroll back up" bug. Scroll events outrun the gated loop, so drive it here too.
     if (view) {
       updateHud(curT);
-      frontCanvas.style.opacity = lastShowFront ? String(exitFade) : '0';
+      frontCanvas.style.opacity = lastShowFront ? String(exitFade * ctaScrollFade) : '0';
     }
-    // start the master clock once the section is genuinely pinned AND the scene exists (else the bulb
-    // would sputter unseen behind the page-coloured hole while the GLBs still parse). One-shot; re-armed
-    // when the section fully leaves. The loop also arms from revealPLatest for the "pinned, then stopped
-    // scrolling while the scene finished building" case — no further scroll event would fire.
-    if (revealP > 0.05 && !playing && !RM && view) { playing = true; clockStart = performance.now(); }
+    // start the GAME clock only once the set is fully assembled + the room dark. One-shot; re-armed when
+    // the section fully leaves. The loop also arms (for "stopped scrolling while the scene finished building").
+    if (assemP >= 1 && !playing && !RM && view) { playing = true; clockStart = performance.now(); }
   }
   let scrollTick = false;
   addEventListener('scroll', () => { if (scrollTick) return; scrollTick = true;
@@ -241,7 +233,7 @@ if (section && canvas) {
       const { createEnderScene } = await import('./ender-scene.js');
       view = await createEnderScene(canvas);
       view.resize();
-      canvas.style.opacity = '1';   // the hole overlay owns the reveal now (was a scroll-scrubbed fade)
+      canvas.style.opacity = '1';   // the canvas is alpha:true — the scene itself is empty until the assembly scrub builds it
       if (import.meta.env.DEV) window.__ender = view;   // dev-only handle (the camera-director tool is disabled)
       void initDirector;   // (kept but not mounted — the directing is done in-code now)
       if (active) loop();
@@ -255,23 +247,26 @@ if (section && canvas) {
     raf = requestAnimationFrame(loop);
     if (!enderGate()) return;            // throttle to fpsCap (motion is clock-driven, so it stays correct)
     // arm here too: covers "pinned, stopped scrolling, scene finished building a beat later"
-    if (!playing && !RM && revealPLatest > 0.05) { playing = true; clockStart = performance.now(); }
-    // TWO clocks: m = the master clock (drives the light-up entry); t = the GAME clock = m minus the
-    // light-up lead, so every approved beat timing in the scene is untouched. Manual modes (director /
-    // keyboard step / reduced motion) bypass the light-up entirely (lights at full, hole hidden).
+    if (!playing && !RM && assemP >= 1) { playing = true; clockStart = performance.now(); }
+    // The ASSEMBLY entry is scroll-scrubbed (reverses on scroll-up); the game clock starts only once the
+    // set is built + the room dark (assemP = 1). If the user scrolls back up mid-game the game clock
+    // FREEZES (while the room re-lightens in reverse) and resumes when they scroll back down. Manual
+    // modes (director / keyboard step / reduced motion) bypass the assembly (set fully built).
     const manual = director || RM || (navMode && view.scenes);
-    let t, m;
-    if (director) { t = dirT; m = 1e9; }                                       // camera director: hold the scrubbed time, fly the camera
-    else if (RM) { t = 999; m = 1e9; }                                         // RM → jump to the assembled position
+    let t;
+    if (director) t = dirT;                                                    // camera director: hold the scrubbed time, fly the camera
+    else if (RM) t = 999;                                                      // RM → jump to the assembled position
     else if (navMode && view.scenes) {                                         // manual step: play this beat, then HOLD at its end
       const sc = view.scenes[sceneI];
       t = Math.min(sc.start + (performance.now() - sceneClock) / 1000, sc.end);
-      m = 1e9;
-    } else { m = playing ? (performance.now() - clockStart) / 1000 : 0; t = Math.max(0, m - (view.lightupLead || 0)); }   // autoplay
+    } else {
+      if (playing && assemP < 0.98) { if (!pauseAt) pauseAt = performance.now(); }
+      else if (playing && pauseAt) { clockStart += performance.now() - pauseAt; pauseAt = 0; }
+      t = playing ? ((pauseAt || performance.now()) - clockStart) / 1000 : 0;  // autoplay (frozen while reversed)
+    }
     curT = t;
     view.frame(t);                       // the master timeline: the rain + the moves + effects (camera skipped in director mode)
-    if (view.setLightup) view.setLightup(m);   // AFTER frame() so the light-up wins the per-frame light/exposure writes
-    updateHole(m, manual);
+    if (view.setAssembly) view.setAssembly(manual ? 1 : assemP);   // AFTER frame() so it wins the per-frame fog/background writes
     if (director && dirControls) { dirControls.update(); view.lookTarget.copy(dirControls.target); }   // OrbitControls own the camera
     updateHud(t);                        // the rating lower-third (🔴 Blunder · ✨ Brilliant · 🟢 Double check · 👑 Checkmate)
     view.tick();                         // gentle rim-light drift
@@ -282,7 +277,7 @@ if (section && canvas) {
     if (view.setFrontActive) view.setFrontActive(showFront);
     view.render();
     if (showFront) view.renderFront(frontCanvas);
-    frontCanvas.style.opacity = showFront ? String(exitFade) : '0';
+    frontCanvas.style.opacity = showFront ? String(exitFade * ctaScrollFade) : '0';
   }
 
   // build + render only while the section is anywhere near the viewport
@@ -296,13 +291,14 @@ if (section && canvas) {
   const flip = new IntersectionObserver((entries) => {
     entries.forEach((e) => {
       const on = e.isIntersecting;
-      document.body.classList.toggle('ending', on);
+      if (!on) document.body.classList.remove('ending');   // onScroll adds it as the lights go out (assemP > 0.75)
       active = on;
       if (on && view && !raf) loop();
       if (!on && e.intersectionRatio <= 0.01) { playing = false; navMode = false; navTag.classList.remove('show');
         flash.style.opacity = '0'; cta.style.opacity = '0'; cta.style.pointerEvents = 'none'; cutVeil.style.opacity = '0';
         lastShowFront = false; frontCanvas.style.opacity = '0'; if (view && view.setFrontActive) view.setFrontActive(false);
-        resetHole(); if (view && view.setLightup && !RM) view.setLightup(0); }   // don't let the flash/CTA/cut-veil/front piece linger + re-arm the light-up for the next visit
+        pauseAt = 0; ctaAnchor = null; ctaScrollFade = 1;
+        if (view && view.setAssembly && !RM) view.setAssembly(0); }   // don't let the flash/CTA/cut-veil/front piece linger + re-arm the assembly for the next visit
     });
   }, { threshold: [0, 0.01] });
   flip.observe(section);

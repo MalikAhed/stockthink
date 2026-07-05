@@ -10,8 +10,9 @@
    only needs room for the light-up entry + a comfortable beat to watch it, not a full scrub length. */
 .ender { position: relative; height: 220vh; }
 .ender-sticky { position: sticky; top: 0; height: 100vh; width: 100%; overflow: hidden; }
-/* now a <video> (was a WebGL canvas): cover-fit the viewport, start hidden (revealed under the veil) */
-.ender-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; opacity: 0; object-fit: cover; background: #000; }
+/* alpha WebGL canvas: TRANSPARENT background so the assembling set floats on the page itself;
+   the dark room is the scene's own clear colour, faded in by setAssembly (ender-scene.js) */
+.ender-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; opacity: 0; object-fit: cover; background: transparent; }
 /* 2D HUD layer (the rating lower-third mounts here); shares the canvas coord space */
 .ender-overlay { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
 
@@ -58,11 +59,8 @@
 .ender-eval.ev-mate .ev-fill { background: #ffffff; }
 .ender-eval.ev-mate .ev-num { color: #14150f; }
 
-/* the LIGHT-UP entry overlay (driven by ender.js): painted the page's own background colour with a
-   growing transparent hole — the pool of the bulb's light opening over the page. Lives INSIDE the
-   sticky (scrolls away with the section, so nothing fixed can linger). Replaces the old .ender-fade
-   black veil. Sits above the canvas + HUD overlay; the fixed CTA/flash layers stay far above it. */
-.ender-hole { position: absolute; inset: 0; z-index: 3; background: var(--bg); pointer-events: none; }
+/* (the entry is now the scroll-scrubbed ASSEMBLY — parts glide/fade onto the transparent canvas and
+   the dark room fades in via the scene's clear alpha; no page-level veil/overlay element remains) */
 
 /* the king-entrance fade veil (driven by ender.js cutFadeAt): fades the screen out/in around each king's
    drop. Sits above the canvas + HUD but below the scroll reveal veil (60) so the reveal still wins. */

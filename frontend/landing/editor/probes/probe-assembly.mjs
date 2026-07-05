@@ -1,17 +1,16 @@
-// Screenshot the LIGHT-UP entry (the coach → finale transition) at several MASTER-clock times m in
-// ONE Chrome session. Drives finale-stage.html: __setT(max(0, m - lead)) + __setM(m), so the frame
-// shows exactly what the live page renders inside the hole at that moment (the hole overlay itself is
-// DOM in ender.js — not visible here; this verifies the staged LIGHTING: sputter → cone/table → room).
-// Usage: GL=sw [PORT=5174] node editor/probes/probe-lightup.mjs <m1> <m2> ...
+// Screenshot the ASSEMBLY entry (the coach → finale transition) at several progress values p in ONE
+// Chrome session. Drives finale-stage.html: __setT(0) + __setP(p) — verifies the staged build:
+// table rises / lamp drops / board slides in / the dark room fades in around the set.
+// Pass values > 1 as GAME times instead (t = v, p = 1) to check late frames (e.g. the tableau).
+// Usage: GL=sw [PORT=5174] node editor/probes/probe-assembly.mjs <p_or_t ...>
 import { spawn } from 'node:child_process';
 import { mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import WebSocket from 'ws';
 const PORT = process.env.PORT || 5173;
-const LEAD = 3.4;   // keep in sync with LIGHTUP.lead in ender-scene.js
 const MS = process.argv.slice(2).map(Number).filter((n) => !Number.isNaN(n));
-const TIMES = MS.length ? MS : [0.2, 0.8, 1.2, 1.7, 2.4, 3.2, 4.6, 7.2];
+const TIMES = MS.length ? MS : [0.1, 0.3, 0.5, 0.7, 0.85, 1.0];
 const URL = `http://localhost:${PORT}/frontend/landing/editor/probes/finale-stage.html?t=0`;
 const DBG = 9323;
 const profile = mkdtempSync(join(tmpdir(), 'st-chrome-'));
@@ -37,10 +36,11 @@ const evalJS = async (e) => { const { result, exceptionDetails } = await send('R
     for (let i = 0; i < 60; i++) { await sleep(1000); status = await evalJS(`(window.__enderReady?'ready':(window.__enderErr?('ERR '+window.__enderErr):'wait'))`); if (status.startsWith('ready') || status.startsWith('ERR')) break; }
     console.log('STATUS:', status);
     for (const m of TIMES) {
-      await evalJS(`window.__setT(${Math.max(0, m - LEAD).toFixed(3)}); window.__setM(${m})`);
+      const asP = m <= 1;   // ≤1 → assembly progress; >1 → a game time with the set fully built
+      await evalJS(asP ? `window.__setT(0); window.__setP(${m})` : `window.__setT(${m}); window.__setP(1)`);
       await sleep(700);   // let a few rAF frames render the seeked state
       const { data } = await send('Page.captureScreenshot', { format: 'png' });
-      const out = `/tmp/st-lightup-m${String(m).replace('.', '_')}.png`;
+      const out = `/tmp/st-asm-${String(m).replace('.', '_')}.png`;
       writeFileSync(out, Buffer.from(data, 'base64'));
       console.log('saved ' + out);
     }
