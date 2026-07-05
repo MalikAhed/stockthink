@@ -6,6 +6,10 @@ for /work sessions). Past ~300 lines, /reflect compresses the oldest half into
 LESSONS.md. Entries below 2026-06-12p were migrated verbatim from
 self-improvement/improve/TRACKER.md's daily log (2026-06-12) — history is not rewritten.
 
+- **2026-07-05b** · /ui · Finale first-play jank killed: view.warmup() renders one frame of every beat
+  (compile + texture upload) while the canvas is CSS-invisible, then resets to t=0; front renderer warmed
+  too; scene builds at rootMargin 250% + idle-prebuild ~6s after load. Verified headless: warmup runs
+  clean (35.9s SwiftShader ≈ sub-second on GPU). First play now = second play.
 - **2026-07-05a** · /ui · Landing fast-edits round: big beat-1 gear shifted left 0.4 (covered the title);
   finale entry v2 — the radial light-up REPLACED by the scroll-scrubbed ASSEMBLY (alpha canvas; table/
   lamp/board glide+fade in from different directions over the page, lights-out at the end, fully

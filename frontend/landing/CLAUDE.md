@@ -189,6 +189,13 @@ WebGL / software GPU → `min`; saveData / deviceMemory≤2 / mobile / cores≤4
 - `fpsGate()` now takes NO arg — it reads `QUALITY.fpsCap` live (so a demotion tightens every loop at once).
   The old per-module `FPS` export is gone.
 
+**First-play jank = lazy shader compiles/texture uploads (2026-07-05).** The finale hitched at every
+first-seen object/effect until one full pass had rendered. Fix pattern: a `warmup()` on the scene —
+`renderer.compile` + render ONE frame of every beat while the canvas is still CSS-invisible, then reset
+to t=0 (safe because frame(t) is pure). The controller warms the front-layer renderer too, builds the
+scene at `rootMargin 250%` AND idle-prebuilds ~6s after load. Any new heavy scene should warm up the same way
+(the hero already does — `warmUpRender` in scene.js).
+
 **Three.js "faster WITHOUT lowering quality" (reusable, the standard pro moves — pixel-identical output):**
 - **Never re-bake the shadow map every frame.** A shadow pass re-renders every caster from the light's POV —
   as costly as a second scene. Set `renderer.shadowMap.autoUpdate = false` and drive `needsUpdate` yourself

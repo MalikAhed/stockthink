@@ -233,6 +233,12 @@ if (section && canvas) {
       const { createEnderScene } = await import('./ender-scene.js');
       view = await createEnderScene(canvas);
       view.resize();
+      // WARM-UP while the canvas is still invisible: render one frame of every beat so all shaders
+      // compile + textures upload NOW — the first live play used to hitch at every arrival/effect.
+      if (view.warmup) view.warmup();
+      if (view.frontPieces && view.frontPieces.length) {   // …and the front-of-text layer's own renderer
+        view.setFrontActive(true); view.renderFront(frontCanvas); view.setFrontActive(false);
+      }
       canvas.style.opacity = '1';   // the canvas is alpha:true — the scene itself is empty until the assembly scrub builds it
       if (import.meta.env.DEV) window.__ender = view;   // dev-only handle (the camera-director tool is disabled)
       void initDirector;   // (kept but not mounted — the directing is done in-code now)
@@ -280,11 +286,14 @@ if (section && canvas) {
     frontCanvas.style.opacity = showFront ? String(exitFade * ctaScrollFade) : '0';
   }
 
-  // build + render only while the section is anywhere near the viewport
+  // build EARLY (~2.5 screens out) so GLB parse + shader warm-up never land mid-approach…
   const near = new IntersectionObserver((entries) => {
     entries.forEach((e) => { if (e.isIntersecting) ensureScene(); });
-  }, { rootMargin: '60% 0px' });
+  }, { rootMargin: '250% 0px' });
   near.observe(section);
+  // …and idle-prebuild regardless: ~6s after load (once the intro has settled), so by the time the
+  // user scrolls down here everything is parsed, compiled and uploaded — first play = second play.
+  setTimeout(() => { if (window.requestIdleCallback) requestIdleCallback(() => ensureScene(), { timeout: 8000 }); else setTimeout(() => ensureScene(), 300); }, 6000);
 
   // theme flip: as soon as the finale is on screen, fade the page to black + hide the chrome.
   // On full exit, re-arm the clock so the rain replays the next time you scroll back in.

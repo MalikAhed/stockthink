@@ -1580,6 +1580,22 @@ export async function createEnderScene(canvas) {
     _sizeHeatRT();    // keep the heat render-target matched to the drawing buffer
     _resizeFront();   // keep the front-of-text canvas matched to the viewport
   }
+  // ---- WARM-UP: kill the first-play jank ----------------------------------------------------------
+  // Shader programs compile and textures upload lazily on an object's FIRST rendered frame, so the
+  // first pass through the cinematic used to hitch at every arrival (each piece, the flare, the beams,
+  // the mushroom, the heat-haze pass). Render ONE frame of every beat now, while the canvas is still
+  // invisible (CSS opacity 0), then reset to t=0 — frame(t) is a pure function of t, so this is safe.
+  function warmup() {
+    renderer.compile(scene, camera);
+    const beats = [0, 1.6, FO_A_S + 0.3, BLACK_KING_AT + 0.3,          // rain · king cut shots
+      MOVES[0].at + 0.5, MOVES[1].at + 0.9,                            // blunder glow · sacrifice flare
+      MOVES[3].at + 0.8, MOVES[5].at + 0.4,                            // double-check beams · mate
+      BUILD_AT + 0.5, EXPLODE_AT + 0.3, EXPLODE_AT + 1.4,              // king fall · fireball/mushroom · heat haze + whiteout
+      EXPLODE_AT + 5.0, DURATION - 0.5];                               // hero backdrop · settled tableau
+    for (const t of beats) { frame(t); render(); }
+    frame(0); render();                                                // leave it clean at the start
+  }
+
   // gentle rim drift so the metal/marble never sits dead-still
   let _t = 0;
   function tick() {
@@ -1591,7 +1607,7 @@ export async function createEnderScene(canvas) {
 
   return {
     scene, camera, renderer, lookTarget, render, resize, tick, setShot, frame, badgeAt, evalAt, cutFadeAt, flashAt, flashGrowAt, ctaAt, setDirector, scenes: SCENES, duration: DURATION,
-    setAssembly,
+    setAssembly, warmup,
     frontPieces: _frontPieces, setFrontActive, renderFront,
     pieces: boardData.pieces, GRID: boardData.GRID, squareXYZ: boardData.squareXYZ,
     refs: { spot, wash, beam, VolMat, fog: scene.fog, bulbGlass, amb, coolRim, cyanRim, warmRim, lampGroup, boardRoot: boardData.root, rookBeam, bishopBeam },
