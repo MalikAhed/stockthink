@@ -1317,10 +1317,10 @@ export async function createEnderScene(canvas) {
   // black pieces GLIDE into the FOREGROUND and settle here; every OTHER piece is blown clean out of frame.
   // pos = parent-local position · rotDeg = local XYZ euler (degrees) · front = renders IN FRONT of the CTA text.
   const TABLEAU = [
-    { sq: 'a8', pos: [1.34, 0.9, 2.59],  rot: [-9, 46, -28] },                  // black rook
+    { sq: 'a8', pos: [1.04, 1.15, 2.59],  rot: [-9, 46, -28] },                 // black rook — nudged up + left
     { sq: 'b8', pos: [3.6, 0.42, 3.76],  rot: [14, -17, 2] },                   // black knight
     { sq: 'c8', pos: [4.25, 1.08, 2.24], rot: [-180, -88, 34] },                // black bishop
-    { sq: 'f6', pos: [3.05, 0.29, 1.02], rot: [136, 32, -148], front: true },   // black knight — nudged right so it clears the brilliant ✨ svg in the headline
+    { sq: 'f6', pos: [2.75, 0.29, 1.02], rot: [136, 32, -148], front: true },   // black knight — nudged left
   ];
   const _D2R = Math.PI / 180, _frontPieces = [], _tabByPiece = new Map();
   for (const spec of TABLEAU) {
@@ -1606,7 +1606,7 @@ export async function createEnderScene(canvas) {
   }
 
   return {
-    scene, camera, renderer, lookTarget, render, resize, tick, setShot, frame, badgeAt, evalAt, cutFadeAt, flashAt, flashGrowAt, ctaAt, setDirector, scenes: SCENES, duration: DURATION,
+    scene, camera, renderer, lookTarget, render, resize, tick, setShot, frame, badgeAt, evalAt, cutFadeAt, flashAt, flashGrowAt, ctaAt, setDirector, scenes: SCENES, duration: DURATION, explodeAt: EXPLODE_AT,
     setAssembly, warmup,
     frontPieces: _frontPieces, setFrontActive, renderFront,
     pieces: boardData.pieces, GRID: boardData.GRID, squareXYZ: boardData.squareXYZ,

@@ -124,7 +124,9 @@ if (section && canvas) {
     }
     // the eval bar: fades in once the board is set (just before the first move), then tracks evalAt(t)
     if (evalBar && view.evalAt) {
-      evalBar.style.opacity = String(clamp01((t - 8.0) / 0.8));   // fade in after the king entrances settle (just before the blunder)
+      const evIn = clamp01((t - 8.0) / 0.8);                       // fade in after the king entrances settle (just before the blunder)
+      const evOut = view.explodeAt ? clamp01((t - (view.explodeAt - 0.3)) / 0.4) : 0;   // vanish as the explosion hits
+      evalBar.style.opacity = String(evIn * (1 - evOut));
       const e = view.evalAt(t);
       evFill.style.height = (e.fill * 100).toFixed(2) + '%';
       evalBar.classList.toggle('ev-mate', e.mate);

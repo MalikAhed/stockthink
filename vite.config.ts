@@ -64,7 +64,10 @@ export default defineConfig(({ mode }) => ({
     // away from the analysis bundle so its 3D assets never load on the app itself).
     rollupOptions: {
       input: {
+        // root index.html redirects to the landing page (the marketing front door);
+        // the analysis app itself lives at /stockthink/app.html.
         main: fileURLToPath(new URL('./index.html', import.meta.url)),
+        app: fileURLToPath(new URL('./app.html', import.meta.url)),
         landing: fileURLToPath(new URL('./frontend/landing/index.html', import.meta.url)),
       },
     },

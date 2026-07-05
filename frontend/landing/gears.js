@@ -20,9 +20,9 @@ const SPIN={ idle:0.0025, scrollK:0.0018, resume:0.12 };
 // ---- the gears (locked-in layout) ----
 const GEARS=[
   { x:-2.15, y: 2.0, z:-0.6, s:2.4, dir: 1, spin:1.00, front:true },   // shifted left 0.4 — was covering the title text
-  { x:-3.25, y: 2.35, z: 0.05, s:1.4, dir:-1, spin:1.30, front:true },
-  { x:-5.95, y: 0.25, z: 4.0, s:2.7, dir:-1, spin:1.60, front:true },
-  { x:-2.35, y: 0.45, z:-0.65, s:1.05, dir:-1, spin:1.40, front:true },
+  { x:-3.65, y: 2.35, z: 0.05, s:1.4, dir:-1, spin:1.30, front:true },
+  { x:-6.35, y: 0.25, z: 4.0, s:2.7, dir:-1, spin:1.60, front:true },
+  { x:-2.35, y: 0.35, z:-0.25, s:1.05, dir:-1, spin:1.40, front:true },
 ];
 
 let GEAR=null;
