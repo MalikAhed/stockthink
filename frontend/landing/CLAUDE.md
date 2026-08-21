@@ -195,6 +195,16 @@ first-seen object/effect until one full pass had rendered. Fix pattern: a `warmu
 to t=0 (safe because frame(t) is pure). The controller warms the front-layer renderer too, builds the
 scene at `rootMargin 250%` AND idle-prebuilds ~6s after load. Any new heavy scene should warm up the same way
 (the hero already does — `warmUpRender` in scene.js).
+  - **CAVEAT — "reset to t=0" is NOT automatically clean for captured-piece DISSOLVE state (2026-07-11 bug).**
+    frame(t) is only pure for state written EVERY frame. The queen/king dissolve (`setDissolve` → `uDis`) is
+    written ONLY inside its move window (`setCapture` runs only when `t≥m.at`), and `frame(0)` skips `setMoves`
+    (`t<MOVE_START`) — so warmup's late beats (Kxd8 t≈18.4, mate, detonation) left the queen at `uDis=1` and
+    the final `frame(0)` never reset it. Result: the queen's shader DISCARDED every fragment (invisible, even
+    though `.visible=true`) from load until her capture window at t≈15.2 — she "popped in" only when the king
+    took her. Fix: warmup explicitly `setDissolve(MOVES[2].cap_g,0)` + `setDissolve(_theKing,0)` before its
+    trailing `frame(0)`. Lesson: after any warmup that touches window-gated state, RESET that state by hand —
+    don't trust `frame(0)`. (Offline render never warms up + walks t upward, so uDis stays 0 there — this only
+    bit the live path.) Proven via the A/B CDP probe: old-warmup-sim → `uDis:1`, fixed warmup → `uDis:0`.
 
 **Three.js "faster WITHOUT lowering quality" (reusable, the standard pro moves — pixel-identical output):**
 - **Never re-bake the shadow map every frame.** A shadow pass re-renders every caster from the light's POV —
@@ -243,6 +253,10 @@ add red accent lines or any flourish he didn't ask for · over-plan a fix I can 
 show a screenshot unprompted.
 
 ## Mistakes to avoid (real bugs, kept for immunity)
+- **Asset paths assembled inside JavaScript strings are invisible to Vite's production bundler** — Beat 2's
+  dock used literal `./icons/dock/...` strings, so dev worked but the files were absent from the Pages build.
+  For module-owned local artwork, use a separate static `new URL('./path', import.meta.url).href` for each
+  asset; Vite can then fingerprint, emit, and base-prefix it. Verify the built DOM URLs and HTTP responses.
 - **Overlapping ASYNC scene builds orphan objects** — ui.js re-applies a saved theme at boot, so
   setHeroTheme's buildBackPieces raced the initial one; the loser added a SECOND rook nothing ever
   animated/removed (the "ghost rook until refresh"). Any async build that adds to a scene needs a

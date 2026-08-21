@@ -12,6 +12,15 @@ import { Reel, Scrubber } from './scrub.js';
   if (!stage) return;
   const RMQ = matchMedia('(prefers-reduced-motion:reduce)');
   const NEO = 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150';
+  // Keep local artwork visible in production. These must be static `new URL()` calls so Vite
+  // fingerprints and copies the files instead of leaving page-relative paths inside JS strings.
+  const ICONS = {
+    finder: new URL('./icons/dock/finder.png', import.meta.url).href,
+    vscode: new URL('./icons/dock/vscode.svg', import.meta.url).href,
+    chrome: new URL('./icons/dock/chrome.svg', import.meta.url).href,
+    terminal: new URL('./icons/dock/terminal.svg', import.meta.url).href,
+    blunder: new URL('./icons/blunder.svg', import.meta.url).href,
+  };
   const CHAR = 9, ROW_STEP = 85, SCORE_STEP = 360;
 
   // A real Stockfish UCI session — launch, set the position, search, get the eval + best move.
@@ -101,10 +110,10 @@ import { Reel, Scrubber } from './scrub.js';
     desk.appendChild(vscode);
     // macOS-style dock along the bottom — real app logos, then StockThink (our brand)
     desk.appendChild(mk('div', 'n2r-dock',
-      '<img class="n2r-dapp" src="./icons/dock/finder.png" alt="Finder">'
-      + '<img class="n2r-dapp" src="./icons/dock/vscode.svg" alt="VS Code">'
-      + '<img class="n2r-dapp" src="./icons/dock/chrome.svg" alt="Chrome">'
-      + '<img class="n2r-dapp" src="./icons/dock/terminal.svg" alt="Terminal">'
+      '<img class="n2r-dapp" src="' + ICONS.finder + '" alt="Finder">'
+      + '<img class="n2r-dapp" src="' + ICONS.vscode + '" alt="VS Code">'
+      + '<img class="n2r-dapp" src="' + ICONS.chrome + '" alt="Chrome">'
+      + '<img class="n2r-dapp" src="' + ICONS.terminal + '" alt="Terminal">'
       + '<span class="n2r-dsep"></span><span class="n2r-dapp stock">&#9822;</span>'));
     world.appendChild(desk);
     jsonRow = vscode.querySelector('#n2rJsonRow'); jsonTab = vscode.querySelector('#n2rJsonTab');
@@ -133,14 +142,14 @@ import { Reel, Scrubber } from './scrub.js';
       + '<div class="n2r-acard n2r-aexplain">'
       + '<div class="n2r-ach2">Review</div>'
       + '<div class="n2r-askel"><i></i><i></i><i></i></div>'
-      + '<div class="n2r-ahead"><img class="n2r-aico" src="./icons/blunder.svg" alt="blunder"><span class="n2r-atitle">Blunder</span>'
+      + '<div class="n2r-ahead"><img class="n2r-aico" src="' + ICONS.blunder + '" alt="blunder"><span class="n2r-atitle">Blunder</span>'
       + '<span class="n2r-amove"><img src="' + NEO + '/bb.png" alt="">Bd6</span></div>'
       + '<div class="n2r-abody">Your bishop is <b>pinned</b> — it can’t move without losing the queen behind it, so it’s as good as lost.</div>'
       + '</div>'
       + '<div class="n2r-acard n2r-amoves"><div class="n2r-ach">Moves</div><div class="n2r-amllist">'
       + '<div class="n2r-mlrow"><span class="n2r-mlnum">16</span><span class="n2r-mlw">Rd1</span><span class="n2r-mlb">Qd8</span></div>'
       + '<div class="n2r-mlrow"><span class="n2r-mlnum">17</span><span class="n2r-mlw">e4</span>'
-      + '<span class="n2r-mlb blun"><img src="' + NEO + '/bb.png" alt="">Bd6<img class="n2r-mlbadge" src="./icons/blunder.svg" alt=""></span></div>'
+      + '<span class="n2r-mlb blun"><img src="' + NEO + '/bb.png" alt="">Bd6<img class="n2r-mlbadge" src="' + ICONS.blunder + '" alt=""></span></div>'
       + '</div></div>'
       + '<div class="n2r-acard n2r-agraph"><div class="n2r-ach">Eval history</div>'
       + '<svg class="n2r-agsvg" viewBox="0 0 100 30" preserveAspectRatio="none">'

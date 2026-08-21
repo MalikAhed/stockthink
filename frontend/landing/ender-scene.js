@@ -1593,6 +1593,13 @@ export async function createEnderScene(canvas) {
       BUILD_AT + 0.5, EXPLODE_AT + 0.3, EXPLODE_AT + 1.4,              // king fall · fireball/mushroom · heat haze + whiteout
       EXPLODE_AT + 5.0, DURATION - 0.5];                               // hero backdrop · settled tableau
     for (const t of beats) { frame(t); render(); }
+    // the late beats above dissolve the captured queen (Kxd8) + the king to uDis=1 / visible=false. frame(0)
+    // does NOT run setMoves (t<MOVE_START), so it never resets their dissolve → on the LIVE path they stay
+    // fully DISCARDED by the shader (invisible) until their own move window rewrites uDis. Un-dissolve them
+    // here; the trailing frame(0) then re-asserts the correct `visible` via setIntro/setKing. (The offline
+    // render never warms up + walks t upward from 0, so uDis is already 0 there — this only bites live.)
+    if (FX.dissolveQueen && MOVES[2].cap_g) setDissolve(MOVES[2].cap_g, 0);
+    if (FX.dissolveKing && _theKing) setDissolve(_theKing, 0);
     frame(0); render();                                                // leave it clean at the start
   }
 
