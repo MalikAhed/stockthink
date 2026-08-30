@@ -8,11 +8,9 @@ window.gsap = gsap;
 
 await import('./pieces.js');
 
-// ---- preloader dismissal — INDEPENDENT of the 3D hero --------------------------------------------
-// The #load curtain is normally dismissed by scene.js once the hero is warmed up. But on weak devices
-// the hero never loads (QUALITY.hero === false), so that dismissal never runs and the page sticks at
-// 0% forever. So own a dismissal here too. It's idempotent with scene.js's (adding `.done` twice is a
-// no-op), and a backstop timer guarantees the curtain can never trap the page if the hero path hangs.
+// ---- preloader dismissal for the explicit DOM-only fallback -------------------------------------
+// A successful 3D boot is dismissed only by scene.js after strict asset + GPU readiness. This helper
+// exists for devices without WebGL and for genuine load failures, where no piece animation will run.
 function dismissLoader() {
   const load = document.getElementById('load');
   if (!load || load.classList.contains('done')) return;
@@ -24,10 +22,6 @@ function dismissLoader() {
   // the 100% paint for a beat before the CSS opacity fade. Idempotent guard above makes double-calls safe.
   setTimeout(() => load.classList.add('done'), 200);
 }
-// Backstop: never let the curtain trap the page. If anything in the hero preloader stalls (slow GLB
-// fetch on a weak connection, decoder hiccup), force the page visible after a bounded wait — no tier.
-setTimeout(dismissLoader, 9000);
-
 // The 3D hero is the heaviest thing on the page (two full-screen WebGL contexts). It needs WebGL AND a
 // device that can afford it. The perf manager decides: on weak devices QUALITY.hero is false, so we skip
 // it entirely and fall back to the static wordmark — the same fallback used when WebGL can't initialise.

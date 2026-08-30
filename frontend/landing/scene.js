@@ -22,25 +22,42 @@ const key=new THREE.DirectionalLight(0xffffff,2.6); key.position.set(5,7,7); sce
 const amberRim=new THREE.DirectionalLight(0xfdb153,1.3); amberRim.position.set(-4,1,-3); scene.add(amberRim);
 const coolFill=new THREE.DirectionalLight(0x9fb8d0,0.55); coolFill.position.set(-5,3,4); scene.add(coolFill);
 
-import('three/addons/environments/RoomEnvironment.js').then(({RoomEnvironment})=>{
-  const pmrem=new THREE.PMREMGenerator(renderer);
-  scene.environment=pmrem.fromScene(new RoomEnvironment(),0.04).texture;
-  scene.environmentIntensity=0.5;
-});
-
 const _tl=new THREE.TextureLoader();
-function tex(uri,srgb){const t=_tl.load(uri);t.flipY=false;t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=4;if(srgb)t.colorSpace=THREE.SRGBColorSpace;return t;}
+const textureCache=new Map();
+const texturePromises=new Map();
+function textureKey(uri,srgb){ return `${uri}|${srgb?'srgb':'linear'}`; }
+function configureTexture(t,srgb){ t.flipY=false;t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=4;if(srgb)t.colorSpace=THREE.SRGBColorSpace;return t; }
+async function ensureTexture(uri,srgb){
+  const key=textureKey(uri,srgb);
+  if(textureCache.has(key)) return textureCache.get(key);
+  if(!texturePromises.has(key)){
+    const pending=_tl.loadAsync(uri).then(async(t)=>{
+      // TextureLoader resolves on image load, but decode() is the stronger guarantee that the JPEG is
+      // fully decompressed before we ask either WebGL context to upload it.
+      if(t.image && typeof t.image.decode==='function') await t.image.decode();
+      configureTexture(t,srgb); textureCache.set(key,t); return t;
+    }).catch((err)=>{ texturePromises.delete(key); throw err; });
+    texturePromises.set(key,pending);
+  }
+  return texturePromises.get(key);
+}
+function tex(uri,srgb){
+  const t=textureCache.get(textureKey(uri,srgb));
+  if(!t) throw new Error(`Texture used before preload completed: ${uri}`);
+  return t;
+}
 function blackMat(P){ return new THREE.MeshStandardMaterial({ map:tex(P.base,true),normalMap:tex(P.nrm,false),roughnessMap:tex(P.mr,false),metalnessMap:tex(P.mr,false),color:new THREE.Color(0x161616),roughness:0.34,metalness:0.5,envMapIntensity:1.0 }); }
 function whiteMat(P){ return new THREE.MeshStandardMaterial({ normalMap:tex(P.nrm,false),roughnessMap:tex(P.mr,false),color:new THREE.Color(0.82,0.77,0.66),roughness:0.34,metalness:0.05,envMapIntensity:0.9 }); }
 
-function b64ToBuf(b){const s=atob(b),n=s.length,a=new Uint8Array(n);for(let i=0;i<n;i++)a[i]=s.charCodeAt(i);return a.buffer;}
 const loader=new GLTFLoader();
 const geoCache={};   // type -> normalized Object3D (centered, base at y=0, unit height)
+const geoPromises={};
 
 let pieceGroup=null;     // the on-screen piece wrapper
 let activeMat=null;      // current piece material (for live editing)
 let currentType='king';
 let isLight=false;       // default DARK theme
+try{ isLight=localStorage.getItem('st-theme')==='light'; if(isLight) document.body.classList.add('light'); }catch(e){}
 let HERO_HEIGHT=4.6;   // world height the piece occupies
 // live-adjustable transform (editable via panel)
 const T={ posX:0.35, posY:1.8, posZ:1.7, scale:0.7, rotX:0, rotY:2.62, rotZ:0, camZ:10.3, fov:34 };
@@ -72,16 +89,30 @@ function syncRenderSliders(){
 
 async function ensureGeo(type){
   if(geoCache[type]) return geoCache[type];
+  if(!geoPromises[type]){
+    const P=window.PIECES[type];
+    geoPromises[type]=(async()=>{
+      const gltf=await loader.loadAsync(P.glb);   // load + meshopt decode + GLTF parse
+      const m=gltf.scene;
+      // normalize: center X/Z, base to y=0
+      let bx=new THREE.Box3().setFromObject(m); let c=bx.getCenter(new THREE.Vector3());
+      m.position.x-=c.x; m.position.z-=c.z; m.position.y-=bx.min.y;
+      // measure unit height
+      let bx2=new THREE.Box3().setFromObject(m); let sz=bx2.getSize(new THREE.Vector3());
+      geoCache[type]={ obj:m, height:sz.y };
+      return geoCache[type];
+    })().catch((err)=>{ delete geoPromises[type]; throw err; });
+  }
+  return geoPromises[type];
+}
+async function ensurePieceAssets(type){
   const P=window.PIECES[type];
-  const gltf=await loader.loadAsync(P.glb);   // assets are real files now (see pieces.js)
-  const m=gltf.scene;
-  // normalize: center X/Z, base to y=0
-  let bx=new THREE.Box3().setFromObject(m); let c=bx.getCenter(new THREE.Vector3());
-  m.position.x-=c.x; m.position.z-=c.z; m.position.y-=bx.min.y;
-  // measure unit height
-  let bx2=new THREE.Box3().setFromObject(m); let sz=bx2.getSize(new THREE.Vector3());
-  geoCache[type]={ obj:m, height:sz.y };
-  return geoCache[type];
+  await Promise.all([
+    ensureGeo(type),
+    ensureTexture(P.base,true),
+    ensureTexture(P.nrm,false),
+    ensureTexture(P.mr,false),
+  ]);
 }
 
 // Generation tokens: overlapping async builds (a theme toggle firing while the initial GLB load is
@@ -93,7 +124,8 @@ async function setPiece(type){
   currentType=type;
   const gen=++pieceGen;
   const P=window.PIECES[type];
-  const g=await ensureGeo(type);
+  await ensurePieceAssets(type);
+  const g=geoCache[type];
   if(gen!==pieceGen) return;   // a newer setPiece superseded this one mid-load
   // remove old
   if(pieceGroup){ scene.remove(pieceGroup); pieceGroup=null; }
@@ -174,17 +206,31 @@ const camB=new THREE.PerspectiveCamera(34,innerWidth/innerHeight,0.1,100); camB.
 sceneB.add(new THREE.HemisphereLight(0xffffff,0x141414,0.5));
 const keyB=new THREE.DirectionalLight(0xffffff,2.2); keyB.position.set(5,7,7); sceneB.add(keyB);
 const amberB=new THREE.DirectionalLight(0xfdb153,1.0); amberB.position.set(-4,1,-3); sceneB.add(amberB);
-import('three/addons/environments/RoomEnvironment.js').then(({RoomEnvironment})=>{
-  const pm=new THREE.PMREMGenerator(rendererB); sceneB.environment=pm.fromScene(new RoomEnvironment(),0.04).texture; sceneB.environmentIntensity=0.4;
-});
+const environmentTargets=[];
+async function prepareEnvironments(){
+  const {RoomEnvironment}=await import('three/addons/environments/RoomEnvironment.js');
+  const make=(targetRenderer,intensity,targetScene)=>{
+    const pmrem=new THREE.PMREMGenerator(targetRenderer);
+    pmrem.compileCubemapShader();
+    const room=new RoomEnvironment();
+    const target=pmrem.fromScene(room,0.04);
+    environmentTargets.push(target); // keep the render target alive for as long as the scenes use it
+    targetScene.environment=target.texture;
+    targetScene.environmentIntensity=intensity;
+    room.dispose(); pmrem.dispose();
+  };
+  make(renderer,0.5,scene);
+  make(rendererB,0.4,sceneB);
+}
 // transforms for the two bg pieces (editable)
 const TB={ posX:-5.55, posY:2.35, posZ:-1, scale:0.68, rotX:0.62, rotY:-1.3, rotZ:0 };  // bishop
 const TR={ posX: 6.15, posY:-0.35, posZ:-2.4, scale:0.62, rotX:0.4, rotY:0.32, rotZ:0 };  // rook
 let bishopG=null, rookG=null;
 async function buildBackPieces(){
   const gen=++backGen;
-  const gb=await ensureGeo('bishop');
-  const gr=await ensureGeo('rook');
+  await Promise.all([ensurePieceAssets('bishop'),ensurePieceAssets('rook')]);
+  const gb=geoCache.bishop;
+  const gr=geoCache.rook;
   if(gen!==backGen) return;    // superseded mid-load (theme toggled) — the newer call owns the scene
   if(bishopG){ sceneB.remove(bishopG); bishopG=null; }
   if(rookG){ scene.remove(rookG); rookG=null; }
@@ -219,9 +265,6 @@ window.introPieces=()=>{
   if(window.gsap) gsap.to(window.__intro,{v:1,duration:1.4,ease:"power3.out",delay:0.3,onUpdate:()=>{introScale=window.__intro.v;}});
   else introScale=1;
 };
-// Safety: if the loader→intro handoff is ever lost, still show the pieces — but ONLY
-// if the intro never started, so this can never fight the grow-in tween.
-setTimeout(()=>{ if(!introStarted && introScale<0.99){ introScale=1; introStarted=true; } }, 4000);
 window.setBackTransform=(which,k,v)=>{ (which==='bishop'?TB:TR)[k]=v; applyBack(); };
 window.getBackTransform=()=>({bishop:JSON.parse(JSON.stringify(TB)),rook:JSON.parse(JSON.stringify(TR))});
 
@@ -241,44 +284,80 @@ function setProgress(p){
   if(W){ const sp=W.children, n=Math.round(_progress*sp.length); for(let i=0;i<sp.length;i++) sp[i].classList.toggle('lit', i<n); }
 }
 
-MeshoptDecoder.ready.then(async()=>{
+async function warmUpHero(){
+  const savedScale=introScale;
+  introScale=1;
+  applyBack();
+  if(pieceGroup){ pieceGroup.scale.setScalar(T.scale); pieceGroup.visible=true; }
+  if(activeMat) activeMat.opacity=1;
+  if(bishopG){ bishopG.visible=true; if(bishopG.userData.mat) bishopG.userData.mat.opacity=1; }
+  if(rookG){ rookG.visible=true; if(rookG.userData.mat) rookG.userData.mat.opacity=1; }
+
+  // compileAsync waits for parallel shader compilation when the browser exposes it. The rendered
+  // frames then force real texture uploads, VAO creation, and draw submission in both WebGL contexts.
+  const compiles=[];
+  if(renderer.compileAsync) compiles.push(renderer.compileAsync(scene,camera));
+  else renderer.compile(scene,camera);
+  if(rendererB.compileAsync) compiles.push(rendererB.compileAsync(sceneB,camB));
+  else rendererB.compile(sceneB,camB);
+  await Promise.all(compiles);
+  for(let k=0;k<6;k++){
+    rendererB.render(sceneB,camB);
+    renderer.render(scene,camera);
+    await new Promise((resolve)=>requestAnimationFrame(resolve));
+  }
+  // Do not drop the curtain while uploads/compiles are still queued on the GPU.
+  try{ renderer.getContext().finish(); rendererB.getContext().finish(); }catch(e){}
+
+  introScale=savedScale;
+  applyBack();
+  if(pieceGroup) pieceGroup.scale.setScalar(T.scale*Math.max(savedScale,0.001));
+}
+
+await (async()=>{
+  // Nothing below this gate (including initScroll) executes until every piece model and texture is
+  // downloaded, decoded, parsed, instantiated where needed, shader-compiled, uploaded, and rendered.
+  await MeshoptDecoder.ready;
   loader.setMeshoptDecoder(MeshoptDecoder);
-  setProgress(0.1);
+  setProgress(0.08);
   // 1) wait for fonts so text doesn't reflow/flash
   try{ if(document.fonts && document.fonts.ready) await document.fonts.ready; }catch(e){}
-  setProgress(0.25);
-  // 2) build the main knight
+  setProgress(0.16);
+  // 2) preload and preprocess every chess piece, not only the three visible in the hero
+  const types=Object.keys(window.PIECES);
+  let readyCount=0;
+  await Promise.all(types.map(async(type)=>{
+    await ensurePieceAssets(type);
+    readyCount++;
+    setProgress(0.16+(readyCount/types.length)*0.42);
+  }));
+  // 3) create both environment maps before materials are compiled
+  await prepareEnvironments();
+  setProgress(0.66);
+  // 4) instantiate the main knight
   await setPiece(window.HERO_PIECE||'king');
-  setProgress(0.55);
-  // 3) build bishop + rook
+  setProgress(0.75);
+  // 5) instantiate bishop + rook
   await buildBackPieces();
-  setProgress(0.8);
-  // 4) apply render preset
+  setProgress(0.84);
+  // 6) apply render preset
   loadRenderPreset(isLight?'light':'dark');
-  setProgress(0.92);
-  // 5) WARM UP the GPU: force several real renders of BOTH scenes while the loader is still up,
-  //    so shader compilation + texture uploads happen now (not during the intro -> no stutter).
-  if(window.warmUpRender){
-    const _is=introScale; introScale=1;   // temporarily full-size so all piece shaders compile
-    for(let k=0;k<8;k++){
-      window.warmUpRender();
-      await new Promise(r=>requestAnimationFrame(r));
-    }
-    introScale=_is;   // restore (intro will grow them in)
-  }
+  setProgress(0.9);
+  // 7) finish shader compilation and GPU uploads under the loader
+  await warmUpHero();
   setProgress(1.0);
-  // 6) hold a beat so progress reads 100%, then reveal
+  // 8) hold a beat so progress reads 100%, then reveal
   await new Promise(r=>setTimeout(r,300));
   const loadEl=document.getElementById('load');
   if(loadEl) loadEl.classList.add('done');
+  // Let the fade begin only after all prep is complete, then start the intro underneath it.
+  await new Promise(r=>setTimeout(r,200));
   window.HERO_READY=true;
-  // start the intro AS the loader fades (loader fade is 0.8s) for a seamless handoff
-  setTimeout(()=>{ if(window.onHeroReady) window.onHeroReady(); }, 200);
-});
+})();
 
 // expose controls
 window.setHeroPiece=(type)=>{ setPiece(type); };
-window.setHeroTheme=(light)=>{ isLight=light; loadRenderPreset(light?"light":"dark"); if(pieceGroup) setPiece(currentType);
+window.setHeroTheme=(light)=>{ if(isLight===light){ loadRenderPreset(light?"light":"dark"); return; } isLight=light; loadRenderPreset(light?"light":"dark"); if(pieceGroup) setPiece(currentType);
   // rebuild bishop+rook so their color follows the theme (white on dark, black on light);
   // buildBackPieces removes the existing groups itself and is generation-guarded against overlap
   buildBackPieces();
@@ -364,15 +443,17 @@ function initScroll(){
     gsap.set('#cardFrame', {scale:0.985, opacity:0});
     gsap.set('.wordmark .w', {yPercent:115, opacity:0, filter:'blur(8px)'});
     gsap.set('#tagline', {y:24, opacity:0});
+    gsap.set('.hero-cta', {y:16, opacity:0});
     gsap.set('nav', {y:-30, opacity:0});
     gsap.set('.meta', {opacity:0});
     const tl=gsap.timeline({defaults:{ease:'power3.out'}, delay:0.15});
     tl.to('#cardFrame', {scale:1, opacity:1, duration:1.0, ease:'power2.out'})
       .to('.wordmark .w', {yPercent:0, opacity:1, filter:'blur(0px)', duration:1.15, stagger:0.14, ease:'expo.out'}, '-=0.6')
       .to('#tagline', {y:0, opacity:1, duration:0.9}, '-=0.55')
+      .to('.hero-cta', {y:0, opacity:1, duration:0.75}, '-=0.65')
       .to('nav', {y:0, opacity:1, duration:0.8}, '-=0.8')
       .to('.meta', {opacity:1, duration:0.9, stagger:0.1}, '-=0.6')
-      .add(()=>{ gsap.set(['.wordmark','.wordmark .w','#tagline','nav'], {clearProps:'all'}); });
+      .add(()=>{ gsap.set(['.wordmark','.wordmark .w','#tagline','.hero-cta','nav'], {clearProps:'all'}); });
   } else {
     document.body.classList.remove("pre-intro");
   }
