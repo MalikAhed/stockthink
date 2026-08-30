@@ -63,10 +63,12 @@ function detectTier() {
 // at boot; if real frames jank, the watchdog demotes in the user's priority order (hero dropped FIRST,
 // gears last). So "drop the hero on weak devices" is now a measured, live decision — not a boot guess.
 const PRESETS = {
-  min:  { dpr: 1.0,  antialias: false, fpsCap: 30, hero: false, gears: false, cinema: false },
-  low:  { dpr: 1.0,  antialias: false, fpsCap: 30, hero: true,  gears: true,  cinema: true  },
-  mid:  { dpr: 1.25, antialias: false, fpsCap: 36, hero: true,  gears: true,  cinema: true  },
-  high: { dpr: 1.5,  antialias: true,  fpsCap: 45, hero: true,  gears: true,  cinema: true  },
+  // maxPixels caps the DRAWING BUFFER, not the CSS size. This protects ultrawide and high-DPR screens:
+  // a 2560×1080 canvas at DPR 1.5 would otherwise draw 6.2m pixels PER renderer, and the hero has two.
+  min:  { dpr: 1.0,  maxPixels: 1_000_000, antialias: false, fpsCap: 30, hero: false, gears: false, cinema: false },
+  low:  { dpr: 1.0,  maxPixels: 1_450_000, antialias: false, fpsCap: 30, hero: true,  gears: true,  cinema: true  },
+  mid:  { dpr: 1.25, maxPixels: 2_500_000, antialias: false, fpsCap: 36, hero: true,  gears: true,  cinema: true  },
+  high: { dpr: 1.5,  maxPixels: 3_700_000, antialias: true,  fpsCap: 45, hero: true,  gears: true,  cinema: true  },
 };
 
 // `?perf=high|mid|low|min` forces a tier — for testing/debugging on a specific device.
@@ -81,13 +83,34 @@ try { window.__perf = QUALITY; } catch (e) {}
 
 // ---- renderer registry (so the watchdog can change pixel ratio live — runtime-safe, unlike MSAA) --
 const _renderers = new Set();
+const _rendererSizes = new WeakMap();
 export function registerRenderer(renderer) {
   _renderers.add(renderer);
   try { renderer.setPixelRatio(Math.min(devicePixelRatio, QUALITY.dpr)); } catch (e) {}
   return renderer;
 }
+function rendererDpr(width, height) {
+  const requested = Math.min(devicePixelRatio || 1, QUALITY.dpr);
+  const byPixels = Math.sqrt(QUALITY.maxPixels / Math.max(1, width * height));
+  return Math.max(0.55, Math.min(requested, byPixels));
+}
+// The only supported resize path for live landing-page renderers. CSS still receives the full requested
+// size; only the internal drawing buffer is capped, so composition and layout remain pixel-identical.
+export function sizeRenderer(renderer, width, height, updateStyle = false) {
+  const w = Math.max(1, Math.round(width));
+  const h = Math.max(1, Math.round(height));
+  _rendererSizes.set(renderer, { width: w, height: h, updateStyle });
+  try {
+    renderer.setPixelRatio(rendererDpr(w, h));
+    renderer.setSize(w, h, updateStyle);
+  } catch (e) {}
+}
 function applyDprToAll() {
-  _renderers.forEach((r) => { try { r.setPixelRatio(Math.min(devicePixelRatio, QUALITY.dpr)); } catch (e) {} });
+  _renderers.forEach((r) => {
+    const s = _rendererSizes.get(r);
+    if (s) sizeRenderer(r, s.width, s.height, s.updateStyle);
+    else { try { r.setPixelRatio(Math.min(devicePixelRatio, QUALITY.dpr)); } catch (e) {} }
+  });
 }
 function applyLiteClasses() {
   const b = document.body;
@@ -104,7 +127,7 @@ function applyLiteClasses() {
 // "3D vanishes until I reload" bugs. Now the level is a NUMBER on this ladder: demote() steps down,
 // promote() steps back UP once frames have been clean for a sustained stretch, re-deriving QUALITY
 // from the boot preset each time so the two directions can never drift apart.
-const _boot = { dpr: QUALITY.dpr, fpsCap: QUALITY.fpsCap, hero: QUALITY.hero, cinema: QUALITY.cinema, gears: QUALITY.gears };
+const _boot = { dpr: QUALITY.dpr, maxPixels: QUALITY.maxPixels, fpsCap: QUALITY.fpsCap, hero: QUALITY.hero, cinema: QUALITY.cinema, gears: QUALITY.gears };
 const LADDER = [
   (q) => { q.dpr = Math.min(q.dpr, 1.0); },
   (q) => { q.hero = false; },                                        // drop the hovering first
@@ -117,7 +140,7 @@ const _demoteCbs = [];
 export function onDemote(cb) { _demoteCbs.push(cb); }
 let _level = 0;
 function applyLevel(dir, reason) {
-  QUALITY.dpr = _boot.dpr; QUALITY.fpsCap = _boot.fpsCap;
+  QUALITY.dpr = _boot.dpr; QUALITY.maxPixels = _boot.maxPixels; QUALITY.fpsCap = _boot.fpsCap;
   QUALITY.hero = _boot.hero; QUALITY.cinema = _boot.cinema; QUALITY.gears = _boot.gears;
   for (let i = 0; i < _level; i++) LADDER[i](QUALITY);
   applyDprToAll();
