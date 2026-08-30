@@ -12,7 +12,7 @@
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { buildEnderBoard } from './ender-board.js';
-import { QUALITY, registerRenderer } from './perf.js';
+import { QUALITY, registerRenderer, sizeRenderer } from './perf.js';
 
 // Réti–Tartakower, Vienna 1910 — the position right after 8.O-O-O (Black to move, about to blunder).
 export const START_FEN = 'rnb1kb1r/pp3ppp/2p2n2/4q3/4N3/3Q4/PPPB1PPP/2KR1BNR b kq - 0 8';
@@ -45,7 +45,7 @@ function radialTex(stops) {
 export async function createEnderScene(canvas) {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: QUALITY.antialias, alpha: true, powerPreference: 'high-performance' });
   registerRenderer(renderer);   // perf manager owns the pixel ratio (and can lower it live)
-  renderer.setSize(innerWidth, innerHeight);
+  sizeRenderer(renderer, innerWidth, innerHeight, false);
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 0.76;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -265,7 +265,13 @@ export async function createEnderScene(canvas) {
   function setIntro(t) {
     for (const f of _flyers) {
       const lt = (t - f.delay) / INTRO.flyDur;
-      if (lt <= 0) { f.wrap.visible = false; continue; }   // not yet entered
+      if (lt <= 0) {                                      // not yet entered — restore the complete pre-entry state
+        f.wrap.visible = false;
+        f.wrap.position.copy(f.startPos);
+        f.wrap.quaternion.copy(f.restQuat);
+        if (f.mat) f.mat.opacity = 0;
+        continue;
+      }
       f.wrap.visible = true;
       const latP = _smoother(lt / INTRO.latFrac);          // sideways closes early → vertical, centred touchdown
       const vP = _smoother(lt);                            // soft vertical descent onto the surface
@@ -315,7 +321,13 @@ export async function createEnderScene(canvas) {
   function setKing(t) {
     for (const k of _kingRig) {
       const lt = (t - k.at) / KING.fly;
-      if (lt <= 0) { k.wrap.visible = false; continue; }
+      if (lt <= 0) {
+        k.wrap.visible = false;
+        k.wrap.position.copy(k.startPos);
+        k.wrap.quaternion.copy(k.restQuat);
+        if (k.mat) k.mat.opacity = 0;
+        continue;
+      }
       k.wrap.visible = true;
       const vP = _smoother(Math.min(lt, 1));
       k.wrap.position.lerpVectors(k.startPos, k.restPos, vP);   // straight down onto the centre of its square
@@ -536,6 +548,10 @@ export async function createEnderScene(canvas) {
     const d = wrap && wrap.userData && wrap.userData.material && wrap.userData.material.userData._dis;
     if (d) d.uDis.value = p;
     wrap.visible = p < 0.999;
+  }
+  function clearDissolve(wrap) {
+    const d = wrap && wrap.userData && wrap.userData.material && wrap.userData.material.userData._dis;
+    if (d) d.uDis.value = 0;
   }
   if (FX.dissolveQueen) makeDissolvable(MOVES[2].cap_g, 0xffcaa0);   // ONLY the queen (when captured) + the king dissolve
   if (FX.dissolveKing) makeDissolvable(_theKing, 0xffe6b0);          // king → a regal gold dissolve
@@ -1459,6 +1475,10 @@ export async function createEnderScene(canvas) {
 
   // frame(t): the master cinematic clock. setShot stays exported for the offline render stage.
   function frame(t) {
+    // Reset every window-gated shader value on EVERY frame before rebuilding the requested time. This makes
+    // seeking and warm-up truly pure: rendering a late capture can never poison an earlier queen/king frame.
+    if (FX.dissolveQueen && MOVES[2].cap_g) clearDissolve(MOVES[2].cap_g);
+    if (FX.dissolveKing && _theKing) clearDissolve(_theKing);
     setIntro(t);                          // lands + reveals every piece at its rest (cheap; idempotent for large t)
     setKing(t);                           // the two kings drop straight down, one at a time, after the rest have landed
     if (t >= MOVE_START) setMoves(t);     // move the pieces first (so the ending camera can track the falling king)
@@ -1531,7 +1551,11 @@ export async function createEnderScene(canvas) {
   });
   _heatScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), _heatMat));
   const _heatV = new THREE.Vector3();
-  function _sizeHeatRT() { const el = renderer.domElement; _heatRT.setSize(el.width, el.height); _heatMat.uniforms.uAspect.value = el.width / Math.max(1, el.height); }
+  function _sizeHeatRT() {
+    const el = renderer.domElement;
+    if (_heatRT.width !== el.width || _heatRT.height !== el.height) _heatRT.setSize(el.width, el.height);
+    _heatMat.uniforms.uAspect.value = el.width / Math.max(1, el.height);
+  }
   _sizeHeatRT();
 
   // ---- FRONT-OF-TEXT layer: the dialled hero piece(s) render to a SEPARATE canvas the caller stacks ABOVE the
@@ -1543,10 +1567,10 @@ export async function createEnderScene(canvas) {
   function renderFront(canvas) {
     if (!_frontPieces.length || !canvas) return;
     if (!_frontR) {
-      _frontR = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
-      _frontR.setPixelRatio(Math.min(1.5, (typeof devicePixelRatio !== 'undefined' ? devicePixelRatio : 1)));
+      _frontR = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: QUALITY.antialias, powerPreference: 'high-performance' });
+      registerRenderer(_frontR);
       _frontR.setClearColor(0x000000, 0); _frontR.outputColorSpace = renderer.outputColorSpace; _frontR.toneMapping = renderer.toneMapping;
-      _frontR.setSize(innerWidth, innerHeight);
+      sizeRenderer(_frontR, innerWidth, innerHeight, false);
       scene.traverse((o) => { if (o.isLight) o.layers.enableAll(); });   // lights must reach layer 1 too
     }
     _frontR.toneMappingExposure = renderer.toneMappingExposure;
@@ -1554,12 +1578,13 @@ export async function createEnderScene(canvas) {
     camera.layers.set(1); _frontR.render(scene, camera); camera.layers.set(0);
     scene.background = bg;
   }
-  function _resizeFront() { if (_frontR) _frontR.setSize(innerWidth, innerHeight); }
+  function _resizeFront() { if (_frontR) sizeRenderer(_frontR, innerWidth, innerHeight, false); }
 
   // ---- public api ----
   function render() {
     camera.lookAt(lookTarget); camera.updateMatrixWorld();
     if (_heatStrength > 0.01) {                       // composite the heat-haze pass over the blast
+      _sizeHeatRT();                                  // watchdog DPR changes bypass window resize
       _heatV.set(_blast.x, _blastY + 1.2, _blast.z).project(camera);
       _heatMat.uniforms.uCenter.value.set(_heatV.x * 0.5 + 0.5, _heatV.y * 0.5 + 0.5);
       _heatMat.uniforms.uStrength.value = _heatStrength; _heatMat.uniforms.uTime.value = _heatTime;
@@ -1570,7 +1595,7 @@ export async function createEnderScene(canvas) {
   }
   function resize() {
     const w = innerWidth, h = innerHeight;
-    camera.aspect = w / h; camera.updateProjectionMatrix(); renderer.setSize(w, h);
+    camera.aspect = w / h; camera.updateProjectionMatrix(); sizeRenderer(renderer, w, h, false);
     sizeVignette();   // aspect changed → re-fit the camera-child vignette to the new frame
     _smokeScale();    // drawing-buffer height changed → keep the particle point-size world-correct
     _sparkScale();
@@ -1585,23 +1610,20 @@ export async function createEnderScene(canvas) {
   // first pass through the cinematic used to hitch at every arrival (each piece, the flare, the beams,
   // the mushroom, the heat-haze pass). Render ONE frame of every beat now, while the canvas is still
   // invisible (CSS opacity 0), then reset to t=0 — frame(t) is a pure function of t, so this is safe.
-  function warmup() {
-    renderer.compile(scene, camera);
+  async function warmup() {
+    if (renderer.compileAsync) await renderer.compileAsync(scene, camera);
+    else renderer.compile(scene, camera);
     const beats = [0, 1.6, FO_A_S + 0.3, BLACK_KING_AT + 0.3,          // rain · king cut shots
       MOVES[0].at + 0.5, MOVES[1].at + 0.9,                            // blunder glow · sacrifice flare
       MOVES[3].at + 0.8, MOVES[5].at + 0.4,                            // double-check beams · mate
       BUILD_AT + 0.5, EXPLODE_AT + 0.3, EXPLODE_AT + 1.4,              // king fall · fireball/mushroom · heat haze + whiteout
       EXPLODE_AT + 5.0, DURATION - 0.5];                               // hero backdrop · settled tableau
     for (const t of beats) { frame(t); render(); }
-    // the late beats above dissolve the captured queen (Kxd8) + the king to uDis=1 / visible=false. frame(0)
-    // does NOT run setMoves (t<MOVE_START), so it never resets their dissolve → on the LIVE path they stay
-    // fully DISCARDED by the shader (invisible) until their own move window rewrites uDis. Un-dissolve them
-    // here; the trailing frame(0) then re-asserts the correct `visible` via setIntro/setKing. (The offline
-    // render never warms up + walks t upward from 0, so uDis is already 0 there — this only bites live.)
-    if (FX.dissolveQueen && MOVES[2].cap_g) setDissolve(MOVES[2].cap_g, 0);
-    if (FX.dissolveKing && _theKing) setDissolve(_theKing, 0);
-    frame(0); render();                                                // leave it clean at the start
+    frame(0); render();                                                // frame() now restores every gated state itself
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+    try { renderer.getContext().finish(); } catch (e) {}
   }
+  function finishGpu() { try { renderer.getContext().finish(); if (_frontR) _frontR.getContext().finish(); } catch (e) {} }
 
   // gentle rim drift so the metal/marble never sits dead-still
   let _t = 0;
@@ -1614,7 +1636,7 @@ export async function createEnderScene(canvas) {
 
   return {
     scene, camera, renderer, lookTarget, render, resize, tick, setShot, frame, badgeAt, evalAt, cutFadeAt, flashAt, flashGrowAt, ctaAt, setDirector, scenes: SCENES, duration: DURATION, explodeAt: EXPLODE_AT,
-    setAssembly, warmup,
+    setAssembly, warmup, finishGpu,
     frontPieces: _frontPieces, setFrontActive, renderFront,
     pieces: boardData.pieces, GRID: boardData.GRID, squareXYZ: boardData.squareXYZ,
     refs: { spot, wash, beam, VolMat, fog: scene.fog, bulbGlass, amb, coolRim, cyanRim, warmRim, lampGroup, boardRoot: boardData.root, rookBeam, bishopBeam },

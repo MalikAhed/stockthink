@@ -55,25 +55,24 @@ await import('./ui.js');              // nav theme toggle + the "why" colour-syn
 
 // ---- below-the-fold 3D: load LAZILY, never at boot --------------------------------------------
 // Each of these spins up its OWN WebGL context and parses GLBs. Creating all of them at boot is
-// what janked the hero intro and every scroll. Instead: arm an approach-observer per section
-// (loads ~3 screens early — the safety net for fast scrollers) AND idle-preload them in the
-// background once the browser is free after the intro. Whichever fires first wins; the render
-// loops are visibility-gated (only the on-screen scene draws), so off-screen scenes cost nothing.
-function lazy3D(selector, importer, label) {
-  let started = false;
+// what janked the hero intro and exhausted GPU memory on phones. Build a scene only when its section
+// is approaching; offscreen render loops are visibility-gated, and unopened scenes allocate nothing.
+function lazy3D(selector, importer, label, screensAhead = 2) {
+  let task = null;
   const go = () => {
-    if (started) return Promise.resolve();
-    started = true;
-    return importer().catch((err) => console.warn(`[landing] ${label} unavailable — continuing:`, err));
+    if (task) return task;
+    task = importer().catch((err) => console.warn(`[landing] ${label} unavailable — continuing:`, err));
+    return task;
   };
   const el = document.querySelector(selector);
   if (el) {
+    const verticalMargin = Math.round(innerHeight * screensAhead);
     const io = new IntersectionObserver((ents) => {
       if (ents.some((e) => e.isIntersecting)) { io.disconnect(); go(); }
-    }, { rootMargin: '300% 0px' });
+    }, { rootMargin: `${verticalMargin}px 0px` });
     io.observe(el);
   }
-  return go;   // also callable directly (idle preload below)
+  return go;
 }
 // Which below-the-fold 3D loads is tier-gated by the perf manager: the spinning gears (QUALITY.gears)
 // are kept longest; the coach + finale cinematics (QUALITY.cinema) load only when the device can afford
@@ -84,18 +83,30 @@ if (QUALITY.gears) {
   heavy3D.push(lazy3D('.sf-stage', () => import('./logoGears.js'), 'logo gears'));
 }
 if (QUALITY.cinema) {
-  heavy3D.push(lazy3D('section.coach', () => import('./coach.js'), 'coach cinematic'));
+  const coachPreload = lazy3D('section.coach', async () => {
+    const mod = await import('./coach.js'); await mod.coachReady;
+  }, 'coach cinematic', 5);
+  const enderPreload = lazy3D('section.ender', async () => {
+    const mod = await import('./ender.js'); await mod.enderReady;
+  }, 'ender finale', 7);
+  heavy3D.push(coachPreload, enderPreload);
+
+  // Use the user's first real downward scroll as the signal to prepare the remaining story. Work is
+  // sequential (coach, then finale) and starts in idle time, so two large WebGL scenes never parse at
+  // once or compete with the hero intro. The wide observers above remain a fast-scroll safety net.
+  let scrollPreloadArmed = true;
+  const idle = (fn) => window.requestIdleCallback
+    ? requestIdleCallback(fn, { timeout: 1800 })
+    : setTimeout(fn, 120);
+  const preloadStory = () => {
+    if (!scrollPreloadArmed || scrollY < 24) return;
+    scrollPreloadArmed = false;
+    removeEventListener('scroll', preloadStory);
+    idle(async () => { await coachPreload(); idle(() => enderPreload()); });
+  };
+  addEventListener('scroll', preloadStory, { passive: true });
+  preloadStory(); // covers a fast scroll that happened while the post-hero modules were still importing
 }
-// AUTHORING the live finale game (pieces rain in → camera dolly → the moves). Loaded unconditionally
-// for now so it renders while we build it, regardless of detected tier; once the cinematic is approved
-// it bakes back to a <video> (ender-video.js) and this returns to a QUALITY.cinema gate.
-import('./ender.js').catch((err) => console.warn('[landing] ender finale unavailable:', err));
-// Idle-preload, fully staggered (await each → parses never overlap), so they're ready before you
-// reach them but never compete with the intro. Start only AFTER the intro has settled (~3s) — an
-// idle callback firing in a gap mid-intro could parse a GLB and drop a frame. Fast scrollers are
-// covered by the approach-observers above, so this delay never leaves a section empty when reached.
-const onIdle = (fn) => (window.requestIdleCallback ? requestIdleCallback(fn, { timeout: 4000 }) : setTimeout(fn, 300));
-setTimeout(() => { (function pump(i) { if (i >= heavy3D.length) return; onIdle(async () => { await heavy3D[i](); pump(i + 1); }); })(0); }, 3000);
 
 // Boot the adaptive FPS watchdog: it applies the chosen tier's lite classes immediately and then, if real
 // frames are still janky, progressively lowers DPR and disables 3D (hovering hero → cinematics → gears).

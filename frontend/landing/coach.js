@@ -134,7 +134,7 @@ const fill = new THREE.DirectionalLight(0x9fb6d6, 2.1); fill.position.set(3.0, 0
 const rim = new THREE.DirectionalLight(0xffb066, 0.6); rim.position.set(3.4, 1.2, -2.6); scene.add(rim);
 const topL = new THREE.DirectionalLight(0xcfe0ff, 1.4); topL.position.set(0, 4, 0.2); scene.add(topL);
 scene.add(new THREE.AmbientLight(0x202830, 0.4));
-import('three/addons/environments/RoomEnvironment.js').then(({ RoomEnvironment }) => {
+const environmentReady = import('three/addons/environments/RoomEnvironment.js').then(({ RoomEnvironment }) => {
   const pmrem = new THREE.PMREMGenerator(renderer);
   scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
 }).catch(() => {});
@@ -198,7 +198,9 @@ function lerpAngle(cur, target, k) {
   return cur + d * k;
 }
 loader.setMeshoptDecoder(MeshoptDecoder);
-loader.load(new URL('./models/claude-logo.glb', import.meta.url).href, (gltf) => {
+const logoReady = MeshoptDecoder.ready
+  .then(() => loader.loadAsync(new URL('./models/claude-logo.glb', import.meta.url).href))
+  .then((gltf) => {
   const model = gltf.scene;
   model.traverse((o) => { if (o.isMesh) { o.material = clayMaterial(o.material, false); o.material.transparent = true; logoMats.push(o.material); } });
   let box = new THREE.Box3().setFromObject(model);
@@ -223,7 +225,7 @@ loader.load(new URL('./models/claude-logo.glb', import.meta.url).href, (gltf) =>
   maybeAutoplay();
   // dev-only universal scrubber — drives the GSAP timeline (frame() already reads tl.time()).
   if (import.meta.env.DEV) new Scrubber(gsapTransport(tl, { name: 'coach', onClaim: () => { played = true; } }), section, { loop: true });
-}, undefined, (err) => console.warn('[coach] logo GLB failed', err));
+  }).catch((err) => console.warn('[coach] logo GLB failed', err));
 
 // ---- the book (real GLB) --------------------------------------------------------
 // group scale is what the timeline animates (0 -> BOOK.show); the model inside is fit + oriented once.
@@ -231,7 +233,9 @@ const book = new THREE.Group();
 book.position.set(...POS.book);
 book.scale.setScalar(0.001); book.visible = false;
 scene.add(book);
-loader.load(new URL('./models/book.glb', import.meta.url).href, (gltf) => {
+const bookReady = MeshoptDecoder.ready
+  .then(() => loader.loadAsync(new URL('./models/book.glb', import.meta.url).href))
+  .then((gltf) => {
   const m = gltf.scene;
   let b = new THREE.Box3().setFromObject(m);
   const sz = b.getSize(new THREE.Vector3());
@@ -240,7 +244,7 @@ loader.load(new URL('./models/book.glb', import.meta.url).href, (gltf) => {
   m.position.sub(b.getCenter(new THREE.Vector3()));
   m.rotation.set(BOOK.rx, BOOK.ry, BOOK.rz);
   book.add(m); bookModel = m;
-}, undefined, (err) => console.warn('[coach] book GLB failed', err));
+  }).catch((err) => console.warn('[coach] book GLB failed', err));
 
 // ---- the chess board (real GLB) -------------------------------------------------
 // group scale is what the timeline animates (0 -> BOARD.show); the model inside is fit + oriented once.
@@ -669,3 +673,22 @@ function frame() {
   renderer.render(scene, camera);
 }
 frame();
+
+// Resolved only when every coach asset is parsed and its shaders/textures have completed a hidden GPU
+// pass. main.js awaits this promise, so "preloaded" means ready to draw—not merely downloaded.
+async function warmUpCoach() {
+  await Promise.all([environmentReady, logoReady, bookReady, ensureBoard()]);
+  if (!ready) return;
+  const visibility = [];
+  scene.traverse((o) => { visibility.push([o, o.visible]); o.visible = true; });
+  if (renderer.compileAsync) await renderer.compileAsync(scene, camera);
+  else renderer.compile(scene, camera);
+  for (let i = 0; i < 4; i++) {
+    camera.lookAt(lookTarget); camera.updateMatrixWorld(); renderer.render(scene, camera);
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+  }
+  try { renderer.getContext().finish(); } catch (e) {}
+  for (const [o, wasVisible] of visibility) o.visible = wasVisible;
+  if (tl) tl.progress(0, true).pause();
+}
+export const coachReady = warmUpCoach();

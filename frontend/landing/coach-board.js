@@ -11,10 +11,27 @@ import { LAYOUT } from './board-layout.js';
 // assets the hero uses, instead of a 6.8 MB base64 blob.
 
 const _tl = new THREE.TextureLoader();
+const _textures = new Map();
+async function preloadTex(uri, srgb) {
+  if (!uri) return null;
+  const key = `${uri}|${srgb ? 'srgb' : 'linear'}`;
+  if (!_textures.has(key)) {
+    const pending = _tl.loadAsync(uri).then(async (t) => {
+      if (t.image && typeof t.image.decode === 'function') await t.image.decode();
+      t.flipY = false; t.wrapS = t.wrapT = THREE.RepeatWrapping;
+      t.anisotropy = 8; if (srgb) t.colorSpace = THREE.SRGBColorSpace;
+      _textures.set(key, t);
+      return t;
+    });
+    _textures.set(key, pending);
+  }
+  return _textures.get(key);
+}
 function makeTex(uri, srgb) {
   if (!uri) return null;
-  const t = _tl.load(uri); t.flipY = false; t.wrapS = t.wrapT = THREE.RepeatWrapping;
-  t.anisotropy = 8; if (srgb) t.colorSpace = THREE.SRGBColorSpace; return t;
+  const t = _textures.get(`${uri}|${srgb ? 'srgb' : 'linear'}`);
+  if (!t || typeof t.then === 'function') throw new Error(`Coach texture used before preload: ${uri}`);
+  return t;
 }
 function blackMat(P) {
   return new THREE.MeshStandardMaterial({
@@ -38,8 +55,17 @@ export async function buildBoard() {
   const load = (url) => loader.loadAsync(url);
   const root = new THREE.Group();
 
+  // Decode every texture used by the merged board before materials are created. Browser HTTP cache
+  // makes shared hero textures cheap, but this still waits for image decompression instead of first draw.
+  const king = A.king;
+  await Promise.all([
+    preloadTex(BOARD.base, true), preloadTex(BOARD.mr, false),
+    preloadTex(king.base, true), preloadTex(king.nrm, false), preloadTex(king.mr, false),
+  ]);
+
   // ---- board ----
-  const bg = await load(BOARD.glb);
+  const pieceTypes = Object.keys(A);
+  const [bg, ...pieceGlbs] = await Promise.all([load(BOARD.glb), ...pieceTypes.map((type) => load(A[type].glb))]);
   const boardMat = new THREE.MeshStandardMaterial({
     map: makeTex(BOARD.base, true), roughnessMap: makeTex(BOARD.mr, false),
     roughness: 0, metalness: 0.0, envMapIntensity: 0,
@@ -69,8 +95,8 @@ export async function buildBoard() {
 
   // ---- pieces ----
   const GEO = {};
-  for (const type of Object.keys(A)) {
-    const g = await load(A[type].glb);
+  for (let i = 0; i < pieceTypes.length; i++) {
+    const type = pieceTypes[i], g = pieceGlbs[i];
     const m = g.scene; const bx = new THREE.Box3().setFromObject(m); const c = bx.getCenter(new THREE.Vector3());
     m.position.x -= c.x; m.position.z -= c.z; m.position.y -= bx.min.y; GEO[type] = m;
   }
