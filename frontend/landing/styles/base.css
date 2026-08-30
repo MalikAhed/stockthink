@@ -41,7 +41,7 @@
   /* hero wordmark - split, king sits between via z-layering */
   #hero{position:absolute;inset:0;z-index:3;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;transform:translateY(var(--hero-y))}
   /* hero hidden until intro runs (prevents flash) */
-  .pre-intro .wordmark .w, .pre-intro #tagline, .pre-intro nav, .pre-intro .meta{opacity:0}
+  .pre-intro .wordmark .w, .pre-intro #tagline, .pre-intro .hero-cta, .pre-intro nav, .pre-intro .meta{opacity:0}
   .wordmark{margin:0;display:flex;align-items:center;justify-content:center;gap:var(--wm-gap);
     font-family:'Bricolage Grotesque',sans-serif;font-weight:var(--wm-weight);font-size:var(--wm-size);
     line-height:0.9;letter-spacing:var(--wm-spacing);color:var(--wm-color);text-shadow:var(--wm-shadow);position:relative}
@@ -50,6 +50,20 @@
   #tagline{position:absolute;left:50%;bottom:var(--tag-bottom,14vh);transform:translateX(-50%);font-size:var(--tag-size);color:var(--muted);letter-spacing:0.16em;
     text-transform:uppercase;font-weight:500;display:flex;align-items:center;gap:14px;white-space:nowrap}
   #tagline .dot{width:5px;height:5px;border-radius:50%;background:var(--dot-color);box-shadow:0 0 10px var(--dot-glow)}
+  .hero-cta{position:absolute;left:50%;bottom:5.5vh;transform:translateX(-50%);pointer-events:auto;
+    display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:48px;padding:0 24px;
+    border:1px solid rgba(255,255,255,.18);border-radius:999px;background:#000;color:#fff;text-decoration:none;
+    font-size:14px;font-weight:700;letter-spacing:-.01em;white-space:nowrap;box-shadow:0 12px 28px rgba(0,0,0,.3);
+    transition:transform .2s ease,box-shadow .2s ease,background .2s ease}
+  .hero-cta:hover{transform:translateX(-50%) translateY(-2px);background:#151515;box-shadow:0 16px 34px rgba(0,0,0,.38)}
+  .hero-cta span{font-size:18px;line-height:1;transition:transform .2s ease}
+  .hero-cta:hover span{transform:translateX(3px)}
+  @media (max-width:640px){
+    .hero-cta{bottom:6vh;min-height:46px;padding:0 21px;font-size:13px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .hero-cta,.hero-cta span{transition:none}
+  }
 
   /* top nav - minimal, awards style */
   nav{position:fixed;top:var(--card-top);left:var(--card-side);right:var(--card-side);z-index:60;display:flex;align-items:center;justify-content:space-between;
